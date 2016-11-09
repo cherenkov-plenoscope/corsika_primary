@@ -1,0 +1,26 @@
+--- /home/sebastian/Desktop/the_crazy_cor/corsika-75600/bernlohr/iact.c	2016-08-17 15:36:00.000000000 +0200
++++ iact.c	2016-11-09 22:26:53.483445341 +0100
+@@ -93,13 +93,13 @@
+ #define IACT_ATMO_VERSION "1.49 (2016-01-27)"
+ 
+ #ifndef MAX_IO_BUFFER
+-# define MAX_IO_BUFFER 200000000
++# define MAX_IO_BUFFER 200UL*1000UL*1000UL*1000UL
+ #endif
+ 
+ #ifndef MAX_BUNCHES
+ /* The maximum number of bunches per telescope that the telescope simulation */
+ /* can read. This should be adapted to actual limits there. */
+-# define MAX_BUNCHES 5000000
++# define MAX_BUNCHES 5UL*1000UL*1000UL*1000UL
+ #endif
+ 
+ #if defined(IACTEXT)
+@@ -1181,6 +1181,7 @@
+              (long)(max_io_buffer/1000000));
+ 
+       iobuf->max_length = max_io_buffer;
++      iobuf->max_length = 6UL*1000UL*1000UL*1000UL;
+ 
+       if ( output_fname == NULL )
+          output_fname = "telescope.dat";
