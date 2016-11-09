@@ -11,11 +11,12 @@ setup(
     packages=[
         'custom_corsika',
     ],
+    package_data={'custom_corsika': ['resources/*']},
     install_requires=[
         'docopt',
     ],
     entry_points={'console_scripts': [
-        'custom_corsika = custom_corsika.main:main',
+        'custom_corsika = custom_corsika.__init__:main',
     ]},
     zip_safe=False,
 )
