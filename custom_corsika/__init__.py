@@ -70,16 +70,6 @@ def main():
             os.path.join(install_path, 'coconut_configure.stderr'),
             stdin=open('/dev/null', 'r'))
 
-        # Extend the IACT.c buffer sizes
-        iact_diff_path = pkg_resources.resource_filename(
-                'custom_corsika', 
-                'resources/iact.c.diff')
-
-        call_and_save_std(
-            ['patch', 'bernlohr/iact.c', iact_diff_path], 
-            os.path.join(install_path, 'iact_patch.stdout'),
-            os.path.join(install_path, 'iact_patch.stderr'))
-
         # coconut build
         call_and_save_std(
             ['./coconut', '-i'], 
