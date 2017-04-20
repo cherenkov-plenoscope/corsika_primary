@@ -1,7 +1,7 @@
 """
 Install a custom CORSIKA for the Atmospheric Cherenkov Plenoscope (ACP)
 
-Usage: custom_corsika -p=INSTALL_PATH --username=USERNAME --password=PASSWORD
+Usage: acp_corsika_install -p=INSTALL_PATH --username=USERNAME --password=PASSWORD
 
 Options:
     -p --path=INSTALL_PATH      The path to install CORSIKA in

@@ -1,22 +1,22 @@
 from distutils.core import setup
 
 setup(
-    name='custom_corsika',
+    name='acp_corsika_install',
     version='0.0.0',
     description='Install CORSIKA for the Atmospheric Cherenkov Plenoscope (ACP).',
-    url='https://github.com/TheBigLebowSky/custom_corsika.git',
+    url='https://github.com/TheBigLebowSky/acp_corsika_install.git',
     author='Sebastian Achim Mueller, Axel Engels',
     author_email='sebmuell@phys.ethz.ch',
     license='MIT',
     packages=[
-        'custom_corsika',
+        'acp_corsika_install',
     ],
-    package_data={'custom_corsika': ['resources/*']},
+    package_data={'acp_corsika_install': ['resources/*']},
     install_requires=[
         'docopt',
     ],
     entry_points={'console_scripts': [
-        'custom_corsika = custom_corsika.__init__:main',
+        'acp_corsika_install = acp_corsika_install.__init__:main',
     ]},
     zip_safe=False,
 )
