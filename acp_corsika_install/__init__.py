@@ -59,7 +59,7 @@ def main():
 
         # Provide coconut config.h
         corsika_config_path = pkg_resources.resource_filename(
-                'custom_corsika', 
+                'acp_corsika_install', 
                 'resources/config.h')
         shutil.copyfile(corsika_config_path, 'include/config.h')
 
@@ -82,7 +82,7 @@ def main():
 
         # Copy additional ATMPROFS from sim tel array to the CORSIKA run directory
         add_atmprofs_path = pkg_resources.resource_filename(
-            'custom_corsika', 
+            'acp_corsika_install', 
             'resources/atmprofs/atmprof*')
         for atmprof in glob.glob(add_atmprofs_path):                                                                                                                                      
             shutil.copy(atmprof, 'run')
