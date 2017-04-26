@@ -15,12 +15,5 @@ def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
 
     stdin           Optional stdin fot the target.
     """
-    stdout = open(stdout_path, 'w')
-    stderr = open(stderr_path, 'w')
-    subprocess.call(
-        target,
-        stdout=stdout, 
-        stderr=stderr,
-        stdin=stdin)
-    stdout.close()
-    stderr.close()
+    with open(stdout_path, 'w') as stdout, open(stderr_path, 'w') as stderr:
+        subprocess.call(target, stdout=stdout, stderr=stderr, stdin=stdin)
