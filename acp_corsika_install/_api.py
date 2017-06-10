@@ -37,7 +37,7 @@ def install(install_path, username, password):
     corsika_tar = 'corsika-75600.tar.gz'
     ftp = ftplib.FTP('ikp-ftp.ikp.kit.edu') 
     ftp.login(username, password) 
-    ftp.cwd('corsika-v750/')
+    ftp.cwd('old/v750/')
     ftp.retrbinary('RETR '+corsika_tar, open(corsika_tar, 'wb').write)
     ftp.quit()
 
