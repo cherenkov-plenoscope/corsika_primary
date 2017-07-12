@@ -7,7 +7,7 @@ setup(
     url='https://github.com/TheBigLebowSky/acp_corsika_install.git',
     author='Sebastian Achim Mueller, Axel Engels',
     author_email='sebmuell@phys.ethz.ch',
-    license='MIT',
+    license='GPL v3',
     packages=[
         'acp_corsika_install',
     ],
