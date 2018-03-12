@@ -1,4 +1,4 @@
-#How to diff and path
+#How to diff and patch
 
 Make a diff from the original using
 ```bash
