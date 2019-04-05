@@ -43,6 +43,7 @@ def install(install_path, username, password, resource_path):
     os.chdir(install_path)
 
     # download CORSIKA from KIT
+    # wget uses $http_proxy environment-variables in case of proxy
     corsika_tar = 'corsika-75600.tar.gz'
     call_and_save_std(
         target=[
