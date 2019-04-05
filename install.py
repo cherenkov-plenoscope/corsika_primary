@@ -43,11 +43,12 @@ def install(install_path, username, password, resource_path):
     os.chdir(install_path)
 
     # download CORSIKA from KIT
+    corsika_tar = 'corsika-75600.tar.gz'
     call_and_save_std(
         target=[
             'wget',
             'ftp://' + username + ':' + password + '@' +
-            'ikp-ftp.ikp.kit.edu/old/v750/corsika-75600.tar.gz'],
+            'ikp-ftp.ikp.kit.edu/old/v750/' + corsika_tar],
         stdout_path='wget-ftp-download.o',
         stderr_path='wget-ftp-download.e')
 
