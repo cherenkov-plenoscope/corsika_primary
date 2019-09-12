@@ -32,6 +32,18 @@ import tarfile
 import shutil
 import subprocess
 import glob
+import hashlib
+
+
+CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST = '9ef453eebc4bf5b8b04209b1acdebda2'
+
+
+def md5sum(path):
+    hash_md5 = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
