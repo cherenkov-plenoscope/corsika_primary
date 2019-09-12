@@ -15,15 +15,15 @@ Options:
     --resource_path=PATH    [default: ./resources] The resources for this
                             particular flavor of CORSIKA.
 
-During the installation, the std-out and std-error of the 'coconut_configure'
-and 'coconut_make' procedures are written into text-files in the install-path.
+Std-out and std-error of 'coconut_configure' and 'coconut_make' are written to
+text-files in the install-path.
 
-Visit the CORSIKA homepage: https://www.ikp.kit.edu/corsika/
-You can test your username and password in the download section of the
-KIT CORSIKA webpages.
+Visit CORSIKA: https://www.ikp.kit.edu/corsika/
+You can test your username and password in the download-section of the
+KIT-CORSIKA-webpages.
 
-If you do not have yet the CORSIKA username and password, go and drop the
-CORSIKA developers an e-mail and kindly ask for the password.
+If you do not have the CORSIKA username and password, go and drop the
+CORSIKA-developers an e-mail and kindly ask for the password.
 """
 import docopt
 import os
