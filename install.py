@@ -57,24 +57,27 @@ def install(install_path, username, password, resource_path):
     os.makedirs(install_path, exist_ok=True)
     os.chdir(install_path)
 
-    # download CORSIKA from KIT
-    # wget uses $http_proxy environment-variables in case of proxy
-    corsika_tar = 'corsika-75600.tar.gz'
-    call_and_save_std(
-        target=[
-            'wget',
-            'ftp://' + username + ':' + password + '@' +
-            'ikp-ftp.ikp.kit.edu/old/v750/' + corsika_tar],
-        stdout_path='wget-ftp-download.o',
-        stderr_path='wget-ftp-download.e')
+    corsika_tar_path = 'corsika-75600.tar.gz'
+    if not os.path.exists(corsika_tar_path):
+        # download CORSIKA from KIT
+        # wget uses $http_proxy environment-variables in case of proxy
+        call_and_save_std(
+            target=[
+                'wget',
+                'ftp://' + username + ':' + password + '@' +
+                'ikp-ftp.ikp.kit.edu/old/v750/' + corsika_tar_path],
+            stdout_path='wget-ftp-download.o',
+            stderr_path='wget-ftp-download.e')
+
+    assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(corsika_tar_path)
 
     # untar, unzip the CORSIKA download
-    tar = tarfile.open(corsika_tar)
+    tar = tarfile.open(corsika_tar_path)
     tar.extractall(path=install_path)
     tar.close()
 
     # Go into CORSIKA dir
-    corsika_path = os.path.splitext(os.path.splitext(corsika_tar)[0])[0]
+    corsika_path = os.path.splitext(os.path.splitext(corsika_tar_path)[0])[0]
     os.chdir(corsika_path)
 
     # Provide the ACP coconut config.h
