@@ -3,7 +3,10 @@
 """
 Download and install CORSIKA for the Cherenkov-plenoscope.
 
-Usage: install.py --install_path=PATH --username=USERNAME --password=PASSWORD [--resource_path=PATH]
+Usage: install.py --install_path=PATH \
+                  --username=USERNAME \
+                  --password=PASSWORD \
+                  [--resource_path=PATH]
 
 Options:
     --install_path=PATH     Install-path for CORSIKA.
