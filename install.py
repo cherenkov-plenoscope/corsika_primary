@@ -54,7 +54,7 @@ def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
 def install(install_path, username, password, resource_path):
     install_path = os.path.abspath(install_path)
     resource_path = os.path.abspath(resource_path)
-    os.mkdir(install_path)
+    os.makedirs(install_path, exist_ok=True)
     os.chdir(install_path)
 
     # download CORSIKA from KIT
