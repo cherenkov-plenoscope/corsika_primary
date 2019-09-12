@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2017 Sebastian A. Mueller
+# Copyright 2017-2019 Sebastian A. Mueller
 """
 Download and install CORSIKA for the Cherenkov-plenoscope.
 
