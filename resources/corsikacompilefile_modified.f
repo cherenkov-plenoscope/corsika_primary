@@ -3736,10 +3736,6 @@ C  HEIGHT FOR START AT THICK0 (IN G/CM**2)
 C  WHICH IS 112.8 KM FOR THICK0 = 0
         THICK0 = 42.0
 
-C ====================================================================
-C END SETTING PRIMARY PARTICLE
-C ====================================================================
-
         IF ( ELCUT(1) .GT. PRMPAR(1)  .AND.  PRMPAR(0) .GE. 7.D0 ) THEN
           WRITE(MONIOU,*) 'ELCUT(1) SELECTED INCORRECT < ENERGY= ',PRMPAR(1)
           WRITE(MONIOU,*)
@@ -3779,6 +3775,10 @@ C ====================================================================
  669      FORMAT(' PRIMARY ANGLES ARE: THETA = ',F7.4,
      *           ' RAD,',' PHI = ',F7.4,' RAD')
         ENDIF
+
+C ====================================================================
+C END SETTING PRIMARY PARTICLE
+C ====================================================================
 
         PRMPAR(5) = HEIGH( THICK0 )
         IF ( LLONGI ) LPCT0 = MIN( INT( THICK0*THSTPI ), LPCT0 )
