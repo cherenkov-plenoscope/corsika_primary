@@ -3757,6 +3757,8 @@ CC      DO  495  L = 1, NSEQ
 CC        CALL RMMAQD( ISEED(1,L),L,'RV' )
 CC495   CONTINUE
 
+        PRMPAR(0) = 3.0
+
 C  GET PRIMARY ENERGY INTO PRMPAR(1)
         IF ( ISPEC .EQ. 0 ) THEN
           PRMPAR(1) = LLIMIT
