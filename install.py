@@ -103,7 +103,7 @@ def install(corsika_tar_path, install_path, resource_path, modify):
             join(
                 resource_path,
                 'corsika75600Linux_QGSII_urqmd_compilefile_modified.f'),
-            join('src', 'corsika75600Linux_QGSII_urqmd_compilefile.f'))
+            join('src', 'corsikacompilefile.f'))
 
     # coconut build
     call_and_save_std(
