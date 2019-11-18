@@ -3726,9 +3726,14 @@ CC      DO  495  L = 1, NSEQ
 CC        CALL RMMAQD( ISEED(1,L),L,'RV' )
 CC495   CONTINUE
 
+C ====================================================================
+C START SETTING PRIMARY PARTICLE
+C ====================================================================
+
+C PARTICLE TYPE
         PRMPAR(0) = 3.0
 
-C  GET PRIMARY ENERGY INTO PRMPAR(1)
+C ENERGY
         PRMPAR(1) = 1.337
 
         IF ( ELCUT(1) .GT. PRMPAR(1)  .AND.  PRMPAR(0) .GE. 7.D0 ) THEN
@@ -3769,6 +3774,7 @@ C  IF YOU WANT TO USE KINETIC ENERGY IN PRIMARY SPECTRUM
 C  YOU HAVE TO ADD THE PRIMARY''S REST MASS:
 cc       PRMPAR(1) = PRMPAR(1) + PAMA(NINT( PRMPAR(0) ))
 
+C PARTICLE DIRECTION
         THETAP = 0.13
         PHIP   = 0.37
         PRMPAR(2) = COS( THETAP )
@@ -3783,6 +3789,12 @@ cc       PRMPAR(1) = PRMPAR(1) + PAMA(NINT( PRMPAR(0) ))
 
 C  DEFINE HEIGHT FOR START AT THICK0 (IN G/CM**2)
 C  WHICH IS 112.8 KM FOR THICK0 = 0
+        THICK0 = 42.0
+
+C ====================================================================
+C END SETTING PRIMARY PARTICLE
+C ====================================================================
+
         PRMPAR(5) = HEIGH( THICK0 )
 
         IF ( LLONGI ) LPCT0 = MIN( INT( THICK0*THSTPI ), LPCT0 )
