@@ -100,9 +100,7 @@ def install(corsika_tar_path, install_path, resource_path, modify):
 
     if modify:
         shutil.copyfile(
-            join(
-                resource_path,
-                'corsika75600Linux_QGSII_urqmd_compilefile_modified.f'),
+            join(resource_path, 'corsikacompilefile_modified.f'),
             join('src', 'corsikacompilefile.f'))
 
     # coconut build
