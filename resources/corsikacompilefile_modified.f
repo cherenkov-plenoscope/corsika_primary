@@ -3781,71 +3781,14 @@ C  IF YOU WANT TO USE KINETIC ENERGY IN PRIMARY SPECTRUM
 C  YOU HAVE TO ADD THE PRIMARY''S REST MASS:
 cc       PRMPAR(1) = PRMPAR(1) + PAMA(NINT( PRMPAR(0) ))
 
-C  GET PRIMARY ANGLES OF INCIDENCE
-        IF ( FIXINC ) THEN
-C  PRIMARY ANGLE FIXED
-          THETAP = THETPR(1)
-          PHIP   = PHIPR(1)
-
-          IF ( VUECON(2) .GT. 0.D0 ) THEN
-C  THROW UNIFORMLY DISTRIBUTED DIRECTION IN VIEWING CONE OR CONE RING
-C  FOR NOW
-
-   46       CALL RMMARD( RD,2,1 )
-
-            CT1 = COS( VUECON(1) )
-            CT2 = COS( VUECON(2) )
-            CTT = RD(2) * ( CT2 - CT1 ) + CT1
-            THETAP = ACOS( CTT )
-            PHIP = RD(1) * PI2
-C  TEMPORARY CARTESIAN COORDINATES
-            XVC1 = COS( PHIP )*SIN( THETAP )
-            YVC1 = SIN( PHIP )*SIN( THETAP )
-            ZVC1 = COS( THETAP )
-C  ROTATE AROUND Y AXIS
-            XVC2 = XVC1*COS( THETPR(1) ) + ZVC1*SIN( THETPR(1) )
-            YVC2 = YVC1
-            ZVC2 = ZVC1*COS( THETPR(1) ) - XVC1*SIN( THETPR(1) )
-
-            THETAP = ACOS( ZVC2 )
-
-            IF ( THETAP .GT. 70.D0*(PI/180.D0) ) GOTO 46
-
-            IF ( XVC2 .NE. 0.D0  .OR.  YVC2 .NE. 0.D0 ) THEN
-              PHIP = ATAN2(YVC2,XVC2) + PHIPR(1)
-            ELSE
-              PHIP = PHIPR(1)
-            ENDIF
-            IF ( PHIP .GT. PI2  ) PHIP = PHIP - PI2
-            IF ( PHIP .LT. 0.D0 ) PHIP = PHIP + PI2
-          ENDIF
-
-          CALL EXTPRM(PRMPAR(0), PRMPAR(1), THETAP, PHIP)
-          CTT = COS( THETAP )
-
-          PRMPAR(2) = COS( THETAP )
-
-        ELSE
-C  USE EQUAL FLUX FROM ALL DIRECTIONS. THIS ASSUMES A VOLUME DETECTOR
-C  INSENSITIVE ON THE INCIDENCE ANGLE.
-           CALL RMMARD( RD,2,1 )
-           CT1 = COS( THETPR(1) )
-           CT2 = COS( THETPR(2) )
-           CTT = RD(2) * ( CT2 - CT1 ) + CT1
-           THETAP = ACOS( CTT )
-          PHIP   = RD(1) * ( PHIPR(2) - PHIPR(1) ) + PHIPR(1)
-
-          CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP )
-          CTT = COS( THETAP )
-          PRMPAR(2) = CTT
-        ENDIF
-
+        THETAP = 0.13
+        PHIP   = 0.37
+        PRMPAR(2) = COS( THETAP )
         PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
         PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
+
         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
-
-          IF ( VUECON(2) .GT. 0.D0 ) WRITE(MONIOU,669) THETAP,PHIP
-
+          WRITE(MONIOU,669) THETAP,PHIP
  669      FORMAT(' PRIMARY ANGLES ARE: THETA = ',F7.4,
      *           ' RAD,',' PHI = ',F7.4,' RAD')
         ENDIF
