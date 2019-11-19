@@ -61,11 +61,7 @@ int telout_(
    cors_real_now_t *pv, 
    cors_real_now_t *ctime, 
    cors_real_now_t *zem, 
-   cors_real_now_t *lambda, 
-   double *temis, 
-   double *penergy, 
-   double *amass, 
-   double *charge);
+   cors_real_now_t *lambda);
 void telend_(cors_real_t evte[273]);
 
 
@@ -194,11 +190,11 @@ int telout_ (
    cors_real_now_t *pv, 
    cors_real_now_t *ctime, 
    cors_real_now_t *zem , 
-   cors_real_now_t *lambda, 
-   double *temis, 
-   double *penergy, 
-   double *amass, 
-   double *charge
+   cors_real_now_t *lambda
+   /*double *temis,
+   double *penergy,
+   double *amass,
+   double *charge*/
 ) {
    struct Bunch bunch;
 
@@ -210,8 +206,8 @@ int telout_ (
    bunch.arrival_time = *ctime;
    bunch.emission_altitude = *zem; 
    bunch.wavelength = *lambda;
-   bunch.mother_mass = *amass;
-   bunch.mother_charge = *charge;
+   bunch.mother_mass = 0.0;
+   bunch.mother_charge = 0.0;
 
    Bunch_warn_if_size_above_one(&bunch);
 
