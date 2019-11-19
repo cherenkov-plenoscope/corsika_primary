@@ -102,6 +102,12 @@ def install(corsika_tar_path, install_path, resource_path, modify):
         shutil.copyfile(
             join(resource_path, 'corsikacompilefile_modified.f'),
             join('src', 'corsikacompilefile.f'))
+        shutil.copy(
+            join(resource_path, 'iact.c'),
+            join('src', 'bernlohr', 'iact.c'))
+        shutil.copytree(
+            join(resource_path, 'CherenkovInOut'),
+            join('src', 'bernlohr', 'CherenkovInOut'))
 
     # coconut build
     call_and_save_std(
