@@ -165,8 +165,8 @@ static int64_t _mtar_raw_to_header(
   sscanf(rh->size, "%lo", &h->size);
   sscanf(rh->mtime, "%lo", &h->mtime);
   h->type = rh->type;
-  strcpy(h->name, rh->name);
-  strcpy(h->linkname, rh->linkname);
+  snprintf(h->name, sizeof(h->name), "%s", rh->name);
+  snprintf(h->linkname, sizeof(h->linkname), "%s", rh->linkname);
 
   return MTAR_ESUCCESS;
 }
@@ -179,17 +179,17 @@ static int64_t _mtar_header_to_raw(
 
   /* Load header into raw header */
   memset(rh, 0, sizeof(*rh));
-  sprintf(rh->mode, "%lo", h->mode);
-  sprintf(rh->owner, "%lo", h->owner);
-  sprintf(rh->size, "%lo", h->size);
-  sprintf(rh->mtime, "%lo", h->mtime);
+  snprintf(rh->mode, sizeof(rh->mode), "%lo", h->mode);
+  snprintf(rh->owner, sizeof(rh->owner), "%lo", h->owner);
+  snprintf(rh->size, sizeof(rh->size), "%lo", h->size);
+  snprintf(rh->mtime, sizeof(rh->mtime), "%lo", h->mtime);
   rh->type = h->type ? h->type : MTAR_TREG;
-  strcpy(rh->name, h->name);
-  strcpy(rh->linkname, h->linkname);
+  snprintf(rh->name, sizeof(rh->name), "%s", h->name);
+  snprintf(rh->linkname, sizeof(rh->linkname), "%s", h->linkname);
 
   /* Calculate and write checksum */
   chksum = _mtar_checksum(rh);
-  sprintf(rh->checksum, "%06lo", chksum);
+  snprintf(rh->checksum, sizeof(rh->checksum), "%06lo", chksum);
   rh->checksum[7] = ' ';
 
   return MTAR_ESUCCESS;
@@ -392,7 +392,7 @@ int64_t mtar_write_file_header(mtar_t *tar, const char *name, uint64_t size) {
   mtar_header_t h;
   /* Build header */
   memset(&h, 0, sizeof(h));
-  strcpy(h.name, name);
+  snprintf(h.name, sizeof(h.name), "%s", name);
   h.size = size;
   h.type = MTAR_TREG;
   h.mode = 0664;
@@ -405,7 +405,7 @@ int64_t mtar_write_dir_header(mtar_t *tar, const char *name) {
   mtar_header_t h;
   /* Build header */
   memset(&h, 0, sizeof(h));
-  strcpy(h.name, name);
+  snprintf(h.name, sizeof(h.name), "%s", name);
   h.type = MTAR_TDIR;
   h.mode = 0775;
   /* Write header */
