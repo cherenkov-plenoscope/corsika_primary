@@ -43,24 +43,24 @@ typedef double cors_dbl_t;
 /* line in tellni_ are not used because compiler-dependent.        */
 void telfil_(char *name);
 void telset_(
-   cors_real_now_t *x, 
-   cors_real_now_t *y, 
-   cors_real_now_t *z, 
+   cors_real_now_t *x,
+   cors_real_now_t *y,
+   cors_real_now_t *z,
    cors_real_now_t *r);
 void telrnh_(cors_real_t runh[273]);
 void telrne_(cors_real_t rune[273]);
 void televt_(
-   cors_real_t evth[273], 
+   cors_real_t evth[273],
    cors_real_dbl_t prmpar[PRMPAR_SIZE]);
 int telout_(
-   cors_real_now_t *bsize, 
-   cors_real_now_t *wt, 
-   cors_real_now_t *px, 
-   cors_real_now_t *py, 
-   cors_real_now_t *pu, 
-   cors_real_now_t *pv, 
-   cors_real_now_t *ctime, 
-   cors_real_now_t *zem, 
+   cors_real_now_t *bsize,
+   cors_real_now_t *wt,
+   cors_real_now_t *px,
+   cors_real_now_t *py,
+   cors_real_now_t *pu,
+   cors_real_now_t *pv,
+   cors_real_now_t *ctime,
+   cors_real_now_t *zem,
    cors_real_now_t *lambda);
 void telend_(cors_real_t evte[273]);
 
@@ -109,9 +109,9 @@ void telfil_ (char *name) {
  *  @return (none)
 */
 void telset_ (
-   cors_real_now_t *x, 
-   cors_real_now_t *y, 
-   cors_real_now_t *z, 
+   cors_real_now_t *x,
+   cors_real_now_t *y,
+   cors_real_now_t *z,
    cors_real_now_t *r
 ) {
    DetectorSphere_init(&detector, (*x), (*y), (*z), (*r));
@@ -182,14 +182,14 @@ void televt_ (cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
  *             output should go to CORSIKA file anyway)
 */
 int telout_ (
-   cors_real_now_t *bsize, 
-   cors_real_now_t *wt, 
-   cors_real_now_t *px, 
-   cors_real_now_t *py, 
-   cors_real_now_t *pu, 
-   cors_real_now_t *pv, 
-   cors_real_now_t *ctime, 
-   cors_real_now_t *zem , 
+   cors_real_now_t *bsize,
+   cors_real_now_t *wt,
+   cors_real_now_t *px,
+   cors_real_now_t *py,
+   cors_real_now_t *pu,
+   cors_real_now_t *pv,
+   cors_real_now_t *ctime,
+   cors_real_now_t *zem ,
    cors_real_now_t *lambda
    /*double *temis,
    double *penergy,
@@ -204,7 +204,7 @@ int telout_ (
    bunch.cx = *pu;
    bunch.cy = *pv;
    bunch.arrival_time = *ctime;
-   bunch.emission_altitude = *zem; 
+   bunch.emission_altitude = *zem;
    bunch.wavelength = *lambda;
    bunch.mother_mass = 0.0;
    bunch.mother_charge = 0.0;
@@ -240,29 +240,29 @@ void telend_ (cors_real_t evte[273]) {
 void telsmp_(char *name);
 void telshw_(void);
 void telinf_(
-   int *itel, 
-   double *x, 
-   double *y, 
-   double *z, 
-   double *r, 
+   int *itel,
+   double *x,
+   double *y,
+   double *z,
+   double *r,
    int *exists);
-void tellni_(char *line, int *llength); 
+void tellni_(char *line, int *llength);
 void telasu_(
-   int *n, 
-   cors_real_dbl_t *dx, 
+   int *n,
+   cors_real_dbl_t *dx,
    cors_real_dbl_t *dy);
 void telprt_ (cors_real_t* datab, int *maxbuf);
 void tellng_ (
-   int *type, 
-   double *data, 
-   int *ndim, 
-   int *np, 
-   int *nthick, 
+   int *type,
+   double *data,
+   int *ndim,
+   int *np,
+   int *nthick,
    double *thickstep);
 void extprm_ (
-   cors_real_dbl_t *type, 
+   cors_real_dbl_t *type,
    cors_real_dbl_t *eprim,
-   double *thetap, 
+   double *thetap,
    double *phip);
 
 
@@ -271,9 +271,9 @@ void extprm_ (
  *         of primary type, energy, and direction.
  */
 void extprm_ (
-   cors_real_dbl_t *type, 
+   cors_real_dbl_t *type,
    cors_real_dbl_t *eprim,
-   double *thetap, 
+   double *thetap,
    double *phip
 ) {
    return;
@@ -306,11 +306,11 @@ void telshw_ () {
  * @param  exists   telescope exists
 */
 void telinf_ (
-   int *itel, 
-   double *x, 
-   double *y, 
-   double *z, 
-   double *r, 
+   int *itel,
+   double *x,
+   double *y,
+   double *z,
+   double *r,
    int *exists
 ) {
    fprintf(stderr, "ABORT: The telinf_ was called.\n");
@@ -377,11 +377,11 @@ void telprt_ (cors_real_t *datab, int *maxbuf) {
  *  @return  (none)
 */
 void tellng_ (
-   int *type, 
-   double *data, 
-   int *ndim, 
-   int *np, 
-   int *nthick, 
+   int *type,
+   double *data,
+   int *ndim,
+   int *np,
+   int *nthick,
    double *thickstep
 ) {
    return;
