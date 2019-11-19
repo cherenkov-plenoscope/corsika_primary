@@ -3741,14 +3741,17 @@ C PARTICLE DIRECTION
 C  HEIGHT FOR START AT THICK0 (IN G/CM**2)
 C  WHICH IS 112.8 KM FOR THICK0 = 0
         THICK0 = 42.0
-
-        IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 )
-     *     WRITE(MONIOU,*) 'PRIMARY ENERGY = ',PRMPAR(1),' GEV'
+        PRMPAR(5) = HEIGH( THICK0 )
 
         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
-          WRITE(MONIOU,669) THETAP,PHIP
- 669      FORMAT(' PRIMARY ANGLES ARE: THETA = ',F7.4,
-     *           ' RAD,',' PHI = ',F7.4,' RAD')
+          WRITE(MONIOU,*) '-----------------------------------'
+          WRITE(MONIOU,*) 'PRIMARY PARTICLE = ', PRMPAR(0), ' '
+          WRITE(MONIOU,*) 'PRIMARY ENERGY   = ', PRMPAR(1), ' GEV'
+          WRITE(MONIOU,*) 'PRIMARY THETAP   = ', THETAP, ' RAD'
+          WRITE(MONIOU,*) 'PRIMARY PHIP     = ', PHIP, ' RAD'
+          WRITE(MONIOU,*) 'PRIMARY HEIGHT   = ', PRMPAR(5), ' CM'
+          WRITE(MONIOU,*) '                 = ', THICK0, ' G/CM**2'
+          WRITE(MONIOU,*) '-----------------------------------'
         ENDIF
 
         IF ( PRMPAR(1) .LT. LLIMIT .OR. PRMPAR(1) .GT. ULIMIT ) THEN
@@ -3771,7 +3774,7 @@ C ====================================================================
 C END SETTING PRIMARY PARTICLE
 C ====================================================================
 
-        PRMPAR(5) = HEIGH( THICK0 )
+        
         IF ( LLONGI ) LPCT0 = MIN( INT( THICK0*THSTPI ), LPCT0 )
 
 C  COUNTER FOR PARTICLE OUTPUT
