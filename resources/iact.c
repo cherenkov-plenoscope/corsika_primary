@@ -69,8 +69,8 @@ void telend_(cors_real_t evte[273]);
 
 /* =============================================================== */
 /* CORSIKA function called from this module: */
-extern double heigh_ (double *thickness);
-extern double refidx_ (double *height);
+extern double heigh_(double *thickness);
+extern double refidx_(double *height);
 
 #include "CherenkovInOut/Bunch.h"
 #include "CherenkovInOut/CherenkovInOut.h"
@@ -92,8 +92,8 @@ struct MT19937 prng;
  * Define the output file for photon bunches hitting the telescopes.
  * @param  name    Output file name.
 */
-void telfil_ (char *name) {
-    strcpy(output_path, name);
+void telfil_(char *name) {
+    snprintf(output_path, sizeof(output_path), "%s", name);
     return;
 }
 
@@ -110,7 +110,7 @@ void telfil_ (char *name) {
  *  @param  r  radius [cm] within which the telescope is fully contained
  *  @return (none)
 */
-void telset_ (
+void telset_(
     cors_real_now_t *x,
     cors_real_now_t *y,
     cors_real_now_t *z,
@@ -119,13 +119,16 @@ void telset_ (
     DetectorSphere_init(&detector, (*x), (*y), (*z), (*r));
     number_of_detectors = number_of_detectors + 1;
 
-    if(number_of_detectors > 1) {
+    if (number_of_detectors > 1) {
         fprintf(stderr, "ABORT: There must only be 1 telescope.\n");
         exit(1);
     }
 
-    if((*x) != 0.0 || (*y) != 0.0 || (*z) != 0.0) {
-        fprintf(stderr, "ABORT: Telescopes must not have any offset in x,y,z in this CherenkovInOut version.\n");
+    if ((*x) != 0.0 || (*y) != 0.0 || (*z) != 0.0) {
+        fprintf(
+            stderr,
+            "ABORT: Telescopes must not have any offset "
+            "in x,y,z in this CherenkovInOut version.\n");
         exit(1);
     }
 }
@@ -137,7 +140,7 @@ void telset_ (
  *  @param  runh CORSIKA run header block
  *  @return (none)
 */
-void telrnh_ (cors_real_t runh[273]) {
+void telrnh_(cors_real_t runh[273]) {
     uint32_t seed = (int)runh[(11+3*1)-1];
     MT19937_init(&prng, seed);
 
@@ -153,7 +156,7 @@ void telrnh_ (cors_real_t runh[273]) {
  *  @param  prmpar  CORSIKA primary particle block
  *  @return (none)
 */
-void televt_ (cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
+void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
     int event_number = (int)evth[2-1];
     CherenkovInOut_write_evth(&cerio, evth, event_number);
     CherenkovInOut_open_photon_block(&cerio, event_number);
@@ -183,7 +186,7 @@ void televt_ (cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
  *           2 (detector hit but no eventio interface available or
  *             output should go to CORSIKA file anyway)
 */
-int telout_ (
+int telout_(
     cors_real_now_t *bsize,
     cors_real_now_t *wt,
     cors_real_now_t *px,
@@ -213,7 +216,7 @@ int telout_ (
 
     Bunch_warn_if_size_above_one(&bunch);
 
-    if(DetectorSphere_is_hit_by_photon(&detector, &bunch)
+    if (DetectorSphere_is_hit_by_photon(&detector, &bunch)
         &&
         Bunch_reaches_observation_level(&bunch, MT19937_uniform(&prng))
     ) {
@@ -232,7 +235,7 @@ int telout_ (
 /**
  *  End of event. Write out all recorded photon bunches.
 */
-void telend_ (cors_real_t evte[273]) {
+void telend_(cors_real_t evte[273]) {
     CherenkovInOut_close_photon_block(&cerio);
     return;
 }
@@ -253,15 +256,15 @@ void telasu_(
     int *n,
     cors_real_dbl_t *dx,
     cors_real_dbl_t *dy);
-void telprt_ (cors_real_t* datab, int *maxbuf);
-void tellng_ (
+void telprt_(cors_real_t* datab, int *maxbuf);
+void tellng_(
     int *type,
     double *data,
     int *ndim,
     int *np,
     int *nthick,
     double *thickstep);
-void extprm_ (
+void extprm_(
     cors_real_dbl_t *type,
     cors_real_dbl_t *eprim,
     double *thetap,
@@ -272,7 +275,7 @@ void extprm_ (
  *  Placeholder function for external shower-by-shower setting
  *         of primary type, energy, and direction.
  */
-void extprm_ (
+void extprm_(
     cors_real_dbl_t *type,
     cors_real_dbl_t *eprim,
     double *thetap,
@@ -285,7 +288,7 @@ void extprm_ (
 /**
  *  Set the file name with parameters for importance sampling.
  */
-void telsmp_ (char *name) {
+void telsmp_(char *name) {
     return;
 }
 
@@ -294,7 +297,7 @@ void telsmp_ (char *name) {
  *  Show what telescopes have actually been set up.
  *  This function is called by CORSIKA after the input file is read.
 */
-void telshw_ () {
+void telshw_() {
     return;
 }
 
@@ -307,7 +310,7 @@ void telshw_ () {
  * @param  r       radius of fiducial volume [cm]
  * @param  exists   telescope exists
 */
-void telinf_ (
+void telinf_(
     int *itel,
     double *x,
     double *y,
@@ -326,7 +329,7 @@ void telinf_ (
  *  @param  line     input line (not terminated)
  *  @param  llength  maximum length of input lines (132 usually)
 */
-void tellni_ (char *line, int *llength) {
+void tellni_(char *line, int *llength) {
     return;
 }
 
@@ -336,7 +339,7 @@ void tellni_ (char *line, int *llength) {
  *
  *  @param  rune  CORSIKA run end block
 */
-void telrne_ (cors_real_t rune[273]) {
+void telrne_(cors_real_t rune[273]) {
     return;
 }
 
@@ -349,7 +352,7 @@ void telrne_ (cors_real_t rune[273]) {
  *  @param dy  Core y range (non-zero for ractangular, 0 for circular)
  *  @return (none)
 */
-void telasu_ (int *n, cors_real_dbl_t *dx, cors_real_dbl_t *dy) {
+void telasu_(int *n, cors_real_dbl_t *dx, cors_real_dbl_t *dy) {
     return;
 }
 
@@ -361,7 +364,7 @@ void telasu_ (int *n, cors_real_dbl_t *dx, cors_real_dbl_t *dy) {
  *  @param maxbuf The buffer size, which is 39*7 without thinning
  *                option and 39*8 with thinning.
  */
-void telprt_ (cors_real_t *datab, int *maxbuf) {
+void telprt_(cors_real_t *datab, int *maxbuf) {
     return;
 }
 
@@ -378,7 +381,7 @@ void telprt_ (cors_real_t *datab, int *maxbuf) {
  *  @param  thickstep  step size in g/cm**2
  *  @return  (none)
 */
-void tellng_ (
+void tellng_(
     int *type,
     double *data,
     int *ndim,
