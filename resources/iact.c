@@ -1,4 +1,5 @@
-/*
+/* Copyright (c)
+
    Sebastian Achim Mueller, ETH Zurich 2016
 
    This file originated from the iact.c file which is part of the IACT/atmo
@@ -31,6 +32,7 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include "microtar.h"
 
 typedef float cors_real_t;
 typedef double cors_real_now_t;

@@ -105,6 +105,9 @@ def install(corsika_tar_path, install_path, resource_path, modify):
         shutil.copy(
             join(resource_path, 'iact.c'),
             join('bernlohr', 'iact.c'))
+        shutil.copy(
+            join(resource_path, 'microtar.h'),
+            join('bernlohr', 'microtar.h'))
         shutil.copytree(
             join(resource_path, 'CherenkovInOut'),
             join('bernlohr', 'CherenkovInOut'))
