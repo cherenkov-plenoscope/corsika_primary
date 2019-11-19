@@ -3722,7 +3722,7 @@ CC        CALL RMMAQD( ISEED(1,L),L,'RV' )
 CC495   CONTINUE
 
 C ====================================================================
-C START SETTING PRIMARY PARTICLE
+C SET PRIMARY PARTICLE
 C ====================================================================
 
 C PARTICLE TYPE
@@ -3771,7 +3771,7 @@ C  WHICH IS 112.8 KM FOR THICK0 = 0
 
 
 C ====================================================================
-C END SETTING PRIMARY PARTICLE
+C ENDSET PRIMARY PARTICLE
 C ====================================================================
 
         
