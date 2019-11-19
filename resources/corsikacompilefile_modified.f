@@ -3597,7 +3597,6 @@ C  STEERING OF PRINTOUT OF RANDOM GENERATOR SEEDS
 C  TIME AT BEGINNING
       CALL TIMER( ILEFTA )
 
-      THICK00 = THICK0
 C-----------------------------------------------------------------------
 C  LOOP OVER SHOWERS
 
@@ -3611,7 +3610,58 @@ C  LOOP OVER SHOWERS
           FPRINT = .FALSE.
         ENDIF
 
-        THICK0 = THICK00
+C ====================================================================
+C SET PRIMARY PARTICLE
+C ====================================================================
+
+C PARTICLE TYPE
+        PRMPAR(0) = 3.0
+
+C ENERGY
+        PRMPAR(1) = 1.337
+
+C PARTICLE DIRECTION
+        THETAP = 0.13
+        PHIP   = 0.37
+        PRMPAR(2) = COS( THETAP )
+        PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
+        PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
+
+C  HEIGHT FOR START AT THICK0 (IN G/CM**2)
+C  WHICH IS 112.8 KM FOR THICK0 = 0
+        THICK0 = 42.0
+        PRMPAR(5) = HEIGH( THICK0 )
+
+        IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
+          WRITE(MONIOU,*) '-----------------------------------'
+          WRITE(MONIOU,*) 'PRIMARY PARTICLE = ', PRMPAR(0), ' '
+          WRITE(MONIOU,*) 'PRIMARY ENERGY   = ', PRMPAR(1), ' GEV'
+          WRITE(MONIOU,*) 'PRIMARY THETAP   = ', THETAP, ' RAD'
+          WRITE(MONIOU,*) 'PRIMARY PHIP     = ', PHIP, ' RAD'
+          WRITE(MONIOU,*) 'PRIMARY HEIGHT   = ', PRMPAR(5), ' CM'
+          WRITE(MONIOU,*) '                 = ', THICK0, ' G/CM**2'
+          WRITE(MONIOU,*) '-----------------------------------'
+        ENDIF
+
+        IF ( PRMPAR(1) .LT. LLIMIT .OR. PRMPAR(1) .GT. ULIMIT ) THEN
+          WRITE(MONIOU,*) 'EXPECTED '
+          WRITE(MONIOU,*) 'LLIMIT < PRMPAR(1) < ULIMIT, BUT ACTUAL '
+          WRITE(MONIOU,*) 'LLIMIT= ', LLIMIT, ', '
+          WRITE(MONIOU,*) 'PRMPAR(1)==PRIMARY ENERGY= ', PRMPAR(1), ', '
+          WRITE(MONIOU,*) 'ULIMIT= ', ULIMIT
+          STOP
+        ENDIF
+
+        IF ( THICK0 .LT. 0.0 ) THEN
+          WRITE(MONIOU,*) 'EXPECTED THICK0 > 0.0, BUT ACTUAL '
+          WRITE(MONIOU,*) 'THICK0= ', THICK0
+          STOP
+        ENDIF
+
+
+C ====================================================================
+C ENDSET PRIMARY PARTICLE
+C ====================================================================
 
 C  FIRST INTERACTION DATA
         FIRSTI = .TRUE.
@@ -3720,60 +3770,6 @@ C  GET FULL RANDOM GENERATOR STATUS (103 WORDS PER SEQUENCE)
 CC      DO  495  L = 1, NSEQ
 CC        CALL RMMAQD( ISEED(1,L),L,'RV' )
 CC495   CONTINUE
-
-C ====================================================================
-C SET PRIMARY PARTICLE
-C ====================================================================
-
-C PARTICLE TYPE
-        PRMPAR(0) = 3.0
-
-C ENERGY
-        PRMPAR(1) = 1.337
-
-C PARTICLE DIRECTION
-        THETAP = 0.13
-        PHIP   = 0.37
-        PRMPAR(2) = COS( THETAP )
-        PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
-        PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
-
-C  HEIGHT FOR START AT THICK0 (IN G/CM**2)
-C  WHICH IS 112.8 KM FOR THICK0 = 0
-        THICK0 = 42.0
-        PRMPAR(5) = HEIGH( THICK0 )
-
-        IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
-          WRITE(MONIOU,*) '-----------------------------------'
-          WRITE(MONIOU,*) 'PRIMARY PARTICLE = ', PRMPAR(0), ' '
-          WRITE(MONIOU,*) 'PRIMARY ENERGY   = ', PRMPAR(1), ' GEV'
-          WRITE(MONIOU,*) 'PRIMARY THETAP   = ', THETAP, ' RAD'
-          WRITE(MONIOU,*) 'PRIMARY PHIP     = ', PHIP, ' RAD'
-          WRITE(MONIOU,*) 'PRIMARY HEIGHT   = ', PRMPAR(5), ' CM'
-          WRITE(MONIOU,*) '                 = ', THICK0, ' G/CM**2'
-          WRITE(MONIOU,*) '-----------------------------------'
-        ENDIF
-
-        IF ( PRMPAR(1) .LT. LLIMIT .OR. PRMPAR(1) .GT. ULIMIT ) THEN
-          WRITE(MONIOU,*) 'EXPECTED '
-          WRITE(MONIOU,*) 'LLIMIT < PRMPAR(1) < ULIMIT, BUT ACTUAL '
-          WRITE(MONIOU,*) 'LLIMIT= ', LLIMIT, ', '
-          WRITE(MONIOU,*) 'PRMPAR(1)==PRIMARY ENERGY= ', PRMPAR(1), ', '
-          WRITE(MONIOU,*) 'ULIMIT= ', ULIMIT
-          STOP
-        ENDIF
-
-        IF ( THICK0 .LT. 0.0 ) THEN
-          WRITE(MONIOU,*) 'EXPECTED THICK0 > 0.0, BUT ACTUAL '
-          WRITE(MONIOU,*) 'THICK0= ', THICK0
-          STOP
-        ENDIF
-
-
-C ====================================================================
-C ENDSET PRIMARY PARTICLE
-C ====================================================================
-
         
         IF ( LLONGI ) LPCT0 = MIN( INT( THICK0*THSTPI ), LPCT0 )
 
