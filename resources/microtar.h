@@ -35,7 +35,7 @@
 #include <stdint.h>
 
 
-#define MTAR_VERSION "0.1.0"
+#define MTAR_VERSION "1337.0.0"
 
 enum {
   MTAR_ESUCCESS     =  0,
