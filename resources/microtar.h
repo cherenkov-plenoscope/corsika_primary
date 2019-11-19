@@ -142,7 +142,9 @@ static int64_t _mtar_write_null_bytes(mtar_t *tar, int64_t n) {
 }
 
 
-static int64_t _mtar_raw_to_header(mtar_header_t *h, const _mtar_raw_header_t *rh) {
+static int64_t _mtar_raw_to_header(
+  mtar_header_t *h,
+  const _mtar_raw_header_t *rh) {
   uint64_t chksum1, chksum2;
 
   /* If the checksum starts with a null byte we assume the record is NULL */
@@ -170,7 +172,9 @@ static int64_t _mtar_raw_to_header(mtar_header_t *h, const _mtar_raw_header_t *r
 }
 
 
-static int64_t _mtar_header_to_raw(_mtar_raw_header_t *rh, const mtar_header_t *h) {
+static int64_t _mtar_header_to_raw(
+  _mtar_raw_header_t *rh,
+  const mtar_header_t *h) {
   uint64_t chksum;
 
   /* Load header into raw header */
@@ -419,7 +423,9 @@ int64_t mtar_write_data(mtar_t *tar, const void *data, uint64_t size) {
   tar->remaining_data -= size;
   /* Write padding if we've written all the data for this file */
   if (tar->remaining_data == 0) {
-    return _mtar_write_null_bytes(tar, _mtar_round_up(tar->pos, 512) - tar->pos);
+    return _mtar_write_null_bytes(
+      tar,
+      _mtar_round_up(tar->pos, 512) - tar->pos);
   }
   return MTAR_ESUCCESS;
 }
