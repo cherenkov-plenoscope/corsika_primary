@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdint.h>
 
 
 #define MTAR_VERSION "0.1.0"
