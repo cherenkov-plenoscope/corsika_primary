@@ -10879,7 +10879,7 @@ C  DEFAULT VALUES FOR ALL RUN PARAMETERS
       LLIMIT    = 1.D2
       ULIMIT    = 1.D4
 
-      PRMPAR(0) = 14.D0
+      PRMPAR(0) = 1.D0
 
       NSHOW     = 10
 
