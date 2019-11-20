@@ -44,11 +44,6 @@ typedef double cors_dbl_t;
 /* The additional character string lengths for name in telfil_ and */
 /* line in tellni_ are not used because compiler-dependent.        */
 void telfil_(char *name);
-void telset_(
-    cors_real_now_t *x,
-    cors_real_now_t *y,
-    cors_real_now_t *z,
-    cors_real_now_t *r);
 void telrnh_(cors_real_t runh[273]);
 void telrne_(cors_real_t rune[273]);
 void televt_(
@@ -74,14 +69,10 @@ extern double refidx_(double *height);
 
 //-------------------- init ----------------------------------------------------
 int event_number;
-
 int num_photons_in_event;
-
 char output_path[1024] = "";
-
 char cherenkov_buffer_path[1024] = "";
 FILE *cherenkov_buffer;
-
 mtar_t tar;
 
 //-------------------- CORSIKA bridge ------------------------------------------
@@ -92,28 +83,6 @@ mtar_t tar;
 */
 void telfil_(char *name) {
     snprintf(output_path, sizeof(output_path), "%s", name);
-    return;
-}
-
-
-/**
- *  Add another telescope to the system (array) of telescopes.
- *
- *  This function is called for each TELESCOPE keyword in the
- *  CORSIKA input file.
- *
- *  @param  x  X position [cm]
- *  @param  y  Y position [cm]
- *  @param  z  Z position [cm]
- *  @param  r  radius [cm] within which the telescope is fully contained
- *  @return (none)
-*/
-void telset_(
-    cors_real_now_t *x,
-    cors_real_now_t *y,
-    cors_real_now_t *z,
-    cors_real_now_t *r
-) {
     return;
 }
 
@@ -146,11 +115,12 @@ void telrnh_(cors_real_t runh[273]) {
  *  @return (none)
 */
 void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
+    event_number = (int)(round(evth[1]));
     char evth_filename[1024] = "";
     snprintf(
         evth_filename,
         sizeof(evth_filename),
-        "%06d.evth.float32", event_number);
+        "%09d.evth.float32", event_number);
 
     fprintf(stderr, "Event header name: %s\n", evth_filename);
 
@@ -240,7 +210,7 @@ void telend_(cors_real_t evte[273]) {
     snprintf(
         bunch_filename,
         sizeof(bunch_filename),
-        "%06d.photons.float32", event_number);
+        "%09d.cherenkov_bunches.Nx8_float32", event_number);
 
     mtar_write_file_header(&tar, bunch_filename, sizeof_cherenkov_buffer);
     mtar_write_stream(&tar, cherenkov_buffer, sizeof_cherenkov_buffer);
@@ -252,6 +222,11 @@ void telend_(cors_real_t evte[273]) {
 
 
 //-------------------- UNUSED SO FAR -------------------------------------------
+void telset_(
+    cors_real_now_t *x,
+    cors_real_now_t *y,
+    cors_real_now_t *z,
+    cors_real_now_t *r);
 void telsmp_(char *name);
 void telshw_(void);
 void telinf_(
@@ -280,6 +255,27 @@ void extprm_(
     double *thetap,
     double *phip);
 
+
+/**
+ *  Add another telescope to the system (array) of telescopes.
+ *
+ *  This function is called for each TELESCOPE keyword in the
+ *  CORSIKA input file.
+ *
+ *  @param  x  X position [cm]
+ *  @param  y  Y position [cm]
+ *  @param  z  Z position [cm]
+ *  @param  r  radius [cm] within which the telescope is fully contained
+ *  @return (none)
+*/
+void telset_(
+    cors_real_now_t *x,
+    cors_real_now_t *y,
+    cors_real_now_t *z,
+    cors_real_now_t *r
+) {
+    return;
+}
 
 /**
  *  Placeholder function for external shower-by-shower setting

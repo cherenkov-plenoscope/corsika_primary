@@ -24,13 +24,14 @@ class Tario:
         if evth_tar == None:
             raise StopIteration
 
-        evth_number = int(evth_tar.name[0: 6])
-        bunches_number = int(bunches_tar.name[0: 6])
+        evth_number = int(evth_tar.name[0: 9])
+        bunches_number = int(bunches_tar.name[0: 9])
         assert evth_number == bunches_number
 
         evth_bin = self.tar.extractfile(evth_tar).read()
         evth = np.frombuffer(evth_bin, dtype=np.float32)
         assert evth[0] == EVTH_MARKER_FLOAT32
+        assert int(np.round(evth[1])) == evth_number
 
         bunches_bin = self.tar.extractfile(bunches_tar).read()
         bunches = np.frombuffer(bunches_bin, dtype=np.float32)
