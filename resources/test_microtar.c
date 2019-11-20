@@ -2,17 +2,18 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <string.h>
 
 #include "microtar.h"
 
 
 int main() {
-    double hans = 1337.42;
+    uint64_t hans = 1337;
     FILE *f;
     f = fopen("test_buffer.bin", "wb");
     for (int i = 0; i < 1000*1000; i++) {
-        fwrite(&hans, 1, sizeof(double), f);
-        hans += 1.0;
+        fwrite(&hans, 1, sizeof(uint64_t), f);
+        hans += 1;
     }
     fclose(f);
 
