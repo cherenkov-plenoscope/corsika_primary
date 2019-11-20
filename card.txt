@@ -13,4 +13,5 @@ CERSIZ 1.
 CERFIL F
 TSTART T
 TELFIL out.tar
+PRMFIL explicit_primaries.f8f8f8f8f8i4
 EXIT
