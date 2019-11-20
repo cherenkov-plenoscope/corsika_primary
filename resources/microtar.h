@@ -33,9 +33,26 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
-
+#include <errno.h>
 
 #define MTAR_VERSION "1337.0.0"
+
+#define mtar_clean_errno() (errno == 0 ? "None" : strerror(errno))
+
+#define mtar_log_err(M) \
+    fprintf( \
+        stderr, \
+        "[ERROR] (%s:%d: errno: %s) " M "\n", \
+        __FILE__, \
+        __LINE__, \
+        mtar_clean_errno())
+
+#define mtar_check(A, M) \
+    if (!(A)) {\
+        mtar_log_err(M); \
+        errno = 0; \
+        goto error; \
+    }
 
 enum {
   MTAR_ESUCCESS     =  0,
@@ -251,18 +268,25 @@ static int64_t _mtar_stream_write(
   FILE *stream,
   uint64_t size) {
   const uint64_t k_buffer_size = 1024*1024;
-  char buffer[k_buffer_size];
+  char* buffer = (char*)malloc(k_buffer_size);
+  mtar_check(buffer, "Out of Memory");
+
   uint64_t to_be_copied = size;
   while (to_be_copied > 0) {
     uint64_t block_size = (
       to_be_copied < k_buffer_size ? to_be_copied : k_buffer_size);
     uint64_t res_read = fread(buffer, sizeof(char), block_size, stream);
-    if (res_read != block_size) {return MTAR_EREADFAIL;}
+    mtar_check(res_read == block_size, "Failed to read from file-stream");
+
     uint64_t res_write = fwrite(buffer, sizeof(char), block_size, tar->stream);
-    if (res_write != block_size) {return MTAR_EWRITEFAIL;}
+    mtar_check(res_write == block_size, "Failed to write to tar-stream");
     to_be_copied = to_be_copied - block_size;
   }
+  free(buffer);
   return MTAR_ESUCCESS;
+error:
+  free(buffer);
+  return MTAR_EWRITEFAIL;
 }
 
 static int64_t _mtar_file_read(mtar_t *tar, void *data, uint64_t size) {
