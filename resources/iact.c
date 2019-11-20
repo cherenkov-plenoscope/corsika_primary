@@ -5,7 +5,7 @@
     This file originated from the iact.c file which is part of the IACT/atmo
     package for CORSIKA by Konrad Bernloehr.
 
-    The IACT/atmo package is free software; you can redistribute it 
+    The IACT/atmo package is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
@@ -70,9 +70,7 @@ typedef double cors_real_dbl_t;
 typedef double cors_dbl_t;
 
 /* =============================================================== */
-/* FORTRAN called functions                                        */
-/* The additional character string lengths for name in telfil_ and */
-/* line in tellni_ are not used because compiler-dependent.        */
+/* functions called from CORSIKA in fortran77                      */
 void telfil_(char *name);
 void prmfil_(char *name);
 void telrnh_(cors_real_t runh[273]);
@@ -108,18 +106,21 @@ extern double refidx_(double *height);
 //-------------------- init ----------------------------------------------------
 int event_number;
 int num_photons_in_event;
-char output_path[1024] = "";
+
 char primary_path[1024] = "";
 FILE *primary_file;
+
 char* cherenkov_buffer_path = "cherenkov_buffer.float32";
 FILE *cherenkov_buffer;
+
+char output_path[1024] = "";
 mtar_t tar;
 
 //-------------------- CORSIKA bridge ------------------------------------------
 
 /**
- * Define the output file for photon bunches hitting the telescopes.
- * @param  name    Output file name.
+ * Define the output file for photon-bunches.
+ * @param  name    Output-file-name.
 */
 void telfil_(char *name) {
     const uint64_t sz = sizeof(output_path);
@@ -130,11 +131,13 @@ error:
     assert(0);
 }
 
-
+/**
+ * Define the input file for controling the primary particle.
+ * @param  name    Input-file-name.
+*/
 void prmfil_(char *name) {
     const uint64_t sz = sizeof(primary_path);
     const int rc = snprintf(primary_path, sz, "%s", name);
-    fprintf(stderr, "PRMFIL is '%s'\n", primary_path);
     iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
     return;
 error:
@@ -149,7 +152,6 @@ error:
  *  @return (none)
 */
 void telrnh_(cors_real_t runh[273]) {
-    fprintf(stderr, "Open microtar.\n");
     iact_check(
         mtar_open(&tar, output_path, "w") == MTAR_ESUCCESS,
         "Can not open tar.");
@@ -169,7 +171,17 @@ error:
 }
 
 /**
- *  Explicit control for primary particle
+ *  Called at begin of shower. Explicitly set primary particle.
+ *  For each shower, the primary_file has one block
+ *  [
+ *      float64, particle's id
+ *      float64, particle's energy
+ *      float64, particle's theta
+ *      float64, particle's phi
+ *      float64, particle's starting depth in atmosphere
+ *      int32    random seed
+ *  ]
+ *  defining the primary particle.
  */
 void extprm_(
     cors_real_dbl_t *type,
@@ -178,7 +190,6 @@ void extprm_(
     double *phip,
     double *thick0,
     int* iseed) {
-
     double type_, eprim_, thetap_, phip_, thick0_;
     int32_t iseed_;
     iact_fread(&type_, sizeof(double), 1, primary_file);
@@ -187,14 +198,12 @@ void extprm_(
     iact_fread(&phip_, sizeof(double), 1, primary_file);
     iact_fread(&thick0_, sizeof(double), 1, primary_file);
     iact_fread(&iseed_, sizeof(int32_t), 1, primary_file);
-
     (*type) = type_;
     (*eprim) = eprim_;
     (*thetap) = thetap_;
     (*phip) = phip_;
     (*thick0) = thick0_;
     (*iseed) = iseed_;
-
     return;
 error:
     assert(0);
@@ -217,7 +226,6 @@ void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
         sizeof(evth_filename),
         "%09d.evth.float32", event_number);
 
-    fprintf(stderr, "Event header name: %s\n", evth_filename);
     iact_check(
         mtar_write_file_header(
             &tar, evth_filename, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
@@ -226,7 +234,6 @@ void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
         mtar_write_data(&tar, evth, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
         "Can not write data of EVTH to tar-file.");
 
-    fprintf(stderr, "Open cherenkov_buffer.\n");
     cherenkov_buffer = fopen(cherenkov_buffer_path, "w");
     iact_check(cherenkov_buffer, "Can not open cherenkov_buffer.");
 
@@ -238,7 +245,7 @@ error:
 
 
 /**
- *  Check if a photon bunch hits one or more simulated detector volumes.
+ *  Store photon-bunch.
  *
  *  @param  bsize   Number of photons (can be fraction of one)
  *  @param  wt     Weight (if thinning option is active)
@@ -251,10 +258,6 @@ error:
  *  @param  lambda  0. (if wavelength undetermined) or wavelength [nm].
  *                  If lambda < 0, photons are already converted to
  *                  photo-electrons (p.e.), i.e. we have p.e. bunches.
- *  @param  temis   Time of photon emission 
- *  @param  penergy Energy of emitting particle.
- *  @param  amass   Mass of emitting particle.
- *  @param  charge  Charge of emitting particle.
  *
  *  @return  0 (no output to old-style CORSIKA file needed)
  *           2 (detector hit but no eventio interface available or
@@ -269,12 +272,7 @@ int telout_(
     cors_real_now_t *pv,
     cors_real_now_t *ctime,
     cors_real_now_t *zem ,
-    cors_real_now_t *lambda
-    /*double *temis,
-    double *penergy,
-    double *amass,
-    double *charge*/
-) {
+    cors_real_now_t *lambda) {
     float bsize_f = (float)(*bsize);
     float px_f = (float)(*px);
     float py_f = (float)(*py);
@@ -283,7 +281,6 @@ int telout_(
     float ctime_f = (float)(*ctime);
     float zem_f = (float)(*zem);
     float lambda_f = (float)(*lambda);
-
     iact_fwrite(&px_f, sizeof(float), 1, cherenkov_buffer);
     iact_fwrite(&py_f, sizeof(float), 1, cherenkov_buffer);
     iact_fwrite(&pu_f, sizeof(float), 1, cherenkov_buffer);
@@ -301,7 +298,7 @@ error:
 
 
 /**
- *  End of event. Write out all recorded photon bunches.
+ *  End of event. Write photon-bunches into tar-file.
 */
 void telend_(cors_real_t evte[273]) {
     uint64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
@@ -311,9 +308,6 @@ void telend_(cors_real_t evte[273]) {
 
     cherenkov_buffer = fopen(cherenkov_buffer_path, "r");
     iact_check(cherenkov_buffer, "Can not re-open cherenkov_buffer for read.");
-
-    fprintf(stderr, "cherenkov_buffer size is %ld.\n", sizeof_cherenkov_buffer);
-    fprintf(stderr, "%d bunches in cherenkov_buffer.\n", num_photons_in_event);
 
     char bunch_filename[1024] = "";
     snprintf(
@@ -330,7 +324,6 @@ void telend_(cors_real_t evte[273]) {
             &tar, cherenkov_buffer, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
         "Can't write data of bunches to tar-file.");
 
-    fprintf(stderr, "Close cherenkov_buffer.\n");
     iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
     return;
 error:
@@ -339,12 +332,11 @@ error:
 
 
 /**
- *   Write run end block to the output file.
+ *   End of run. Finalize and close tar-file.
  *
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
-    fprintf(stderr, "Close microtar.\n");
     iact_check(
         mtar_finalize(&tar) == MTAR_ESUCCESS,
         "Can't finalize tar-file.");
@@ -360,7 +352,7 @@ error:
 }
 
 
-//-------------------- UNUSED SO FAR -------------------------------------------
+//-------------------- UNUSED --------------------------------------------------
 void telset_(
     cors_real_now_t *x,
     cors_real_now_t *y,
