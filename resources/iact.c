@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "microtar.h"
 
@@ -60,6 +61,13 @@ int telout_(
     cors_real_now_t *zem,
     cors_real_now_t *lambda);
 void telend_(cors_real_t evte[273]);
+void extprm_(
+    cors_real_dbl_t *type,
+    cors_real_dbl_t *eprim,
+    double *thetap,
+    double *phip,
+    double *thick0,
+    int* iseed);
 
 
 /* =============================================================== */
@@ -106,6 +114,27 @@ void telrnh_(cors_real_t runh[273]) {
     mtar_write_data(&tar, runh, 273*sizeof(cors_real_t));
 }
 
+/**
+ *  Placeholder function for external shower-by-shower setting
+ *         of primary type, energy, and direction.
+ */
+void extprm_(
+    cors_real_dbl_t *type,
+    cors_real_dbl_t *eprim,
+    double *thetap,
+    double *phip,
+    double *thick0,
+    int* iseed) {
+
+    (*type) = 3.0;
+    (*eprim) = 1.42;
+    (*thetap) = 0.2;
+    (*phip) = 0.1;
+    (*thick0) = 45.0;
+    (*iseed) = 1337;
+
+    return;
+}
 
 /**
  *  Start of new event. Save event parameters.
@@ -249,12 +278,6 @@ void tellng_(
     int *np,
     int *nthick,
     double *thickstep);
-void extprm_(
-    cors_real_dbl_t *type,
-    cors_real_dbl_t *eprim,
-    double *thetap,
-    double *phip);
-
 
 /**
  *  Add another telescope to the system (array) of telescopes.
@@ -273,19 +296,6 @@ void telset_(
     cors_real_now_t *y,
     cors_real_now_t *z,
     cors_real_now_t *r
-) {
-    return;
-}
-
-/**
- *  Placeholder function for external shower-by-shower setting
- *         of primary type, energy, and direction.
- */
-void extprm_(
-    cors_real_dbl_t *type,
-    cors_real_dbl_t *eprim,
-    double *thetap,
-    double *phip
 ) {
     return;
 }

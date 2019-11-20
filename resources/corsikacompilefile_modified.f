@@ -3613,29 +3613,32 @@ C  LOOP OVER SHOWERS
 C---------------------
 C SET PRIMARY PARTICLE
 
+        CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP,
+     *               THICK0, ISEED(1,1))
+
 C PARTICLE TYPE
-        PRMPAR(0) = 3.0
+C-set   PRMPAR(0) = 3.0
 
 C ENERGY
-        PRMPAR(1) = 1.337
+C-set   PRMPAR(1) = 1.337
 
 C PARTICLE DIRECTION
-        THETAP = 0.13
-        PHIP   = 0.37
+C-set   THETAP = 0.13
+C-set   PHIP   = 0.37
         PRMPAR(2) = COS( THETAP )
         PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
         PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
 
 C  HEIGHT FOR START AT THICK0 (IN G/CM**2)
 C  WHICH IS 112.8 KM FOR THICK0 = 0
-        THICK0 = 42.0
+C-set   THICK0 = 42.0
         PRMPAR(5) = HEIGH( THICK0 )
 
 C RANDOM SEED
 C NEED 4 SEQUENCES FOR CHERENKOV
         NSEQ = 8
 
-        ISEED(1,1) = 1337
+C-set   ISEED(1,1) = 1337
         ISEED(2,1) = 0
         ISEED(3,1) = 0
 
