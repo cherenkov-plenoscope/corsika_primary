@@ -72,19 +72,17 @@ void telend_(cors_real_t evte[273]);
 extern double heigh_(double *thickness);
 extern double refidx_(double *height);
 
-#include "CherenkovInOut/Bunch.h"
-#include "CherenkovInOut/CherenkovInOut.h"
-#include "CherenkovInOut/DetectorSphere.h"
-#include "CherenkovInOut/Photon.h"
-#include "CherenkovInOut/MT19937.h"
-
 //-------------------- init ----------------------------------------------------
-char output_path[1024] = "";
-int number_of_detectors = 0;
+int event_number;
 
-struct DetectorSphere detector;
-struct CherenkovInOut cerio;
-struct MT19937 prng;
+int num_photons_in_event;
+
+char output_path[1024] = "";
+
+char cherenkov_buffer_path[1024] = "";
+FILE *cherenkov_buffer;
+
+mtar_t tar;
 
 //-------------------- CORSIKA bridge ------------------------------------------
 
@@ -116,21 +114,7 @@ void telset_(
     cors_real_now_t *z,
     cors_real_now_t *r
 ) {
-    DetectorSphere_init(&detector, (*x), (*y), (*z), (*r));
-    number_of_detectors = number_of_detectors + 1;
-
-    if (number_of_detectors > 1) {
-        fprintf(stderr, "ABORT: There must only be 1 telescope.\n");
-        exit(1);
-    }
-
-    if ((*x) != 0.0 || (*y) != 0.0 || (*z) != 0.0) {
-        fprintf(
-            stderr,
-            "ABORT: Telescopes must not have any offset "
-            "in x,y,z in this CherenkovInOut version.\n");
-        exit(1);
-    }
+    return;
 }
 
 
@@ -141,11 +125,16 @@ void telset_(
  *  @return (none)
 */
 void telrnh_(cors_real_t runh[273]) {
-    uint32_t seed = (int)runh[(11+3*1)-1];
-    MT19937_init(&prng, seed);
+    snprintf(
+        cherenkov_buffer_path,
+        sizeof(cherenkov_buffer_path),
+        "cherenkov_buffer.float32");
 
-    CherenkovInOut_init(&cerio, output_path);
-    CherenkovInOut_write_runh(&cerio, runh);
+    fprintf(stderr, "Open microtar.\n");
+    mtar_open(&tar, output_path, "w");
+
+    mtar_write_file_header(&tar, "runh.float32", 273*sizeof(cors_real_t));
+    mtar_write_data(&tar, runh, 273*sizeof(cors_real_t));
 }
 
 
@@ -157,9 +146,20 @@ void telrnh_(cors_real_t runh[273]) {
  *  @return (none)
 */
 void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
-    int event_number = (int)evth[2-1];
-    CherenkovInOut_write_evth(&cerio, evth, event_number);
-    CherenkovInOut_open_photon_block(&cerio, event_number);
+    char evth_filename[1024] = "";
+    snprintf(
+        evth_filename,
+        sizeof(evth_filename),
+        "%06d.evth.float32", event_number);
+
+    fprintf(stderr, "Event header name: %s\n", evth_filename);
+
+    mtar_write_file_header(&tar, evth_filename, 273*sizeof(cors_real_t));
+    mtar_write_data(&tar, evth, 273*sizeof(cors_real_t));
+
+    num_photons_in_event = 0;
+    fprintf(stderr, "Open cherenkov_buffer.\n");
+    cherenkov_buffer = fopen(cherenkov_buffer_path, "w");
 }
 
 
@@ -201,33 +201,25 @@ int telout_(
     double *amass,
     double *charge*/
 ) {
-    struct Bunch bunch;
+    float bsize_f = (float)(*bsize);
+    float px_f = (float)(*px);
+    float py_f = (float)(*py);
+    float pu_f = (float)(*pu);
+    float pv_f = (float)(*pv);
+    float ctime_f = (float)(*ctime);
+    float zem_f = (float)(*zem);
+    float lambda_f = (float)(*lambda);
 
-    bunch.size = *bsize;
-    bunch.x = *px;
-    bunch.y = *py;
-    bunch.cx = *pu;
-    bunch.cy = *pv;
-    bunch.arrival_time = *ctime;
-    bunch.emission_altitude = *zem;
-    bunch.wavelength = *lambda;
-    bunch.mother_mass = 0.0;
-    bunch.mother_charge = 0.0;
+    fwrite(&px_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&py_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&pu_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&pv_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&ctime_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&zem_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&bsize_f, sizeof(float), 1, cherenkov_buffer);
+    fwrite(&lambda_f, sizeof(float), 1, cherenkov_buffer);
 
-    Bunch_warn_if_size_above_one(&bunch);
-
-    if (DetectorSphere_is_hit_by_photon(&detector, &bunch)
-        &&
-        Bunch_reaches_observation_level(&bunch, MT19937_uniform(&prng))
-    ) {
-        DetectorSphere_transform_to_detector_frame(&detector, &bunch);
-
-
-        struct Photon photon;
-        Photon_init_from_bunch(&photon, &bunch);
-
-        CherenkovInOut_append_photon(&cerio, &photon);
-    }
+    num_photons_in_event = num_photons_in_event + 1;
     return 0;
 }
 
@@ -236,7 +228,25 @@ int telout_(
  *  End of event. Write out all recorded photon bunches.
 */
 void telend_(cors_real_t evte[273]) {
-    CherenkovInOut_close_photon_block(&cerio);
+    uint64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
+    fclose(cherenkov_buffer);
+
+    cherenkov_buffer = fopen(cherenkov_buffer_path, "r");
+
+    fprintf(stderr, "cherenkov_buffer size is %ld.\n", sizeof_cherenkov_buffer);
+    fprintf(stderr, "%d bunches in cherenkov_buffer.\n", num_photons_in_event);
+
+    char bunch_filename[1024] = "";
+    snprintf(
+        bunch_filename,
+        sizeof(bunch_filename),
+        "%06d.photons.float32", event_number);
+
+    mtar_write_file_header(&tar, bunch_filename, sizeof_cherenkov_buffer);
+    mtar_write_stream(&tar, cherenkov_buffer, sizeof_cherenkov_buffer);
+
+    fprintf(stderr, "Close cherenkov_buffer.\n");
+    fclose(cherenkov_buffer);
     return;
 }
 
@@ -340,6 +350,9 @@ void tellni_(char *line, int *llength) {
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
+    fprintf(stderr, "Close microtar.\n");
+    mtar_finalize(&tar);
+    mtar_close(&tar);
     return;
 }
 
