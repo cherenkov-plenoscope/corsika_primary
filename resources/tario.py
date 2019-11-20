@@ -21,7 +21,7 @@ class Tario:
     def __next__(self):
         evth_tar = self.tar.next()
         bunches_tar = self.tar.next()
-        if evth_tar == None:
+        if evth_tar is None:
             raise StopIteration
 
         evth_number = int(evth_tar.name[0: 9])
