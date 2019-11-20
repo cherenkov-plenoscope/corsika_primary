@@ -3631,6 +3631,46 @@ C  WHICH IS 112.8 KM FOR THICK0 = 0
         THICK0 = 42.0
         PRMPAR(5) = HEIGH( THICK0 )
 
+C RANDOM SEED
+C NEED 4 SEQUENCES FOR CHERENKOV
+        NSEQ = 8
+
+        ISEED(1,1) = 1337
+        ISEED(2,1) = 0
+        ISEED(3,1) = 0
+
+        ISEED(1,2) = ISEED(1,1) + 1
+        ISEED(2,2) = 0
+        ISEED(3,2) = 0
+
+        ISEED(1,3) = ISEED(1,1) + 2
+        ISEED(2,3) = 0
+        ISEED(3,3) = 0
+
+        ISEED(1,4) = ISEED(1,1) + 3
+        ISEED(2,4) = 0
+        ISEED(3,4) = 0
+
+        ISEED(1,5) = ISEED(1,1) + 4
+        ISEED(2,5) = 0
+        ISEED(3,5) = 0
+
+        ISEED(1,6) = ISEED(1,1) + 5
+        ISEED(2,6) = 0
+        ISEED(3,6) = 0
+
+        ISEED(1,7) = ISEED(1,1) + 6
+        ISEED(2,7) = 0
+        ISEED(3,7) = 0
+
+        ISEED(1,8) = ISEED(1,1) + 7
+        ISEED(2,8) = 0
+        ISEED(3,8) = 0
+
+        DO  MYL = 1, NSEQ
+          CALL RMMAQD( ISEED(1,MYL),MYL,'S' )
+        ENDDO
+
         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
           WRITE(MONIOU,*) '-----------------------------------'
           WRITE(MONIOU,*) 'PRIMARY PARTICLE = ', PRMPAR(0)
@@ -3639,6 +3679,7 @@ C  WHICH IS 112.8 KM FOR THICK0 = 0
           WRITE(MONIOU,*) 'PRIMARY PHIP     = ', PHIP, ' RAD'
           WRITE(MONIOU,*) 'PRIMARY HEIGHT   = ', PRMPAR(5), ' CM'
           WRITE(MONIOU,*) '                 = ', THICK0, ' G/CM**2'
+          WRITE(MONIOU,*) 'RANDOM ISEED(1,1)= ', ISEED(1,1)
           WRITE(MONIOU,*) '-----------------------------------'
         ENDIF
 
@@ -11328,22 +11369,6 @@ C  GET RUN NUMBER
       ELSEIF ( LINE(1:5) .EQ. 'RUNNR' ) THEN
         CALL DTCINT( LINE,IS,NRRUN,'RUNNR',1 )
         NRRUN = ABS(NRRUN)
-
-C  GET SEEDS OF RANDOM NUMBER SEQUENCES
-      ELSEIF ( LINE(1:4) .EQ. 'SEED' ) THEN
-        ISEQ = ISEQ + 1
-
-        IF ( ISEQ .LE. KSEQ ) THEN
-
-            CALL DTCINT( LINE,IS,ISEED(1,ISEQ),'SEED',1 )
-            CALL DTCINT( LINE,IS,ISEED(2,ISEQ),'SEED',2 )
-            CALL DTCINT( LINE,IS,ISEED(3,ISEQ),'SEED',3 )
-
-          NSEQ = ISEQ
-        ELSE
-          WRITE(MONIOU,*) 'DATAC : TOO MANY RANDOM GENERATOR SEEDS,',
-     *                    ' IGNORE IT'
-        ENDIF
 
 C  GET FACTOR FOR ELECTRON''S MULTIPLE SCATTERING LENGTH
       ELSEIF ( LINE(1:6) .EQ. 'STEPFC' ) THEN
