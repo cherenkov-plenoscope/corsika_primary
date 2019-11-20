@@ -32,8 +32,37 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "microtar.h"
+
+#define iact_clean_errno() (errno == 0 ? "None" : strerror(errno))
+
+#define iact_log_err(M) \
+    fprintf( \
+        stderr, \
+        "[ERROR] (%s:%d: errno: %s) " M "\n", \
+        __FILE__, \
+        __LINE__, \
+        iact_clean_errno())
+
+#define iact_check(A, M) \
+    if (!(A)) {\
+        iact_log_err(M); \
+        errno = 0; \
+        goto error; \
+    }
+
+#define iact_fwrite(PTR, SIZE_OF_TYPE, NUM, F) { \
+    const size_t num_written = fwrite(PTR, SIZE_OF_TYPE, NUM, F); \
+    iact_check(num_written == NUM, "Can not write to file."); \
+}
+
+#define iact_fread(PTR, SIZE_OF_TYPE, NUM, F) { \
+    const size_t num_read = fread(PTR, SIZE_OF_TYPE, NUM, F); \
+    iact_check(num_read == NUM, "Can not read from file."); \
+}
+
 
 typedef float cors_real_t;
 typedef double cors_real_now_t;
@@ -45,6 +74,7 @@ typedef double cors_dbl_t;
 /* The additional character string lengths for name in telfil_ and */
 /* line in tellni_ are not used because compiler-dependent.        */
 void telfil_(char *name);
+void prmfil_(char *name);
 void telrnh_(cors_real_t runh[273]);
 void telrne_(cors_real_t rune[273]);
 void televt_(
@@ -79,7 +109,9 @@ extern double refidx_(double *height);
 int event_number;
 int num_photons_in_event;
 char output_path[1024] = "";
-char cherenkov_buffer_path[1024] = "";
+char primary_path[1024] = "";
+FILE *primary_file;
+char* cherenkov_buffer_path = "cherenkov_buffer.float32";
 FILE *cherenkov_buffer;
 mtar_t tar;
 
@@ -90,8 +122,23 @@ mtar_t tar;
  * @param  name    Output file name.
 */
 void telfil_(char *name) {
-    snprintf(output_path, sizeof(output_path), "%s", name);
+    const uint64_t sz = sizeof(output_path);
+    const int rc = snprintf(output_path, sz, "%s", name);
+    iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
     return;
+error:
+    assert(0);
+}
+
+
+void prmfil_(char *name) {
+    const uint64_t sz = sizeof(primary_path);
+    const int rc = snprintf(primary_path, sz, "%s", name);
+    fprintf(stderr, "PRMFIL is '%s'\n", primary_path);
+    iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
+    return;
+error:
+    assert(0);
 }
 
 
@@ -102,21 +149,27 @@ void telfil_(char *name) {
  *  @return (none)
 */
 void telrnh_(cors_real_t runh[273]) {
-    snprintf(
-        cherenkov_buffer_path,
-        sizeof(cherenkov_buffer_path),
-        "cherenkov_buffer.float32");
-
     fprintf(stderr, "Open microtar.\n");
-    mtar_open(&tar, output_path, "w");
+    iact_check(
+        mtar_open(&tar, output_path, "w") == MTAR_ESUCCESS,
+        "Can not open tar.");
+    iact_check(
+        mtar_write_file_header(
+            &tar, "runh.float32", 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
+        "Can not write tar-header of 'runh.float32' to tar.");
+    iact_check(
+        mtar_write_data(&tar, runh, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
+        "Can not write data of 'runh.float32' to tar.");
 
-    mtar_write_file_header(&tar, "runh.float32", 273*sizeof(cors_real_t));
-    mtar_write_data(&tar, runh, 273*sizeof(cors_real_t));
+    primary_file = fopen(primary_path, "rb");
+    iact_check(primary_file, "Can not open primary_file.");
+    return;
+error:
+    assert(0);
 }
 
 /**
- *  Placeholder function for external shower-by-shower setting
- *         of primary type, energy, and direction.
+ *  Explicit control for primary particle
  */
 void extprm_(
     cors_real_dbl_t *type,
@@ -126,14 +179,25 @@ void extprm_(
     double *thick0,
     int* iseed) {
 
-    (*type) = 3.0;
-    (*eprim) = 1.42;
-    (*thetap) = 0.2;
-    (*phip) = 0.1;
-    (*thick0) = 45.0;
-    (*iseed) = 1337;
+    double type_, eprim_, thetap_, phip_, thick0_;
+    int32_t iseed_;
+    iact_fread(&type_, sizeof(double), 1, primary_file);
+    iact_fread(&eprim_, sizeof(double), 1, primary_file);
+    iact_fread(&thetap_, sizeof(double), 1, primary_file);
+    iact_fread(&phip_, sizeof(double), 1, primary_file);
+    iact_fread(&thick0_, sizeof(double), 1, primary_file);
+    iact_fread(&iseed_, sizeof(int32_t), 1, primary_file);
+
+    (*type) = type_;
+    (*eprim) = eprim_;
+    (*thetap) = thetap_;
+    (*phip) = phip_;
+    (*thick0) = thick0_;
+    (*iseed) = iseed_;
 
     return;
+error:
+    assert(0);
 }
 
 /**
@@ -145,6 +209,8 @@ void extprm_(
 */
 void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
     event_number = (int)(round(evth[1]));
+    iact_check(event_number > 0, "Expected event_number > 0.");
+
     char evth_filename[1024] = "";
     snprintf(
         evth_filename,
@@ -152,13 +218,22 @@ void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
         "%09d.evth.float32", event_number);
 
     fprintf(stderr, "Event header name: %s\n", evth_filename);
+    iact_check(
+        mtar_write_file_header(
+            &tar, evth_filename, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
+        "Can not write tar-header of EVTH to tar-file.");
+    iact_check(
+        mtar_write_data(&tar, evth, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
+        "Can not write data of EVTH to tar-file.");
 
-    mtar_write_file_header(&tar, evth_filename, 273*sizeof(cors_real_t));
-    mtar_write_data(&tar, evth, 273*sizeof(cors_real_t));
-
-    num_photons_in_event = 0;
     fprintf(stderr, "Open cherenkov_buffer.\n");
     cherenkov_buffer = fopen(cherenkov_buffer_path, "w");
+    iact_check(cherenkov_buffer, "Can not open cherenkov_buffer.");
+
+    num_photons_in_event = 0;
+    return;
+error:
+    assert(0);
 }
 
 
@@ -209,17 +284,19 @@ int telout_(
     float zem_f = (float)(*zem);
     float lambda_f = (float)(*lambda);
 
-    fwrite(&px_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&py_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&pu_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&pv_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&ctime_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&zem_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&bsize_f, sizeof(float), 1, cherenkov_buffer);
-    fwrite(&lambda_f, sizeof(float), 1, cherenkov_buffer);
-
+    iact_fwrite(&px_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&py_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&pu_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&pv_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&ctime_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&zem_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&bsize_f, sizeof(float), 1, cherenkov_buffer);
+    iact_fwrite(&lambda_f, sizeof(float), 1, cherenkov_buffer);
     num_photons_in_event = num_photons_in_event + 1;
     return 0;
+error:
+    assert(0);
+    return -1;
 }
 
 
@@ -228,9 +305,12 @@ int telout_(
 */
 void telend_(cors_real_t evte[273]) {
     uint64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
-    fclose(cherenkov_buffer);
+    iact_check(sizeof_cherenkov_buffer >= 0, "Can't ftell cherenkov_buffer");
+
+    iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
 
     cherenkov_buffer = fopen(cherenkov_buffer_path, "r");
+    iact_check(cherenkov_buffer, "Can not re-open cherenkov_buffer for read.");
 
     fprintf(stderr, "cherenkov_buffer size is %ld.\n", sizeof_cherenkov_buffer);
     fprintf(stderr, "%d bunches in cherenkov_buffer.\n", num_photons_in_event);
@@ -241,12 +321,42 @@ void telend_(cors_real_t evte[273]) {
         sizeof(bunch_filename),
         "%09d.cherenkov_bunches.Nx8_float32", event_number);
 
-    mtar_write_file_header(&tar, bunch_filename, sizeof_cherenkov_buffer);
-    mtar_write_stream(&tar, cherenkov_buffer, sizeof_cherenkov_buffer);
+    iact_check(
+        mtar_write_file_header(
+            &tar, bunch_filename, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
+        "Can't write tar-header of bunches to tar-file.");
+    iact_check(
+        mtar_write_stream(
+            &tar, cherenkov_buffer, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
+        "Can't write data of bunches to tar-file.");
 
     fprintf(stderr, "Close cherenkov_buffer.\n");
-    fclose(cherenkov_buffer);
+    iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
     return;
+error:
+    assert(0);
+}
+
+
+/**
+ *   Write run end block to the output file.
+ *
+ *  @param  rune  CORSIKA run end block
+*/
+void telrne_(cors_real_t rune[273]) {
+    fprintf(stderr, "Close microtar.\n");
+    iact_check(
+        mtar_finalize(&tar) == MTAR_ESUCCESS,
+        "Can't finalize tar-file.");
+    iact_check(
+        mtar_close(&tar) == MTAR_ESUCCESS,
+        "Can't close tar-file.");
+    iact_check(
+        fclose(primary_file) == 0,
+        "Can't close primary_file.");
+    return;
+error:
+    assert(0);
 }
 
 
@@ -346,19 +456,6 @@ void telinf_(
  *  @param  llength  maximum length of input lines (132 usually)
 */
 void tellni_(char *line, int *llength) {
-    return;
-}
-
-
-/**
- *   Write run end block to the output file.
- *
- *  @param  rune  CORSIKA run end block
-*/
-void telrne_(cors_real_t rune[273]) {
-    fprintf(stderr, "Close microtar.\n");
-    mtar_finalize(&tar);
-    mtar_close(&tar);
     return;
 }
 
