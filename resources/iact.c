@@ -1,6 +1,7 @@
 /* Copyright (c)
 
     Sebastian Achim Mueller, ETH Zurich 2016
+                             MPI Heidelberg 2019
 
     This file originated from the iact.c file which is part of the IACT/atmo
     package for CORSIKA by Konrad Bernloehr.
