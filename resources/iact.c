@@ -139,7 +139,7 @@ error:
 void prmfil_(char *name) {
     const uint64_t sz = sizeof(primary_path);
     const int rc = snprintf(primary_path, sz, "%s", name);
-    iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
+    iact_check(rc > 0 && rc < sz, "Can not copy PRMFIL path.");
     return;
 error:
     assert(0);
