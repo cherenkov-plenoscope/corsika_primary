@@ -80,7 +80,7 @@ def _primaries_to_bytes(primaries):
 def _dict_to_card_and_bytes(steering_dict):
     run = steering_dict["run"]
     primary_binary = _primaries_to_bytes(steering_dict["primaries"])
-    _energies = [prm["energy_GeV"] for prm in primaries]
+    _energies = [prm["energy_GeV"] for prm in steering_dict["primaries"]]
 
     corsika_card = '\n'.join([
         'RUNNR {:d}'.format(run["run_id"]),
@@ -100,7 +100,7 @@ def _dict_to_card_and_bytes(steering_dict):
         'CERSIZ 1.',
         'CERFIL F',
         'TSTART T',
-        'NSHOW {:d}'.format(len(sd["primaries"])),
+        'NSHOW {:d}'.format(len(steering_dict["primaries"])),
         'PRMFIL primary_bytes.f8f8f8f8f8i4',
         'TELFIL run.tar',
         'EXIT'])
