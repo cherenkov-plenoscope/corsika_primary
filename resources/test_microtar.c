@@ -1,5 +1,5 @@
 /* gcc test_microtar.c -o TestMicroTar -lm -std=c89 -Wall -pedantic */
-/* g++ test_microtar.c -o TestMicroTar -lm -std=c89 -Wall -pedantic */
+/* g++ test_microtar.c -o TestMicroTar -lm -Wall -pedantic */
 
 #include <stdio.h>
 #include <string.h>
