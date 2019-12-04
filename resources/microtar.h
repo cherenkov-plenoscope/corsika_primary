@@ -282,7 +282,7 @@ error:
 }
 
 static int64_t _mtar_file_read(mtar_t *tar, void *data, uint64_t size) {
-  uint64_t res = fread(data, 1, size, (FILE*)tar->stream);
+  int64_t res = fread(data, 1, size, (FILE*)tar->stream);
   return (res == size) ? MTAR_ESUCCESS : MTAR_EREADFAIL;
 }
 
