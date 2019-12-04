@@ -35,29 +35,14 @@
 #include <stdint.h>
 #include <errno.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #define MTAR_VERSION "1337.0.0"
 
 #define mtar_clean_errno() (errno == 0 ? "None" : strerror(errno))
 
-#define mtar_log_err(M) \
-    fprintf( \
-        stderr, \
-        "[ERROR] (%s:%d: errno: %s) " M "\n", \
-        __FILE__, \
-        __LINE__, \
-        mtar_clean_errno())
+#define mtar_log_err(M) fprintf(stderr, "[ERROR] (%s:%d: errno: %s) " M "\n", \
+  __FILE__, __LINE__, mtar_clean_errno())
 
-#define mtar_check(A, M) \
-    if (!(A)) {\
-        mtar_log_err(M); \
-        errno = 0; \
-        goto error; \
-    }
+#define mtar_check(A, M) if (!(A)) {mtar_log_err(M); errno = 0; goto error;}
 
 enum {
   MTAR_ESUCCESS     =  0,
@@ -533,9 +518,5 @@ int64_t mtar_finalize(mtar_t *tar) {
   /* Write two NULL records */
   return _mtar_write_null_bytes(tar, sizeof(_mtar_raw_header_t) * 2);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
