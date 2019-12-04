@@ -302,7 +302,7 @@ error:
  *  End of event. Write photon-bunches into tar-file.
 */
 void telend_(cors_real_t evte[273]) {
-    uint64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
+    int64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
     iact_check(sizeof_cherenkov_buffer >= 0, "Can't ftell cherenkov_buffer");
 
     iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
