@@ -140,7 +140,6 @@ def corsika_primary(
         tmp_dir_prefix=tmp_dir_prefix)
 
 
-
 def explicit_corsika_primary(
     corsika_path,
     steering_card,
