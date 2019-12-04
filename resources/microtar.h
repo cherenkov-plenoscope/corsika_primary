@@ -35,6 +35,11 @@
 #include <stdint.h>
 #include <errno.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define MTAR_VERSION "1337.0.0"
 
 #define mtar_clean_errno() (errno == 0 ? "None" : strerror(errno))
@@ -259,8 +264,8 @@ const char* mtar_strerror(int64_t err) {
 
 
 static int64_t _mtar_file_write(mtar_t *tar, const void *data, uint64_t size) {
-  uint64_t res = fwrite(data, 1, size, tar->stream);
-  return (res == size) ? MTAR_ESUCCESS : MTAR_EWRITEFAIL;
+  int64_t res = fwrite(data, 1, size, (FILE*)tar->stream);
+  return (res == (int64_t)size) ? MTAR_ESUCCESS : MTAR_EWRITEFAIL;
 }
 
 static int64_t _mtar_stream_write(
@@ -268,17 +273,19 @@ static int64_t _mtar_stream_write(
   FILE *stream,
   uint64_t size) {
   const uint64_t k_buffer_size = 1024*1024;
+  int64_t res_write, res_read;
+  uint64_t to_be_copied;
   char* buffer = (char*)malloc(k_buffer_size);
   mtar_check(buffer, "Out of Memory");
 
-  uint64_t to_be_copied = size;
+  to_be_copied = size;
   while (to_be_copied > 0) {
-    uint64_t block_size = (
+    int64_t block_size = (
       to_be_copied < k_buffer_size ? to_be_copied : k_buffer_size);
-    uint64_t res_read = fread(buffer, sizeof(char), block_size, stream);
+    res_read = fread(buffer, sizeof(char), block_size, stream);
     mtar_check(res_read == block_size, "Failed to read from file-stream");
 
-    uint64_t res_write = fwrite(buffer, sizeof(char), block_size, tar->stream);
+    res_write = fwrite(buffer, sizeof(char), block_size, (FILE*)tar->stream);
     mtar_check(res_write == block_size, "Failed to write to tar-stream");
     to_be_copied = to_be_copied - block_size;
   }
@@ -290,17 +297,17 @@ error:
 }
 
 static int64_t _mtar_file_read(mtar_t *tar, void *data, uint64_t size) {
-  uint64_t res = fread(data, 1, size, tar->stream);
+  uint64_t res = fread(data, 1, size, (FILE*)tar->stream);
   return (res == size) ? MTAR_ESUCCESS : MTAR_EREADFAIL;
 }
 
 static int64_t _mtar_file_seek(mtar_t *tar, uint64_t offset) {
-  int64_t res = fseek(tar->stream, offset, SEEK_SET);
+  int64_t res = fseek((FILE*)tar->stream, offset, SEEK_SET);
   return (res == 0) ? MTAR_ESUCCESS : MTAR_ESEEKFAIL;
 }
 
 static int64_t _mtar_file_close(mtar_t *tar) {
-  fclose(tar->stream);
+  fclose((FILE*)tar->stream);
   return MTAR_ESUCCESS;
 }
 
@@ -527,5 +534,8 @@ int64_t mtar_finalize(mtar_t *tar) {
   return _mtar_write_null_bytes(tar, sizeof(_mtar_raw_header_t) * 2);
 }
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
