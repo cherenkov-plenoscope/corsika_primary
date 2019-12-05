@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include <errno.h>
 
-#define MTAR_VERSION "1337.0.0"
+#define MTAR_VERSION "1000.0.0"
 
 #define mtar_clean_errno() (errno == 0 ? "None" : strerror(errno))
 
