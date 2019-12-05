@@ -1,5 +1,8 @@
-/* gcc test_microtar.c -o TestMicroTar -lm -std=c89 -Wall -pedantic */
-/* g++ test_microtar.c -o TestMicroTar -lm -Wall -pedantic */
+/* Copyright (c) 2019 Sebastian A. Mueller                                    */
+/*                    Max-Planck-Institute for nuclear-physics, Heidelberg    */
+
+/* gcc test_microtar.c -o TestMicroTar -lm -std=c89 -Wall -pedantic           */
+/* g++ test_microtar.c -o TestMicroTar -lm -Wall -pedantic                    */
 
 #include <stdio.h>
 #include <string.h>
