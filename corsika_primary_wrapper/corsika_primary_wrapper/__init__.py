@@ -260,3 +260,34 @@ class Tario:
             self.path,
             self.num_events_read)
         return out
+
+
+
+def _evth_marker(evth): return evth[ 1-1]
+def _evth_event_number(evth): return evth[ 2-1]
+def _evth_particle_id(evth): return evth[ 3-1]
+def _evth_total_energy_GeV(evth): return evth[ 4-1]
+def _evth_starting_depth_g_per_cm2(evth): return evth[ 5-1]
+def _evth_number_of_first_target_if_fixed(evth): return evth[ 6-1]
+def _evth_z_coordinate_of_first_interaction_cm(evth): return evth[ 7-1]
+def _evth_px_momentum_in_x_direction_GeV_per_c(evth): return evth[ 8-1]
+def _evth_py_momentum_in_y_direction_GeV_per_c(evth): return evth[ 9-1]
+def _evth_pz_momentum_in_z_direction_GeV_per_c(evth): return evth[10-1]
+def _evth_zenith_rad(evth): return evth[11-1]
+def _evth_azimuth_rad(evth): return evth[12-1]
+def _evth_number_of_different_random_number_sequence(evth): return evth[13-1]
+def _evth_run_number(evth): return evth[44-1]
+def _evth_date_of_begin_run_yymmdd(evth): return evth[45-1]
+def _evth_version_of_program(evth): return evth[46-1]
+def _evth_number_of_observation_levels(evth): return evth[47-1]
+def _evth_height_of_level_1_cm(evth): return evth[48-1]
+def _evth_Cherenkov_bunch_size(evth): return evth[85-1]
+def _evth_angle_between_x_direction_and_magnetic_north_rad(evth): return evth[93-1]
+def _evth_Cherenkov_wavelength_start_nm(evth): return evth[96-1]
+def _evth_Cherenkov_wavelength_stop_nm(evth): return evth[97-1]
+def _evth_number_reuses(evth): return evth[98-1]
+def _evth_integer_seed_of_sequence(evth, i): return evth[11+(3*i)-1]
+def _evth_number_offsets_random_calls_mod_million(evth, i):
+    return evth[21+(3*i)-1]
+def _evth_number_offsets_random_calls_divide_million(evth, i):
+    return evth[31+(3*i)-1]
