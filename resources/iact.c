@@ -321,7 +321,7 @@ void telend_(cors_real_t evte[273]) {
             &tar, bunch_filename, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
         "Can't write tar-header of bunches to tar-file.");
     iact_check(
-        mtar_write_stream(
+        mtar_write_data_from_stream(
             &tar, cherenkov_buffer, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
         "Can't write data of bunches to tar-file.");
 

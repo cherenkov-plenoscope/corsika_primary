@@ -82,7 +82,6 @@ typedef struct mtar_t mtar_t;
 struct mtar_t {
   int64_t (*read)(mtar_t *tar, void *data, uint64_t size);
   int64_t (*write)(mtar_t *tar, const void *data, uint64_t size);
-  int64_t (*write_stream)(mtar_t *tar, FILE *stream, uint64_t size);
   int64_t (*seek)(mtar_t *tar, uint64_t pos);
   int64_t (*close)(mtar_t *tar);
   void *stream;
@@ -108,7 +107,6 @@ int64_t mtar_write_header(mtar_t *tar, const mtar_header_t *h);
 int64_t mtar_write_file_header(mtar_t *tar, const char *name, uint64_t size);
 int64_t mtar_write_dir_header(mtar_t *tar, const char *name);
 int64_t mtar_write_data(mtar_t *tar, const void *data, uint64_t size);
-int64_t mtar_write_stream(mtar_t *tar, FILE *stream, uint64_t size);
 int64_t mtar_finalize(mtar_t *tar);
 
 typedef struct {
@@ -153,13 +151,6 @@ static int64_t _mtar_tread(mtar_t *tar, void *data, uint64_t size) {
 
 static int64_t _mtar_twrite(mtar_t *tar, const void *data, uint64_t size) {
   int64_t err = tar->write(tar, data, size);
-  tar->pos += size;
-  return err;
-}
-
-
-static int64_t _mtar_twrite_stream(mtar_t *tar, FILE *stream, uint64_t size) {
-  int64_t err = tar->write_stream(tar, stream, size);
   tar->pos += size;
   return err;
 }
@@ -253,34 +244,6 @@ static int64_t _mtar_file_write(mtar_t *tar, const void *data, uint64_t size) {
   return (res == (int64_t)size) ? MTAR_ESUCCESS : MTAR_EWRITEFAIL;
 }
 
-static int64_t _mtar_stream_write(
-  mtar_t *tar,
-  FILE *stream,
-  uint64_t size) {
-  const uint64_t k_buffer_size = 1024*1024;
-  int64_t res_write, res_read;
-  uint64_t to_be_copied;
-  char* buffer = (char*)malloc(k_buffer_size);
-  mtar_check(buffer, "Out of Memory");
-
-  to_be_copied = size;
-  while (to_be_copied > 0) {
-    int64_t block_size = (
-      to_be_copied < k_buffer_size ? to_be_copied : k_buffer_size);
-    res_read = fread(buffer, sizeof(char), block_size, stream);
-    mtar_check(res_read == block_size, "Failed to read from file-stream");
-
-    res_write = fwrite(buffer, sizeof(char), block_size, (FILE*)tar->stream);
-    mtar_check(res_write == block_size, "Failed to write to tar-stream");
-    to_be_copied = to_be_copied - block_size;
-  }
-  free(buffer);
-  return MTAR_ESUCCESS;
-error:
-  free(buffer);
-  return MTAR_EWRITEFAIL;
-}
-
 static int64_t _mtar_file_read(mtar_t *tar, void *data, uint64_t size) {
   int64_t res = fread(data, 1, size, (FILE*)tar->stream);
   return (res == size) ? MTAR_ESUCCESS : MTAR_EREADFAIL;
@@ -304,7 +267,6 @@ int64_t mtar_open(mtar_t *tar, const char *filename, const char *mode) {
   /* Init tar struct and functions */
   memset(tar, 0, sizeof(*tar));
   tar->write = _mtar_file_write;
-  tar->write_stream = _mtar_stream_write;
   tar->read = _mtar_file_read;
   tar->seek = _mtar_file_seek;
   tar->close = _mtar_file_close;
@@ -496,23 +458,29 @@ int64_t mtar_write_data(mtar_t *tar, const void *data, uint64_t size) {
 }
 
 
-int64_t mtar_write_stream(mtar_t *tar, FILE *stream, uint64_t size) {
-  int64_t err;
-  /* Write data */
-  err = _mtar_twrite_stream(tar, stream, size);
-  if (err) {
-    return err;
-  }
-  tar->remaining_data -= size;
-  /* Write padding if we've written all the data for this file */
-  if (tar->remaining_data == 0) {
-    return _mtar_write_null_bytes(
-      tar,
-      _mtar_round_up(tar->pos, 512) - tar->pos);
-  }
-  return MTAR_ESUCCESS;
-}
+int64_t mtar_write_data_from_stream(mtar_t *tar, FILE *stream, uint64_t size) {
+  const uint64_t buffer_size = 1024*1024;
+  int64_t res_read;
+  uint64_t to_be_copied;
+  char* buffer = (char*)malloc(buffer_size);
+  mtar_check(buffer, "Out of Memory");
 
+  to_be_copied = size;
+  while (to_be_copied > 0) {
+    int64_t block_size = to_be_copied < buffer_size ? to_be_copied:buffer_size;
+    res_read = fread(buffer, sizeof(char), block_size, stream);
+    mtar_check(res_read == block_size, "Failed to read from file-stream");
+
+    mtar_check(mtar_write_data(tar, buffer, block_size) == MTAR_ESUCCESS,
+      "Failed to write stream-buffer to tar-file.");
+    to_be_copied = to_be_copied - block_size;
+  }
+  free(buffer);
+  return MTAR_ESUCCESS;
+error:
+  free(buffer);
+  return MTAR_EWRITEFAIL;
+}
 
 int64_t mtar_finalize(mtar_t *tar) {
   /* Write two NULL records */

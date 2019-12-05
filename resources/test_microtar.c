@@ -90,6 +90,7 @@ int main() {
 
     const char *runh = "I might be a run-header.";
     const char *evth = "And might be an event-header.";
+    const char *rune = "I might be some stuff at the end.";
 
     FILE *f;
     f = fopen("_test_buffer.bin", "wb");
@@ -114,9 +115,11 @@ int main() {
     CHECK(fsize >= -1);
     rewind(f);
     CHECK(mtar_write_file_header(&tar, "cherenkov-bunches.u8", fsize) == 0);
-    CHECK(mtar_write_stream(&tar, f, fsize) == 0);
+    CHECK(mtar_write_data_from_stream(&tar, f, fsize) == 0);
     CHECK(fclose(f) == 0);
 
+    CHECK(mtar_write_file_header(&tar, "rune.txt", strlen(rune)) == 0);
+    CHECK(mtar_write_data(&tar, rune, strlen(rune)) == 0);
     CHECK(mtar_finalize(&tar) == 0);
     CHECK(mtar_close(&tar) == 0);
 
@@ -134,6 +137,10 @@ int main() {
       hans += 1;
     }
 
+    CHECK(mtar_next(&tar) == 0);
+    CHECK(mtar_read_header(&tar, &header) == 0);
+    CHECK(strncmp(header.name, "rune.txt", strlen("rune.txt")) == 0);
+    CHECK(header.size == strlen(rune));
     CHECK(mtar_close(&tar) == 0);
   }
   return 0;
