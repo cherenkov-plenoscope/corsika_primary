@@ -291,3 +291,6 @@ def _evth_number_offsets_random_calls_mod_million(evth, i):
     return evth[21+(3*i)-1]
 def _evth_number_offsets_random_calls_divide_million(evth, i):
     return evth[31+(3*i)-1]
+
+def _runh_number_events(runh):
+    return runh[93-1]
