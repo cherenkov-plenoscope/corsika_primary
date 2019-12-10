@@ -115,9 +115,11 @@ def _append_bunch_statistics(stats, bunches):
     stats["num_bunches"].append(bunches.shape[0])
     return stats
 
+
 KEYS = ['x', 'y', 'cx', 'cy', 'time', 'zem', 'bsize', 'wvl']
 
-def _init_stats():
+
+def _init_statistics():
     stats = {}
     stats['num_bunches'] = []
     for n in KEYS:
@@ -125,83 +127,6 @@ def _init_stats():
         stats[n+"_std"] = []
         stats[n+"_hist"] = []
     return stats
-
-
-stdout_ori_seeds = """
-PRESENT TIME : 10.12.2019  08:07:54 UTC
-RANDOM NUMBER GENERATOR AT BEGIN OF RUN :
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =         0  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =         0  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =         0  BILLIONS =         0
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       2
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =     55244  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =    284658  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =         2  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:50 UTC
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       3
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    116507  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =    624237  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =         4  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:51 UTC
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       4
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    181150  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =    842363  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =         6  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:51 UTC
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       5
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    329122  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =   1110213  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =         8  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:52 UTC
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       6
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    420552  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =   1288977  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =        10  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:52 UTC
-AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       7
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    500802  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =   1503394  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =        12  BILLIONS =         0
-PRESENT TIME : 10.12.2019  07:34:53 UTC
-AND RANDOM NUMBER GENERATOR AT END OF EVENT :       7
-SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
-SEQUENCE =  2  SEED =         2  CALLS =    571422  BILLIONS =         0
-SEQUENCE =  3  SEED =         3  CALLS =   1706300  BILLIONS =         0
-SEQUENCE =  4  SEED =         4  CALLS =        14  BILLIONS =         0
-"""
-
-def _parse_seeds(stdout):
-    seeds = []
-    so = stdout
-    seq = 0
-    _s = [0, 0, 0, 0]
-    _c = [0, 0, 0, 0]
-    _b = [0, 0, 0, 0]
-    for line in so.split("\n"):
-        has_seed = line.find("SEED")
-        if has_seed > -1:
-            print(line)
-            _s[seq] = int(line[22:33])
-            _c[seq] = int(line[41:52])
-            _b[seq] = int(line[63:73])
-            seq += 1
-        if seq == 4:
-            seeds.append([
-                [_s[0], _s[1], _s[2], _s[3]],
-                [_c[0], _c[1], _c[2], _c[3]],
-                [_b[0], _b[1], _b[2], _b[3]],])
-            seq = 0
-    return seeds
-
-
-seeds_from_ori_corsika = _parse_seeds(stdout_ori_seeds)
 
 
 def test_original_vs_moddified(
@@ -226,7 +151,7 @@ def test_original_vs_moddified(
     earth_magnetic_field_x_muT = 12.5
     earth_magnetic_field_z_muT = -25.9
     atmosphere_id = 10
-    zenith_deg = 0.
+    zenith_deg = 10.
     azimuth_deg = 0.
 
     cfg = {
@@ -237,98 +162,116 @@ def test_original_vs_moddified(
 
     run = 0
     for particle in cfg:
-
-        ori_steering_card = "\n".join([
-            "RUNNR 1",
-            "EVTNR 1",
-            "NSHOW {:d}".format(num_shower),
-            "PRMPAR {:d}".format(cfg[particle]["id"]),
-            "ESLOPE 0",
-            "ERANGE {:f} {:f}".format(
-                cfg[particle]["energy"],
-                cfg[particle]["energy"]),
-            "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
-            "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
-            "VIEWCONE 0 0",
-            "SEED 1 0 0",
-            "SEED 2 0 0",
-            "SEED 3 0 0",
-            "SEED 4 0 0",
-            "OBSLEV {:f}".format(1e2*obs_level),
-            'FIXCHI {:f}'.format(chi_g_per_cm2),
-            'MAGNET {Bx:3.3e} {Bz:3.3e}'.format(
-                Bx=earth_magnetic_field_x_muT,
-                Bz=earth_magnetic_field_z_muT),
-            'ELMFLG T T',
-            'MAXPRT 1',
-            'PAROUT F F',
-            'TELESCOPE 0.0 0.0 0.0 1e6',
-            'ATMOSPHERE {:d} T'.format(atmosphere_id),
-            'CWAVLG 250 700',
-            'CSCAT 1 0 0',
-            'CERQEF F T F',
-            'CERSIZ 1.',
-            'CERFIL F',
-            'TSTART T',
-            'EXIT',
-        ])
-
-        mod_steering_dict = {
-            "run": {
-                "run_id": 1,
-                "event_id_of_first_event": 1,
-                "observation_level_altitude_asl": obs_level,
-                "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
-                "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
-                "atmosphere_id": atmosphere_id,},
-            "primaries": []}
-
-        for idx_primary in range(num_shower):
-            prm = {
-                "particle_id": cfg[particle]["id"],
-                "energy_GeV": cfg[particle]["energy"],
-                "zenith_rad": np.deg2rad(zenith_deg),
-                "azimuth_rad": np.deg2rad(azimuth_deg),
-                "depth_g_per_cm2": chi_g_per_cm2,
-                "random_seed": seeds_from_ori_corsika[idx_primary],
-            }
-            mod_steering_dict["primaries"].append(prm)
-
         with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
             tmp_dir = "/home/sebastian/Desktop/test_primary"
             os.makedirs(tmp_dir, exist_ok=True)
 
-            mod_run_path = os.path.join(tmp_dir, "run_{:d}.tar".format(run))
-            cpw.corsika_primary(
-                corsika_path=corsika_primary_path,
-                steering_dict=mod_steering_dict,
-                output_path=mod_run_path)
 
-            ori_card_path = os.path.join(
-                tmp_dir,
-                "original_steering_card_{:d}.txt".format(run))
-            with open(ori_card_path, "wt") as f:
-                f.write(ori_steering_card)
+
+            # RUN ORIGINAL CORSIKA
+            # --------------------
+            ori_steering_card = "\n".join([
+                "RUNNR 1",
+                "EVTNR 1",
+                "NSHOW {:d}".format(num_shower),
+                "PRMPAR {:d}".format(cfg[particle]["id"]),
+                "ESLOPE 0",
+                "ERANGE {:f} {:f}".format(
+                    cfg[particle]["energy"],
+                    cfg[particle]["energy"]),
+                "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
+                "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
+                "VIEWCONE 0 0",
+                "SEED 1 0 0",
+                "SEED 2 0 0",
+                "SEED 3 0 0",
+                "SEED 4 0 0",
+                "OBSLEV {:f}".format(1e2*obs_level),
+                'FIXCHI {:f}'.format(chi_g_per_cm2),
+                'MAGNET {Bx:3.3e} {Bz:3.3e}'.format(
+                    Bx=earth_magnetic_field_x_muT,
+                    Bz=earth_magnetic_field_z_muT),
+                'ELMFLG T T',
+                'MAXPRT 1',
+                'PAROUT F F',
+                'TELESCOPE 0 0 0 1e6',
+                'ATMOSPHERE {:d} T'.format(atmosphere_id),
+                'CWAVLG 250 700',
+                'CSCAT 1 0 0',
+                'CERQEF F T F',
+                'CERSIZ 1.',
+                'CERFIL F',
+                'TSTART T',
+                'EXIT',
+            ])
+
+
             ori_run_eventio_path = os.path.join(
                 tmp_dir,
-                "run_{:d}.eventio".format(run))
-            cw.corsika(
-                steering_card=cw.read_steering_card(ori_card_path),
-                output_path=ori_run_eventio_path,
-                save_stdout=True,
-                corsika_path=corsika_path)
+                "original_run_{:d}.eventio".format(run))
             ori_run_path = os.path.join(
                 tmp_dir,
-                "run_{:d}.simpleio".format(run))
-            subprocess.call([
-                merlict_eventio_converter,
-                "-i", ori_run_eventio_path,
-                "-o", ori_run_path])
+                "original_run_{:d}.simpleio".format(run))
+            if not os.path.exists(ori_run_path):
+                ori_card_path = os.path.join(
+                    tmp_dir,
+                    "original_steering_card_{:d}.txt".format(run))
+                with open(ori_card_path, "wt") as f:
+                    f.write(ori_steering_card)
+                cw.corsika(
+                    steering_card=cw.read_steering_card(ori_card_path),
+                    output_path=ori_run_eventio_path,
+                    save_stdout=True,
+                    corsika_path=corsika_path)
+                subprocess.call([
+                    merlict_eventio_converter,
+                    "-i", ori_run_eventio_path,
+                    "-o", ori_run_path])
+
+            with open(ori_run_eventio_path+".stdout", "rt") as f:
+                ori_stdout = f.read()
+            ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+                stdout=ori_stdout)
+
+            # RUN MODIFIED CORSIKA
+            # --------------------
+            mod_steering_dict = {
+                "run": {
+                    "run_id": 1,
+                    "event_id_of_first_event": 1,
+                    "observation_level_altitude_asl": obs_level,
+                    "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
+                    "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
+                    "atmosphere_id": atmosphere_id,},
+                "primaries": []}
+
+            for idx_primary in range(num_shower):
+                prm = {
+                    "particle_id": cfg[particle]["id"],
+                    "energy_GeV": cfg[particle]["energy"],
+                    "zenith_rad": np.deg2rad(zenith_deg),
+                    "azimuth_rad": np.deg2rad(azimuth_deg),
+                    "depth_g_per_cm2": chi_g_per_cm2,
+                    "random_seed": ori_events_seeds[idx_primary],
+                }
+                mod_steering_dict["primaries"].append(prm)
+
+            mod_run_path = os.path.join(
+                tmp_dir,
+                "modified_run_{:d}.tar".format(run))
+            if not os.path.exists(mod_run_path):
+                cpw.corsika_primary(
+                    corsika_path=corsika_primary_path,
+                    steering_dict=mod_steering_dict,
+                    output_path=mod_run_path)
+
+            # READ ORIGINAL AND MODIFIED RUNS
+            # -------------------------------
             mod_run = cpw.Tario(mod_run_path)
             ori_run = simpleio.SimpleIoRun(ori_run_path)
 
-            ori_stats = _init_stats()
-            mod_stats = _init_stats()
+            ori_stats = _init_statistics()
+            mod_stats = _init_statistics()
             for evt_idx in range(num_shower):
                 mod_evth, _mod_bunches = next(mod_run)
                 mod_bunches = _tario_bunches_to_array(_mod_bunches)
@@ -375,6 +318,59 @@ def test_original_vs_moddified(
                     np.deg2rad(azimuth_deg),
                     1e-6)
 
+
+                assert ori_bunches.shape[0] == mod_bunches.shape[0]
+
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, ICX],
+                    y=ori_bunches[:, ICX],
+                    decimal=3)
+
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, ICY],
+                    y=ori_bunches[:, ICY],
+                    decimal=3)
+
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, IZEM],
+                    y=ori_bunches[:, IZEM],
+                    decimal=1)
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, IBSIZE],
+                    y=ori_bunches[:, IBSIZE],
+                    decimal=3)
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, IWVL],
+                    y=ori_bunches[:, IWVL],
+                    decimal=3)
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, ITIME],
+                    y=ori_bunches[:, ITIME],
+                    decimal=3)
+
+
+                cx2_cy2 = mod_bunches[:, ICX]**2 + mod_bunches[:, ICY]**2
+                mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
+                mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
+
+                print(mod_sx*obs_level, mod_sy*obs_level)
+
+                mod_x = mod_bunches[:, IX] - mod_sx*obs_level - 0.
+                mod_y = mod_bunches[:, IY] - mod_sy*obs_level - 0.
+
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, IX],
+                    y=ori_bunches[:, IX],
+                    decimal=3)
+                np.testing.assert_array_almost_equal(
+                    x=mod_bunches[:, IY],
+                    y=ori_bunches[:, IY],
+                    decimal=3)
+
+
+
+
+            """
             for key in KEYS:
                 for met in ["_median", "_std", "_hist"]:
                     ori_stats[key+met] = np.sum(
@@ -394,10 +390,10 @@ def test_original_vs_moddified(
                     print("{:.2f} {:.2f}".format(
                         ori_stats[k+"_hist"][ii],
                         mod_stats[k+"_hist"][ii]))
+            """
 
             print(ori_stats)
             print(mod_stats)
             assert False
-
 
         run += 1
