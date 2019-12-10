@@ -75,8 +75,7 @@ def install(
     corsika_tar_path,
     install_path,
     resource_path,
-    modify_corsika,
-    modify_iact
+    modify,
 ):
     install_path = os.path.abspath(install_path)
     resource_path = os.path.abspath(resource_path)
@@ -105,15 +104,10 @@ def install(
         stderr_path=join(install_path, 'coconut_configure.stderr'),
         stdin=open('/dev/null', 'r'))
 
-    if modify_corsika:
+    if modify:
         shutil.copyfile(
             join(resource_path, 'corsikacompilefile_modified.f'),
             join('src', 'corsikacompilefile.f'))
-        shutil.copyfile(
-            join(resource_path, 'iact_prmpar.c'),
-            join('bernlohr', 'iact.c'))
-
-    if modify_iact:
         shutil.copy(
             join(resource_path, 'microtar.h'),
             join('bernlohr', 'microtar.h'))
@@ -161,31 +155,21 @@ def main():
                 corsika_tar_filename=corsika_tar_filename)
 
         assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(
-            corsika_tar_filename)
+            corsika_tar_path)
 
         if not os.path.exists(join(install_path, "original")):
             install(
                 corsika_tar_path=corsika_tar_path,
                 install_path=join(install_path, "original"),
                 resource_path=resource_path,
-                modify_corsika=False,
-                modify_iact=False)
+                modify=False)
 
         if not os.path.exists(join(install_path, "modified")):
             install(
                 corsika_tar_path=corsika_tar_path,
                 install_path=join(install_path, "modified"),
                 resource_path=resource_path,
-                modify_corsika=True,
-                modify_iact=True)
-
-        if not os.path.exists(join(install_path, "modified_with_iact")):
-            install(
-                corsika_tar_path=corsika_tar_path,
-                install_path=join(install_path, "modified_with_iact"),
-                resource_path=resource_path,
-                modify_corsika=True,
-                modify_iact=False)
+                modify=True)
 
     except docopt.DocoptExit as e:
         print(e)
