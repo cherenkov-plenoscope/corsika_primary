@@ -189,7 +189,7 @@ def main():
 
         aes(key=args['--username'],
             in_path=join(resource_path, 'corsikacompilefile_modified.f.enc'),
-            out_path=join(resource_path, 'corsikacompilefile_modified.f2'),
+            out_path=join(resource_path, 'corsikacompilefile_modified.f'),
             mode="decrypt")
 
         assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(
