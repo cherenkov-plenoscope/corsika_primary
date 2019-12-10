@@ -16,6 +16,11 @@ setuptools.setup(
     packages=[
         'corsika_primary_wrapper',
     ],
+    package_data={
+        'corsika_primary_wrapper': [
+            'tests/resources/*',
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
