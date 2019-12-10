@@ -3613,8 +3613,11 @@ C  LOOP OVER SHOWERS
 C---------------------
 C SET PRIMARY PARTICLE
 
-        CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP,
-     *               THICK0, ISEED(1,1))
+        CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP, THICK0,
+     *       ISEED(1,1), ISEED(2,1), ISEED(3,1),
+     *       ISEED(1,2), ISEED(2,2), ISEED(3,2),
+     *       ISEED(1,3), ISEED(2,3), ISEED(3,3),
+     *       ISEED(1,4), ISEED(2,4), ISEED(3,4))
 
 C PARTICLE TYPE
 C-set   PRMPAR(0) = 3.0
@@ -3639,39 +3642,32 @@ C NEED 4 SEQUENCES FOR CHERENKOV
         NSEQ = 8
 
 C-set   ISEED(1,1) = 1337
-        ISEED(2,1) = 0
-        ISEED(3,1) = 0
-
-        ISEED(1,2) = ISEED(1,1) + 1
-        ISEED(2,2) = 0
-        ISEED(3,2) = 0
-
-        ISEED(1,3) = ISEED(1,1) + 2
-        ISEED(2,3) = 0
-        ISEED(3,3) = 0
-
-        ISEED(1,4) = ISEED(1,1) + 3
-        ISEED(2,4) = 0
-        ISEED(3,4) = 0
-
-        ISEED(1,5) = ISEED(1,1) + 4
-        ISEED(2,5) = 0
-        ISEED(3,5) = 0
-
-        ISEED(1,6) = ISEED(1,1) + 5
-        ISEED(2,6) = 0
-        ISEED(3,6) = 0
-
-        ISEED(1,7) = ISEED(1,1) + 6
-        ISEED(2,7) = 0
-        ISEED(3,7) = 0
-
-        ISEED(1,8) = ISEED(1,1) + 7
-        ISEED(2,8) = 0
-        ISEED(3,8) = 0
+C       ISEED(2,1) = 0
+C       ISEED(3,1) = 0
+C       ISEED(1,2) = ISEED(1,1) + 1
+C       ISEED(2,2) = 0
+C       ISEED(3,2) = 0
+C       ISEED(1,3) = ISEED(1,1) + 2
+C       ISEED(2,3) = 0
+C       ISEED(3,3) = 0
+C       ISEED(1,4) = ISEED(1,1) + 3
+C       ISEED(2,4) = 0
+C       ISEED(3,4) = 0
+C       ISEED(1,5) = ISEED(1,1) + 4
+C       ISEED(2,5) = 0
+C       ISEED(3,5) = 0
+C       ISEED(1,6) = ISEED(1,1) + 5
+C       ISEED(2,6) = 0
+C       ISEED(3,6) = 0
+C       ISEED(1,7) = ISEED(1,1) + 6
+C       ISEED(2,7) = 0
+C       ISEED(3,7) = 0
+C       ISEED(1,8) = ISEED(1,1) + 7
+C       ISEED(2,8) = 0
+C       ISEED(3,8) = 0
 
         DO  MYL = 1, NSEQ
-          CALL RMMAQD( ISEED(1,MYL),MYL,'S' )
+          CALL RMMAQD( ISEED(1:3, MYL), MYL, 'S' )
         ENDDO
 
         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
