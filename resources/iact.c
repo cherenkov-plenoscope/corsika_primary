@@ -33,7 +33,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdint.h>
-#include <assert.h>
 
 #include "microtar.h"
 
@@ -129,7 +128,7 @@ void telfil_(char *name) {
     iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 /**
@@ -142,7 +141,7 @@ void prmfil_(char *name) {
     iact_check(rc > 0 && rc < sz, "Can not copy PRMFIL path.");
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 
@@ -168,7 +167,7 @@ void telrnh_(cors_real_t runh[273]) {
     iact_check(primary_file, "Can not open primary_file.");
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 /**
@@ -207,7 +206,7 @@ void extprm_(
     (*iseed) = iseed_;
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 /**
@@ -241,7 +240,7 @@ void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
     num_photons_in_event = 0;
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 
@@ -293,7 +292,7 @@ int telout_(
     num_photons_in_event = num_photons_in_event + 1;
     return 0;
 error:
-    assert(0);
+    exit(1);
     return -1;
 }
 
@@ -328,7 +327,7 @@ void telend_(cors_real_t evte[273]) {
     iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 
@@ -349,7 +348,7 @@ void telrne_(cors_real_t rune[273]) {
         "Can't close primary_file.");
     return;
 error:
-    assert(0);
+    exit(1);
 }
 
 
