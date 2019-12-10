@@ -95,7 +95,18 @@ void extprm_(
     double *thetap,
     double *phip,
     double *thick0,
-    int* iseed);
+    int* iseed_seq1_1,
+    int* iseed_seq1_2,
+    int* iseed_seq1_3,
+    int* iseed_seq2_1,
+    int* iseed_seq2_2,
+    int* iseed_seq2_3,
+    int* iseed_seq3_1,
+    int* iseed_seq3_2,
+    int* iseed_seq3_3,
+    int* iseed_seq4_1,
+    int* iseed_seq4_2,
+    int* iseed_seq4_3);
 
 
 /* =============================================================== */
@@ -189,21 +200,78 @@ void extprm_(
     double *thetap,
     double *phip,
     double *thick0,
-    int* iseed) {
+    int* iseed_seq1_1,
+    int* iseed_seq2_1,
+    int* iseed_seq3_1,
+
+    int* iseed_seq1_2,
+    int* iseed_seq2_2,
+    int* iseed_seq3_2,
+
+    int* iseed_seq1_3,
+    int* iseed_seq2_3,
+    int* iseed_seq3_3,
+
+    int* iseed_seq1_4,
+    int* iseed_seq2_4,
+    int* iseed_seq3_4) {
     double type_, eprim_, thetap_, phip_, thick0_;
-    int32_t iseed_;
+    int iseed_seq1_1_;
+    int iseed_seq2_1_;
+    int iseed_seq3_1_;
+
+    int iseed_seq1_2_;
+    int iseed_seq2_2_;
+    int iseed_seq3_2_;
+
+    int iseed_seq1_3_;
+    int iseed_seq2_3_;
+    int iseed_seq3_3_;
+
+    int iseed_seq1_4_;
+    int iseed_seq2_4_;
+    int iseed_seq3_4_;
     iact_fread(&type_, sizeof(double), 1, primary_file);
     iact_fread(&eprim_, sizeof(double), 1, primary_file);
     iact_fread(&thetap_, sizeof(double), 1, primary_file);
     iact_fread(&phip_, sizeof(double), 1, primary_file);
     iact_fread(&thick0_, sizeof(double), 1, primary_file);
-    iact_fread(&iseed_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq1_1_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq2_1_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq3_1_, sizeof(int32_t), 1, primary_file);
+
+    iact_fread(&iseed_seq1_2_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq2_2_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq3_2_, sizeof(int32_t), 1, primary_file);
+
+    iact_fread(&iseed_seq1_3_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq2_3_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq3_3_, sizeof(int32_t), 1, primary_file);
+
+    iact_fread(&iseed_seq1_4_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq2_4_, sizeof(int32_t), 1, primary_file);
+    iact_fread(&iseed_seq3_4_, sizeof(int32_t), 1, primary_file);
     (*type) = type_;
     (*eprim) = eprim_;
     (*thetap) = thetap_;
     (*phip) = phip_;
     (*thick0) = thick0_;
-    (*iseed) = iseed_;
+    (*iseed_seq1_1) = iseed_seq1_1_;
+    (*iseed_seq2_1) = iseed_seq2_1_;
+    (*iseed_seq3_1) = iseed_seq3_1_;
+
+    (*iseed_seq1_2) = iseed_seq1_2_;
+    (*iseed_seq2_2) = iseed_seq2_2_;
+    (*iseed_seq3_2) = iseed_seq3_2_;
+
+    (*iseed_seq1_3) = iseed_seq1_3_;
+    (*iseed_seq2_3) = iseed_seq2_3_;
+    (*iseed_seq3_3) = iseed_seq3_3_;
+
+    (*iseed_seq1_4) = iseed_seq1_4_;
+    (*iseed_seq2_4) = iseed_seq2_4_;
+    (*iseed_seq3_4) = iseed_seq3_4_;
+
     return;
 error:
     exit(1);

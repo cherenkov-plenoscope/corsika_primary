@@ -127,6 +127,83 @@ def _init_stats():
     return stats
 
 
+stdout_ori_seeds = """
+PRESENT TIME : 10.12.2019  08:07:54 UTC
+RANDOM NUMBER GENERATOR AT BEGIN OF RUN :
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =         0  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =         0  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =         0  BILLIONS =         0
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       2
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =     55244  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =    284658  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =         2  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:50 UTC
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       3
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    116507  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =    624237  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =         4  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:51 UTC
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       4
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    181150  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =    842363  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =         6  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:51 UTC
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       5
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    329122  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =   1110213  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =         8  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:52 UTC
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       6
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    420552  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =   1288977  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =        10  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:52 UTC
+AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :       7
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    500802  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =   1503394  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =        12  BILLIONS =         0
+PRESENT TIME : 10.12.2019  07:34:53 UTC
+AND RANDOM NUMBER GENERATOR AT END OF EVENT :       7
+SEQUENCE =  1  SEED =         1  CALLS =         0  BILLIONS =         0
+SEQUENCE =  2  SEED =         2  CALLS =    571422  BILLIONS =         0
+SEQUENCE =  3  SEED =         3  CALLS =   1706300  BILLIONS =         0
+SEQUENCE =  4  SEED =         4  CALLS =        14  BILLIONS =         0
+"""
+
+def _parse_seeds(stdout):
+    seeds = []
+    so = stdout
+    seq = 0
+    _s = [0, 0, 0, 0]
+    _c = [0, 0, 0, 0]
+    _b = [0, 0, 0, 0]
+    for line in so.split("\n"):
+        has_seed = line.find("SEED")
+        if has_seed > -1:
+            print(line)
+            _s[seq] = int(line[22:33])
+            _c[seq] = int(line[41:52])
+            _b[seq] = int(line[63:73])
+            seq += 1
+        if seq == 4:
+            seeds.append([
+                [_s[0], _s[1], _s[2], _s[3]],
+                [_c[0], _c[1], _c[2], _c[3]],
+                [_b[0], _b[1], _b[2], _b[3]],])
+            seq = 0
+    return seeds
+
+
+seeds_from_ori_corsika = _parse_seeds(stdout_ori_seeds)
+
+
 def test_original_vs_moddified(
     corsika_primary_path,
     corsika_path,
@@ -142,7 +219,7 @@ def test_original_vs_moddified(
 
     np.random.seed(0)
 
-    num_shower = 1024
+    num_shower = 7
 
     chi_g_per_cm2 = 0.0
     obs_level = 2.3e3
@@ -154,8 +231,8 @@ def test_original_vs_moddified(
 
     cfg = {
         "gamma": {"id": 1, "energy": 1.337},
-        "electron": {"id": 3, "energy": 1.337},
-        "proton": {"id": 14, "energy": 6.5},
+        #"electron": {"id": 3, "energy": 1.337},
+        #"proton": {"id": 14, "energy": 6.5},
     }
 
     run = 0
@@ -213,7 +290,7 @@ def test_original_vs_moddified(
                 "zenith_rad": np.deg2rad(zenith_deg),
                 "azimuth_rad": np.deg2rad(azimuth_deg),
                 "depth_g_per_cm2": chi_g_per_cm2,
-                "random_seed": idx_primary + 1,
+                "random_seed": seeds_from_ori_corsika[idx_primary],
             }
             mod_steering_dict["primaries"].append(prm)
 
@@ -317,6 +394,9 @@ def test_original_vs_moddified(
                     print("{:.2f} {:.2f}".format(
                         ori_stats[k+"_hist"][ii],
                         mod_stats[k+"_hist"][ii]))
+
+            print(ori_stats)
+            print(mod_stats)
             assert False
 
 

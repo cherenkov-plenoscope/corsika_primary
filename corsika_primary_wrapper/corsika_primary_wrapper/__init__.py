@@ -7,6 +7,12 @@ import io
 import tarfile
 import struct
 
+def _simple_seed(seed):
+    return [
+        [seed, seed+1, seed+2, seed+3],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
 
 EXAMPLE_STEERING_DICT = {
     "run": {
@@ -24,7 +30,7 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.0,
             "azimuth_rad": 0.0,
             "depth_g_per_cm2": 0.0,
-            "random_seed": 0,
+            "random_seed": _simple_seed(0),
         },
         {
             "particle_id": 1,
@@ -32,7 +38,7 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.1,
             "azimuth_rad": 0.2,
             "depth_g_per_cm2": 3.6,
-            "random_seed": 1,
+            "random_seed": _simple_seed(1),
         },
         {
             "particle_id": 1,
@@ -40,12 +46,12 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.1,
             "azimuth_rad": 0.25,
             "depth_g_per_cm2": 102.2,
-            "random_seed": 2,
+            "random_seed": _simple_seed(2),
         },
     ],
 }
 
-NUM_BYTES_PER_PRIMARY = 5*8 + 4
+NUM_BYTES_PER_PRIMARY = 5*8 + 12*4
 
 
 def _overwrite_steering_card(
@@ -74,7 +80,10 @@ def _primaries_to_bytes(primaries):
             f.write(np.float64(prm['zenith_rad']).tobytes())
             f.write(np.float64(prm['azimuth_rad']).tobytes())
             f.write(np.float64(prm['depth_g_per_cm2']).tobytes())
-            f.write(np.int32(prm['random_seed']).tobytes())
+            for nseq in range(4):
+                f.write(np.int32(prm['random_seed'][0][nseq]).tobytes())
+                f.write(np.int32(prm['random_seed'][1][nseq]).tobytes())
+                f.write(np.int32(prm['random_seed'][2][nseq]).tobytes())
         f.seek(0)
         return f.read()
 
@@ -159,7 +168,7 @@ def explicit_corsika_primary(
         steering_card   String of lines seperated by newline.
                         Steers all constant properties of a run.
 
-        primary_bytes   Bytes [f8, f8, f8, f8, f8, i4] for each
+        primary_bytes   Bytes [5 x float64, 12 x int32] for each
                         primary particle. The number of primaries will
                         overwrite NSHOW in steering_card.
 
