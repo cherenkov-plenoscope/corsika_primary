@@ -58,8 +58,8 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             next(run)
 
         assert(first_evth[0] == third_evth[0])
-        assert(first_evth[1] == 1) # event-number
-        assert(third_evth[1] == 3) # event-number
+        assert(first_evth[1] == 1)  # event-number
+        assert(third_evth[1] == 3)  # event-number
         np.testing.assert_array_equal(first_evth[2:], third_evth[2:])
         np.testing.assert_array_equal(first_bunches, third_bunches)
 

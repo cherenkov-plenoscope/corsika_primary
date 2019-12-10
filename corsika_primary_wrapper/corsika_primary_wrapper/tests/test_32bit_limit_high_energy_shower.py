@@ -20,7 +20,8 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             "observation_level_altitude_asl": 2300,
             "earth_magnetic_field_x_muT": 12.5,
             "earth_magnetic_field_z_muT": -25.9,
-            "atmosphere_id": 10,},
+            "atmosphere_id": 10,
+        },
         "primaries": [
             {
                 "particle_id": 3,
@@ -52,4 +53,3 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
         sufficient_bunches = int(5e9//cpw.NUM_BYTES_PER_PRIMARY)
 
         assert bunches.shape[0] > sufficient_bunches
-
