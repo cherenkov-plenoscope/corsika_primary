@@ -10,10 +10,10 @@ import struct
 
 def _simple_seed(seed):
     return [
-        [seed, seed+1, seed+2, seed+3],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-    ]
+        {"SEED": seed, "CALLS": 0, "BILLIONS": 0},
+        {"SEED": seed+1, "CALLS": 0, "BILLIONS": 0},
+        {"SEED": seed+2, "CALLS": 0, "BILLIONS": 0},
+        {"SEED": seed+3, "CALLS": 0, "BILLIONS": 0}]
 
 
 EXAMPLE_STEERING_DICT = {
@@ -83,9 +83,8 @@ def _primaries_to_bytes(primaries):
             f.write(np.float64(prm['azimuth_rad']).tobytes())
             f.write(np.float64(prm['depth_g_per_cm2']).tobytes())
             for nseq in range(4):
-                f.write(np.int32(prm['random_seed'][0][nseq]).tobytes())
-                f.write(np.int32(prm['random_seed'][1][nseq]).tobytes())
-                f.write(np.int32(prm['random_seed'][2][nseq]).tobytes())
+                for key in ["SEED", "CALLS", "BILLIONS"]:
+                    f.write(np.int32(prm['random_seed'][nseq][key]).tobytes())
         f.seek(0)
         return f.read()
 
