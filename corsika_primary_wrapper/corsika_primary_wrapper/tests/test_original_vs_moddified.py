@@ -7,6 +7,7 @@ import simpleio
 import numpy as np
 import subprocess
 import pandas as pd
+import struct
 
 
 @pytest.fixture()
@@ -61,6 +62,7 @@ def _simpleio_bunches_to_array(bunches):
     b[:, IWVL] = np.abs(bunches.wavelength)
     return b
 
+"""
 
 bsize_bin_edges = np.linspace(0, 1, 101)
 wvl_bin_edges = np.linspace(250e-9, 700e-9, 21)
@@ -114,10 +116,14 @@ def _append_bunch_statistics(stats, bunches):
 
     stats["num_bunches"].append(bunches.shape[0])
     return stats
+"""
+
+def bit_string(flt):
+    return bin(struct.unpack('!i',struct.pack('!f', flt))[0])
 
 
 KEYS = ['x', 'y', 'cx', 'cy', 'time', 'zem', 'bsize', 'wvl']
-
+SPPED_OF_LIGHT = 299792458
 
 def _init_statistics():
     stats = {}
@@ -151,19 +157,20 @@ def test_original_vs_moddified(
     earth_magnetic_field_x_muT = 12.5
     earth_magnetic_field_z_muT = -25.9
     atmosphere_id = 10
-    zenith_deg = 10.
+    zenith_deg = 0.
     azimuth_deg = 0.
+    telescope_sphere_radius = 1e4
 
     cfg = {
         "gamma": {"id": 1, "energy": 1.337},
-        #"electron": {"id": 3, "energy": 1.337},
-        #"proton": {"id": 14, "energy": 6.5},
+        "electron": {"id": 3, "energy": 1.337},
+        "proton": {"id": 14, "energy": 7.0},
     }
 
     run = 0
     for particle in cfg:
         with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
-            tmp_dir = "/home/sebastian/Desktop/test_primary"
+            tmp_dir = "/home/sebastian/Desktop/test_primary_{:d}".format(run)
             os.makedirs(tmp_dir, exist_ok=True)
 
 
@@ -194,7 +201,7 @@ def test_original_vs_moddified(
                 'ELMFLG T T',
                 'MAXPRT 1',
                 'PAROUT F F',
-                'TELESCOPE 0 0 0 1e6',
+                'TELESCOPE 0 0 0 {:f}'.format(1e2*telescope_sphere_radius),
                 'ATMOSPHERE {:d} T'.format(atmosphere_id),
                 'CWAVLG 250 700',
                 'CSCAT 1 0 0',
@@ -233,6 +240,8 @@ def test_original_vs_moddified(
             ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
                 stdout=ori_stdout)
 
+            print(ori_events_seeds)
+
             # RUN MODIFIED CORSIKA
             # --------------------
             mod_steering_dict = {
@@ -270,8 +279,8 @@ def test_original_vs_moddified(
             mod_run = cpw.Tario(mod_run_path)
             ori_run = simpleio.SimpleIoRun(ori_run_path)
 
-            ori_stats = _init_statistics()
-            mod_stats = _init_statistics()
+            # ori_stats = _init_statistics()
+            # mod_stats = _init_statistics()
             for evt_idx in range(num_shower):
                 mod_evth, _mod_bunches = next(mod_run)
                 mod_bunches = _tario_bunches_to_array(_mod_bunches)
@@ -279,8 +288,22 @@ def test_original_vs_moddified(
                 ori_evth = _ori_event.header.raw
                 ori_bunches = _simpleio_bunches_to_array(
                     _ori_event.cherenkov_photon_bunches)
-                ori_stats = _append_bunch_statistics(ori_stats, ori_bunches)
-                mod_stats = _append_bunch_statistics(mod_stats, mod_bunches)
+                # ori_stats = _append_bunch_statistics(ori_stats, ori_bunches)
+                # mod_stats = _append_bunch_statistics(mod_stats, mod_bunches)
+
+                with open(os.path.join(tmp_dir, "evth_compare.md"), "at") as fout:
+                    md = "---------------{: 3d}--------------\n".format(
+                        evt_idx+1)
+                    for ll in range(ori_evth.shape[0]):
+                        ll_diff = mod_evth[ll] - ori_evth[ll]
+                        if np.abs(ll_diff) > 0.0:
+                            md += "{: 3d} {:3.3f} {:3.3f} {:3.3f}\n".format(
+                                ll+1, mod_evth[ll], ori_evth[ll],
+                                mod_evth[ll] - ori_evth[ll])
+                        else:
+                            md += "{: 3d}\n".format(
+                                ll+1, mod_evth[ll])
+                    fout.write(md)
 
                 assert equal(
                     cpw._evth_zenith_rad(mod_evth),
@@ -318,82 +341,97 @@ def test_original_vs_moddified(
                     np.deg2rad(azimuth_deg),
                     1e-6)
 
+                print(run, ori_bunches.shape[0], mod_bunches.shape[0])
 
-                assert ori_bunches.shape[0] == mod_bunches.shape[0]
+                if zenith_deg == 0. and azimuth_deg == 0.:
+                    # When angles are different from zero, numeric precision
+                    # will cause slightly differrent start values for primary.
+                    assert ori_bunches.shape[0] == mod_bunches.shape[0]
+                else:
+                    assert (
+                        np.abs(ori_bunches.shape[0] - mod_bunches.shape[0]) <
+                        1000)
 
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, ICX],
-                    y=ori_bunches[:, ICX],
-                    decimal=3)
+                if ori_bunches.shape[0] == mod_bunches.shape[0]:
+                    np.testing.assert_array_almost_equal(
+                        x=mod_bunches[:, ICX],
+                        y=ori_bunches[:, ICX],
+                        decimal=5)
+                    np.testing.assert_array_almost_equal(
+                        x=mod_bunches[:, ICY],
+                        y=ori_bunches[:, ICY],
+                        decimal=5)
 
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, ICY],
-                    y=ori_bunches[:, ICY],
-                    decimal=3)
+                    np.testing.assert_array_almost_equal(
+                        x=mod_bunches[:, IZEM],
+                        y=ori_bunches[:, IZEM],
+                        decimal=1)
+                    np.testing.assert_array_almost_equal(
+                        x=mod_bunches[:, IBSIZE],
+                        y=ori_bunches[:, IBSIZE],
+                        decimal=6)
+                    np.testing.assert_array_almost_equal(
+                        x=mod_bunches[:, IWVL],
+                        y=ori_bunches[:, IWVL],
+                        decimal=9)
 
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, IZEM],
-                    y=ori_bunches[:, IZEM],
-                    decimal=1)
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, IBSIZE],
-                    y=ori_bunches[:, IBSIZE],
-                    decimal=3)
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, IWVL],
-                    y=ori_bunches[:, IWVL],
-                    decimal=3)
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, ITIME],
-                    y=ori_bunches[:, ITIME],
-                    decimal=3)
+                    # Correct for detector-sphere in iact.c
+                    # See function: photon_hit()
+                    # -------------------------------------
+                    DET_ZO = telescope_sphere_radius
+                    DET_XO = 0.
+                    DET_YO = 0.
+                    cx2_cy2 = mod_bunches[:, ICX]**2 + mod_bunches[:, ICY]**2
+                    mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
+                    mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
 
+                    mod_x = mod_bunches[:, IX] - mod_sx*DET_ZO - DET_XO
+                    mod_y = mod_bunches[:, IY] - mod_sy*DET_ZO - DET_YO
 
-                cx2_cy2 = mod_bunches[:, ICX]**2 + mod_bunches[:, ICY]**2
-                mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
-                mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
+                    if particle != "electron" and particle != "proton":
+                        # Charged cosimc-rays such as electron and proton
+                        # have corrections implemented in iact.c for
+                        # deflections in earth's magnetic field.
+                        np.testing.assert_array_almost_equal(
+                            x=mod_x,
+                            y=ori_bunches[:, IX],
+                            decimal=2)
+                        np.testing.assert_array_almost_equal(
+                            x=mod_y,
+                            y=ori_bunches[:, IY],
+                            decimal=2)
 
-                print(mod_sx*obs_level, mod_sy*obs_level)
+                        HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
+                        assert (
+                            cpw._evth_z_coordinate_of_first_interaction_cm(
+                                mod_evth) < 0.)
+                        assert (
+                            cpw._evth_z_coordinate_of_first_interaction_cm(
+                                ori_evth) < 0.)
 
-                mod_x = mod_bunches[:, IX] - mod_sx*obs_level - 0.
-                mod_y = mod_bunches[:, IY] - mod_sy*obs_level - 0.
+                        mod_time_sphere_z = (
+                            DET_ZO*np.sqrt(1.+mod_sx**2+mod_sy**2)/
+                            SPPED_OF_LIGHT)
 
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, IX],
-                    y=ori_bunches[:, IX],
-                    decimal=3)
-                np.testing.assert_array_almost_equal(
-                    x=mod_bunches[:, IY],
-                    y=ori_bunches[:, IY],
-                    decimal=3)
+                        mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
 
+                        mod_toffset = (HEIGHT_AT_ZERO_GRAMMAGE + obs_level
+                            )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
 
+                        #print("zenith_rad", mod_zenith_rad)
+                        mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
+                        mod_ctime = mod_ctime - mod_toffset
 
+                        #print("sx", mod_sx[0:4])
+                        #print("sy", mod_sy[0:4])
+                        #print("toffset ns", mod_toffset*1e9)
+                        #print("time_sphere_z ns", mod_time_sphere_z[0:4]*1e9)
+                        #print("ori ns", 1e9*ori_bunches[0:4, ITIME])
+                        #print("mod ns", 1e9*mod_bunches[0:4, ITIME])
+                        #print("mod_ctime ns", 1e9*mod_ctime[0:4])
 
-            """
-            for key in KEYS:
-                for met in ["_median", "_std", "_hist"]:
-                    ori_stats[key+met] = np.sum(
-                        ori_stats[key+met], axis=0)/num_shower
-                    mod_stats[key+met] = np.sum(
-                        mod_stats[key+met], axis=0)/num_shower
-
-            relative_uncertainty = 1/np.sqrt(num_shower)
-
-            for k in KEYS:
-                print("\n")
-                print(k)
-                print("median:", ori_stats[k+"_median"], mod_stats[k+"_median"])
-                print("std:", ori_stats[k+"_std"], mod_stats[k+"_std"])
-                print("hist ori, mod:")
-                for ii in range(ori_stats[k+"_hist"].shape[0]):
-                    print("{:.2f} {:.2f}".format(
-                        ori_stats[k+"_hist"][ii],
-                        mod_stats[k+"_hist"][ii]))
-            """
-
-            print(ori_stats)
-            print(mod_stats)
-            assert False
-
+                        np.testing.assert_array_almost_equal(
+                            x=mod_ctime,
+                            y=ori_bunches[:, ITIME],
+                            decimal=6)
         run += 1
