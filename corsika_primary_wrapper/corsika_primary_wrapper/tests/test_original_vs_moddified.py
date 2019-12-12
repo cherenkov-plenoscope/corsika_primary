@@ -24,6 +24,7 @@ def corsika_path(pytestconfig):
 def merlict_eventio_converter(pytestconfig):
     return pytestconfig.getoption("merlict_eventio_converter")
 
+
 IX = 0
 IY = 1
 ICX = 2
@@ -33,21 +34,39 @@ IZEM = 5
 IBSIZE = 6
 IWVL = 7
 
+
 def equal(a, b, absolute_margin=1e-6):
     return np.abs(a - b) < absolute_margin
 
 
+def evth_is_equal_enough(ori_evth, mod_evth):
+    assert ori_evth.shape[0] == mod_evth.shape[0]
+    equal = True
+    for ii in range(ori_evth.shape[0]):
+        if ii == (77-1):
+            # We ignore field 77. (fortran77 idx starts at 1)
+            # Here iact.c sets a flag in case of VOLUMEDET option.
+            # Its only relevant for the geometry of the scattering,
+            # what is obsolete now.
+            pass
+        else:
+            if ori_evth[ii] != mod_evth[ii]:
+                equal = False
+    return equal
+
+
 def _tario_bunches_to_array(bunches):
     b = np.zeros(shape=bunches.shape, dtype=np.float32)
-    b[:, IX] = bunches[:, IX]*1e-2 # cm -> m
-    b[:, IY] = bunches[:, IY]*1e-2 # cm -> m
+    b[:, IX] = bunches[:, IX]*1e-2  # cm -> m
+    b[:, IY] = bunches[:, IY]*1e-2  # cm -> m
     b[:, ICX] = bunches[:, ICX]
     b[:, ICY] = bunches[:, ICY]
-    b[:, ITIME] = bunches[:, ITIME]*1e-9 # ns -> s
-    b[:, IZEM] = bunches[:, IZEM]*1e-2 # cm -> m
+    b[:, ITIME] = bunches[:, ITIME]*1e-9  # ns -> s
+    b[:, IZEM] = bunches[:, IZEM]*1e-2  # cm -> m
     b[:, IBSIZE] = bunches[:, IBSIZE]
-    b[:, IWVL] = np.abs(bunches[:, IWVL])*1e-9 # nm -> m
+    b[:, IWVL] = np.abs(bunches[:, IWVL])*1e-9  # nm -> m
     return b
+
 
 def _simpleio_bunches_to_array(bunches):
     num_bunches = bunches.x.shape[0]
@@ -62,68 +81,10 @@ def _simpleio_bunches_to_array(bunches):
     b[:, IWVL] = np.abs(bunches.wavelength)
     return b
 
-"""
-
-bsize_bin_edges = np.linspace(0, 1, 101)
-wvl_bin_edges = np.linspace(250e-9, 700e-9, 21)
-zem_bin_edges = np.linspace(2e3, 52e3, 21)
-xy_bin_edges = np.linspace(-10e3, 10e3, 20+1)
-cxcy_bin_edges = np.linspace(-np.deg2rad(20), np.deg2rad(20), 40+1)
-time_bin_edges = np.linspace(3e-4, 5e-4, 21)
-
-
-def _append_bunch_statistics(stats, bunches):
-    num_bunches = bunches.shape[0]
-    stats["x_median"].append(np.median(bunches[:, IX]))
-    stats["x_std"].append(np.std(bunches[:, IX]))
-    stats["x_hist"].append(
-        np.histogram(bunches[:, IX], bins=xy_bin_edges)[0]/num_bunches)
-
-    stats["y_median"].append(np.median(bunches[:, IY]))
-    stats["y_std"].append(np.std(bunches[:, IY]))
-    stats["y_hist"].append(
-        np.histogram(bunches[:, IY], bins=xy_bin_edges)[0]/num_bunches)
-
-    stats["cx_median"].append(np.median(bunches[:, ICX]))
-    stats["cx_std"].append(np.std(bunches[:, ICX]))
-    stats["cx_hist"].append(
-        np.histogram(bunches[:, ICX], bins=cxcy_bin_edges)[0]/num_bunches)
-
-    stats["cy_median"].append(np.median(bunches[:, ICY]))
-    stats["cy_std"].append(np.std(bunches[:, ICY]))
-    stats["cy_hist"].append(
-        np.histogram(bunches[:, ICY], bins=cxcy_bin_edges)[0]/num_bunches)
-
-    stats["time_median"].append(np.median(bunches[:, ITIME]))
-    stats["time_std"].append(np.std(bunches[:, ITIME]))
-    stats["time_hist"].append(
-        np.histogram(bunches[:, ITIME], bins=time_bin_edges)[0]/num_bunches)
-
-    stats["zem_median"].append(np.median(bunches[:, IZEM]))
-    stats["zem_std"].append(np.std(bunches[:, IZEM]))
-    stats["zem_hist"].append(
-        np.histogram(bunches[:, IZEM], bins=zem_bin_edges)[0]/num_bunches)
-
-    stats["bsize_median"].append(np.median(bunches[:, IBSIZE]))
-    stats["bsize_std"].append(np.std(bunches[:, IBSIZE]))
-    stats["bsize_hist"].append(np.histogram(
-        bunches[:, IBSIZE], bins=bsize_bin_edges)[0]/num_bunches)
-
-    stats["wvl_median"].append(np.median(bunches[:, IWVL]))
-    stats["wvl_std"].append(np.std(bunches[:, IWVL]))
-    stats["wvl_hist"].append(
-        np.histogram(bunches[:, IWVL], bins=wvl_bin_edges)[0]/num_bunches)
-
-    stats["num_bunches"].append(bunches.shape[0])
-    return stats
-"""
-
-def bit_string(flt):
-    return bin(struct.unpack('!i',struct.pack('!f', flt))[0])
-
 
 KEYS = ['x', 'y', 'cx', 'cy', 'time', 'zem', 'bsize', 'wvl']
 SPPED_OF_LIGHT = 299792458
+
 
 def _init_statistics():
     stats = {}
@@ -173,8 +134,6 @@ def test_original_vs_moddified(
             tmp_dir = "/home/sebastian/Desktop/test_primary_{:d}".format(run)
             os.makedirs(tmp_dir, exist_ok=True)
 
-
-
             # RUN ORIGINAL CORSIKA
             # --------------------
             ori_steering_card = "\n".join([
@@ -212,7 +171,6 @@ def test_original_vs_moddified(
                 'EXIT',
             ])
 
-
             ori_run_eventio_path = os.path.join(
                 tmp_dir,
                 "original_run_{:d}.eventio".format(run))
@@ -240,8 +198,6 @@ def test_original_vs_moddified(
             ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
                 stdout=ori_stdout)
 
-            print(ori_events_seeds)
-
             # RUN MODIFIED CORSIKA
             # --------------------
             mod_steering_dict = {
@@ -251,7 +207,8 @@ def test_original_vs_moddified(
                     "observation_level_altitude_asl": obs_level,
                     "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
                     "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
-                    "atmosphere_id": atmosphere_id,},
+                    "atmosphere_id": atmosphere_id,
+                },
                 "primaries": []}
 
             for idx_primary in range(num_shower):
@@ -279,8 +236,6 @@ def test_original_vs_moddified(
             mod_run = cpw.Tario(mod_run_path)
             ori_run = simpleio.SimpleIoRun(ori_run_path)
 
-            # ori_stats = _init_statistics()
-            # mod_stats = _init_statistics()
             for evt_idx in range(num_shower):
                 mod_evth, _mod_bunches = next(mod_run)
                 mod_bunches = _tario_bunches_to_array(_mod_bunches)
@@ -288,10 +243,9 @@ def test_original_vs_moddified(
                 ori_evth = _ori_event.header.raw
                 ori_bunches = _simpleio_bunches_to_array(
                     _ori_event.cherenkov_photon_bunches)
-                # ori_stats = _append_bunch_statistics(ori_stats, ori_bunches)
-                # mod_stats = _append_bunch_statistics(mod_stats, mod_bunches)
 
-                with open(os.path.join(tmp_dir, "evth_compare.md"), "at") as fout:
+                evth_compare_path = os.path.join(tmp_dir, "evth_compare.md")
+                with open(evth_compare_path, "at") as fout:
                     md = "---------------{: 3d}--------------\n".format(
                         evt_idx+1)
                     for ll in range(ori_evth.shape[0]):
@@ -305,41 +259,9 @@ def test_original_vs_moddified(
                                 ll+1, mod_evth[ll])
                     fout.write(md)
 
-                assert equal(
-                    cpw._evth_zenith_rad(mod_evth),
-                    np.deg2rad(zenith_deg),
-                    1e-6)
-                assert equal(
-                    cpw._evth_zenith_rad(ori_evth),
-                    np.deg2rad(zenith_deg),
-                    1e-6)
-
-                assert equal(
-                    cpw._evth_particle_id(mod_evth),
-                    cfg[particle]["id"],
-                    1e-6)
-                assert equal(
-                    cpw._evth_particle_id(ori_evth),
-                    cfg[particle]["id"],
-                    1e-6)
-
-                assert equal(
-                    cpw._evth_total_energy_GeV(mod_evth),
-                    cfg[particle]["energy"],
-                    1e-6)
-                assert equal(
-                    cpw._evth_total_energy_GeV(ori_evth),
-                    cfg[particle]["energy"],
-                    1e-6)
-
-                assert equal(
-                    cpw._evth_azimuth_rad(mod_evth),
-                    np.deg2rad(azimuth_deg),
-                    1e-6)
-                assert equal(
-                    cpw._evth_azimuth_rad(ori_evth),
-                    np.deg2rad(azimuth_deg),
-                    1e-6)
+                assert evth_is_equal_enough(
+                    ori_evth=ori_evth,
+                    mod_evth=mod_evth)
 
                 print(run, ori_bunches.shape[0], mod_bunches.shape[0])
 
@@ -388,6 +310,27 @@ def test_original_vs_moddified(
                     mod_x = mod_bunches[:, IX] - mod_sx*DET_ZO - DET_XO
                     mod_y = mod_bunches[:, IY] - mod_sy*DET_ZO - DET_YO
 
+                    # ctime
+                    # -----
+                    HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
+                    mod_time_sphere_z = (
+                        DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
+                        SPPED_OF_LIGHT)
+
+                    mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
+
+                    mod_toffset = (
+                        HEIGHT_AT_ZERO_GRAMMAGE + obs_level
+                    )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
+
+                    mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
+                    mod_ctime = mod_ctime - mod_toffset
+
+                    np.testing.assert_array_almost_equal(
+                        x=mod_ctime,
+                        y=ori_bunches[:, ITIME],
+                        decimal=6)
+
                     if particle != "electron" and particle != "proton":
                         # Charged cosimc-rays such as electron and proton
                         # have corrections implemented in iact.c for
@@ -401,37 +344,10 @@ def test_original_vs_moddified(
                             y=ori_bunches[:, IY],
                             decimal=2)
 
-                        HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
                         assert (
                             cpw._evth_z_coordinate_of_first_interaction_cm(
                                 mod_evth) < 0.)
                         assert (
                             cpw._evth_z_coordinate_of_first_interaction_cm(
                                 ori_evth) < 0.)
-
-                        mod_time_sphere_z = (
-                            DET_ZO*np.sqrt(1.+mod_sx**2+mod_sy**2)/
-                            SPPED_OF_LIGHT)
-
-                        mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
-
-                        mod_toffset = (HEIGHT_AT_ZERO_GRAMMAGE + obs_level
-                            )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
-
-                        #print("zenith_rad", mod_zenith_rad)
-                        mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
-                        mod_ctime = mod_ctime - mod_toffset
-
-                        #print("sx", mod_sx[0:4])
-                        #print("sy", mod_sy[0:4])
-                        #print("toffset ns", mod_toffset*1e9)
-                        #print("time_sphere_z ns", mod_time_sphere_z[0:4]*1e9)
-                        #print("ori ns", 1e9*ori_bunches[0:4, ITIME])
-                        #print("mod ns", 1e9*mod_bunches[0:4, ITIME])
-                        #print("mod_ctime ns", 1e9*mod_ctime[0:4])
-
-                        np.testing.assert_array_almost_equal(
-                            x=mod_ctime,
-                            y=ori_bunches[:, ITIME],
-                            decimal=6)
         run += 1

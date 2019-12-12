@@ -4,6 +4,7 @@ CORSIKA_PATH = os.path.join(
     ".", "build", "corsika", "{:s}",
     "corsika-75600", "run", "corsika75600Linux_QGSII_urqmd")
 
+
 def pytest_addoption(parser):
     parser.addoption(
         "--corsika_path",
