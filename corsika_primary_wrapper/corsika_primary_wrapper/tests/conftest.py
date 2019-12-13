@@ -19,3 +19,7 @@ def pytest_addoption(parser):
         action="store",
         default=os.path.join(
             ".", "build", "merlict", "merlict-eventio-converter"))
+    parser.addoption(
+        "--non_temporary_path",
+        action="store",
+        default="")

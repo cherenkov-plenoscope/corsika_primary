@@ -54,6 +54,15 @@ EXAMPLE_STEERING_DICT = {
 }
 
 NUM_BYTES_PER_PRIMARY = 5*8 + 12*4
+NUM_BYTES_PER_BUNCH = len(["x", "y", "cx", "cy", "t", "zem", "wvl", "size"])*4
+IX = 0
+IY = 1
+ICX = 2
+ICY = 3
+ITIME = 4
+IZEM = 5
+IBSIZE = 6
+IWVL = 7
 
 
 def _overwrite_steering_card(

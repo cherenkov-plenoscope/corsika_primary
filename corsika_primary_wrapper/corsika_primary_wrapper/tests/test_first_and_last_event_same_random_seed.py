@@ -29,7 +29,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 "zenith_rad": 0.0,
                 "azimuth_rad": 0.0,
                 "depth_g_per_cm2": 1.0,
-                "random_seed": 42,
+                "random_seed": cpw._simple_seed(42),
             },
             {
                 "particle_id": 3,
@@ -37,7 +37,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 "zenith_rad": 0.2,
                 "azimuth_rad": 0.3,
                 "depth_g_per_cm2": 34.0,
-                "random_seed": 18,
+                "random_seed": cpw._simple_seed(18),
             },
         ]
     }

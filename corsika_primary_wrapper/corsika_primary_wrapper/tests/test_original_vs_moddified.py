@@ -25,14 +25,10 @@ def merlict_eventio_converter(pytestconfig):
     return pytestconfig.getoption("merlict_eventio_converter")
 
 
-IX = 0
-IY = 1
-ICX = 2
-ICY = 3
-ITIME = 4
-IZEM = 5
-IBSIZE = 6
-IWVL = 7
+@pytest.fixture()
+def non_temporary_path(pytestconfig):
+    return pytestconfig.getoption("non_temporary_path")
+
 
 SPPED_OF_LIGHT = 299792458
 
@@ -59,35 +55,36 @@ def evth_is_equal_enough(ori_evth, mod_evth):
 
 def _tario_bunches_to_array(bunches):
     b = np.zeros(shape=bunches.shape, dtype=np.float32)
-    b[:, IX] = bunches[:, IX]*1e-2  # cm -> m
-    b[:, IY] = bunches[:, IY]*1e-2  # cm -> m
-    b[:, ICX] = bunches[:, ICX]
-    b[:, ICY] = bunches[:, ICY]
-    b[:, ITIME] = bunches[:, ITIME]*1e-9  # ns -> s
-    b[:, IZEM] = bunches[:, IZEM]*1e-2  # cm -> m
-    b[:, IBSIZE] = bunches[:, IBSIZE]
-    b[:, IWVL] = np.abs(bunches[:, IWVL])*1e-9  # nm -> m
+    b[:, cpw.IX] = bunches[:, cpw.IX]*1e-2  # cm -> m
+    b[:, cpw.IY] = bunches[:, cpw.IY]*1e-2  # cm -> m
+    b[:, cpw.ICX] = bunches[:, cpw.ICX]
+    b[:, cpw.ICY] = bunches[:, cpw.ICY]
+    b[:, cpw.ITIME] = bunches[:, cpw.ITIME]*1e-9  # ns -> s
+    b[:, cpw.IZEM] = bunches[:, cpw.IZEM]*1e-2  # cm -> m
+    b[:, cpw.IBSIZE] = bunches[:, cpw.IBSIZE]
+    b[:, cpw.IWVL] = np.abs(bunches[:, cpw.IWVL])*1e-9  # nm -> m
     return b
 
 
 def _simpleio_bunches_to_array(bunches):
     num_bunches = bunches.x.shape[0]
     b = np.zeros(shape=(num_bunches, 8), dtype=np.float32)
-    b[:, IX] = bunches.x
-    b[:, IY] = bunches.y
-    b[:, ICX] = bunches.cx
-    b[:, ICY] = bunches.cy
-    b[:, ITIME] = bunches.arrival_time_since_first_interaction
-    b[:, IZEM] = bunches.emission_height
-    b[:, IBSIZE] = bunches.probability_to_reach_observation_level
-    b[:, IWVL] = np.abs(bunches.wavelength)
+    b[:, cpw.IX] = bunches.x
+    b[:, cpw.IY] = bunches.y
+    b[:, cpw.ICX] = bunches.cx
+    b[:, cpw.ICY] = bunches.cy
+    b[:, cpw.ITIME] = bunches.arrival_time_since_first_interaction
+    b[:, cpw.IZEM] = bunches.emission_height
+    b[:, cpw.IBSIZE] = bunches.probability_to_reach_observation_level
+    b[:, cpw.IWVL] = np.abs(bunches.wavelength)
     return b
 
 
 def test_original_vs_moddified(
     corsika_primary_path,
     corsika_path,
-    merlict_eventio_converter
+    merlict_eventio_converter,
+    non_temporary_path,
 ):
     """
     Check whether the moddifief CORSIKA can reproduce the statistics of the
@@ -117,10 +114,14 @@ def test_original_vs_moddified(
     }
 
     run = 0
+    tmp_prefix = "test_original_vs_modified_"
     for particle in cfg:
-        with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
-            tmp_dir = "/home/sebastian/Desktop/test_primary_{:d}".format(run)
-            os.makedirs(tmp_dir, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
+            if non_temporary_path != "":
+                tmp_dir = os.path.join(
+                    non_temporary_path,
+                    tmp_prefix+"_{:d}".format(run))
+                os.makedirs(tmp_dir, exist_ok=True)
 
             # RUN ORIGINAL CORSIKA
             # --------------------
@@ -273,25 +274,25 @@ def test_original_vs_moddified(
 
                     if ori_bunches.shape[0] == mod_bunches.shape[0]:
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, ICX],
-                            y=ori_bunches[:, ICX],
+                            x=mod_bunches[:, cpw.ICX],
+                            y=ori_bunches[:, cpw.ICX],
                             decimal=5)
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, ICY],
-                            y=ori_bunches[:, ICY],
+                            x=mod_bunches[:, cpw.ICY],
+                            y=ori_bunches[:, cpw.ICY],
                             decimal=5)
 
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, IZEM],
-                            y=ori_bunches[:, IZEM],
+                            x=mod_bunches[:, cpw.IZEM],
+                            y=ori_bunches[:, cpw.IZEM],
                             decimal=1)
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, IBSIZE],
-                            y=ori_bunches[:, IBSIZE],
+                            x=mod_bunches[:, cpw.IBSIZE],
+                            y=ori_bunches[:, cpw.IBSIZE],
                             decimal=6)
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, IWVL],
-                            y=ori_bunches[:, IWVL],
+                            x=mod_bunches[:, cpw.IWVL],
+                            y=ori_bunches[:, cpw.IWVL],
                             decimal=9)
 
                         # Correct for detector-sphere in iact.c
@@ -301,13 +302,13 @@ def test_original_vs_moddified(
                         DET_XO = 0.
                         DET_YO = 0.
                         cx2_cy2 = (
-                            mod_bunches[:, ICX]**2 +
-                            mod_bunches[:, ICY]**2)
-                        mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
-                        mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
+                            mod_bunches[:, cpw.ICX]**2 +
+                            mod_bunches[:, cpw.ICY]**2)
+                        mod_sx = mod_bunches[:, cpw.ICX]/np.sqrt(1.-cx2_cy2)
+                        mod_sy = mod_bunches[:, cpw.ICY]/np.sqrt(1.-cx2_cy2)
 
-                        mod_x = mod_bunches[:, IX] - mod_sx*DET_ZO - DET_XO
-                        mod_y = mod_bunches[:, IY] - mod_sy*DET_ZO - DET_YO
+                        mod_x = mod_bunches[:, cpw.IX] - mod_sx*DET_ZO - DET_XO
+                        mod_y = mod_bunches[:, cpw.IY] - mod_sy*DET_ZO - DET_YO
 
                         # ctime
                         # -----
@@ -322,12 +323,13 @@ def test_original_vs_moddified(
                             HEIGHT_AT_ZERO_GRAMMAGE + obs_level
                         )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
 
-                        mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
+                        mod_ctime = (
+                            mod_bunches[:, cpw.ITIME] - mod_time_sphere_z)
                         mod_ctime = mod_ctime - mod_toffset
 
                         np.testing.assert_array_almost_equal(
                             x=mod_ctime,
-                            y=ori_bunches[:, ITIME],
+                            y=ori_bunches[:, cpw.ITIME],
                             decimal=6)
 
                         if particle != "electron":
@@ -336,11 +338,11 @@ def test_original_vs_moddified(
                             # deflections in earth's magnetic field.
                             np.testing.assert_array_almost_equal(
                                 x=mod_x,
-                                y=ori_bunches[:, IX],
+                                y=ori_bunches[:, cpw.IX],
                                 decimal=2)
                             np.testing.assert_array_almost_equal(
                                 x=mod_y,
-                                y=ori_bunches[:, IY],
+                                y=ori_bunches[:, cpw.IY],
                                 decimal=2)
 
                             assert (

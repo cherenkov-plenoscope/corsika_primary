@@ -11,7 +11,15 @@ def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
 
 
-def test_same_random_seed_yields_same_event(corsika_primary_path):
+@pytest.fixture()
+def non_temporary_path(pytestconfig):
+    return pytestconfig.getoption("non_temporary_path")
+
+
+def test_no_obvious_32bit_limitations(
+    corsika_primary_path,
+    non_temporary_path
+):
     assert(os.path.exists(corsika_primary_path))
     steering_dict = {
         "run": {
@@ -25,21 +33,27 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
         "primaries": [
             {
                 "particle_id": 3,
-                "energy_GeV": 2.5e3,
+                "energy_GeV": 3.3e3,
                 "zenith_rad": 0.0,
                 "azimuth_rad": 0.0,
                 "depth_g_per_cm2": 0.0,
-                "random_seed": 0,
+                "random_seed": cpw._simple_seed(0),
             }
         ]
     }
 
-    with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
+    tmp_prefix = "test_32bit_limit_high_energy_shower"
+    with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
+        if non_temporary_path != "":
+            tmp_dir = os.path.join(non_temporary_path, tmp_prefix)
+            os.makedirs(tmp_dir, exist_ok=True)
+
         run_path = os.path.join(tmp_dir, "high_energy_electron.tar")
-        cpw.corsika_primary(
-            corsika_path=corsika_primary_path,
-            steering_dict=steering_dict,
-            output_path=run_path)
+        if not os.path.exists(run_path):
+            cpw.corsika_primary(
+                corsika_path=corsika_primary_path,
+                steering_dict=steering_dict,
+                output_path=run_path)
         run = cpw.Tario(run_path)
         event = next(run)
         evth, bunches = event
@@ -50,6 +64,6 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
         assert(cpw._evth_particle_id(evth) == 3.)
         assert(cpw._evth_starting_depth_g_per_cm2(evth) == 0.)
 
-        sufficient_bunches = int(5e9//cpw.NUM_BYTES_PER_PRIMARY)
+        sufficient_bunches = int(5e9//cpw.NUM_BYTES_PER_BUNCH)
 
         assert bunches.shape[0] > sufficient_bunches
