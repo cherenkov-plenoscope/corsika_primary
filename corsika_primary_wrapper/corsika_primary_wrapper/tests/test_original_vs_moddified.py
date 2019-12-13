@@ -34,6 +34,8 @@ IZEM = 5
 IBSIZE = 6
 IWVL = 7
 
+SPPED_OF_LIGHT = 299792458
+
 
 def equal(a, b, absolute_margin=1e-6):
     return np.abs(a - b) < absolute_margin
@@ -80,20 +82,6 @@ def _simpleio_bunches_to_array(bunches):
     b[:, IBSIZE] = bunches.probability_to_reach_observation_level
     b[:, IWVL] = np.abs(bunches.wavelength)
     return b
-
-
-KEYS = ['x', 'y', 'cx', 'cy', 'time', 'zem', 'bsize', 'wvl']
-SPPED_OF_LIGHT = 299792458
-
-
-def _init_statistics():
-    stats = {}
-    stats['num_bunches'] = []
-    for n in KEYS:
-        stats[n+"_median"] = []
-        stats[n+"_std"] = []
-        stats[n+"_hist"] = []
-    return stats
 
 
 def test_original_vs_moddified(
@@ -197,6 +185,8 @@ def test_original_vs_moddified(
                 ori_stdout = f.read()
             ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
                 stdout=ori_stdout)
+            ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+                stdout=ori_stdout)
 
             # RUN MODIFIED CORSIKA
             # --------------------
@@ -263,91 +253,100 @@ def test_original_vs_moddified(
                     ori_evth=ori_evth,
                     mod_evth=mod_evth)
 
-                print(run, ori_bunches.shape[0], mod_bunches.shape[0])
-
-                if zenith_deg == 0. and azimuth_deg == 0.:
-                    # When angles are different from zero, numeric precision
-                    # will cause slightly differrent start values for primary.
-                    assert ori_bunches.shape[0] == mod_bunches.shape[0]
+                if particle == "proton":
+                    assert ori_num_bunches[evt_idx] == mod_bunches.shape[0]
                 else:
-                    assert (
-                        np.abs(ori_bunches.shape[0] - mod_bunches.shape[0]) <
-                        1000)
 
-                if ori_bunches.shape[0] == mod_bunches.shape[0]:
-                    np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, ICX],
-                        y=ori_bunches[:, ICX],
-                        decimal=5)
-                    np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, ICY],
-                        y=ori_bunches[:, ICY],
-                        decimal=5)
+                    print(run, ori_bunches.shape[0], mod_bunches.shape[0])
 
-                    np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, IZEM],
-                        y=ori_bunches[:, IZEM],
-                        decimal=1)
-                    np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, IBSIZE],
-                        y=ori_bunches[:, IBSIZE],
-                        decimal=6)
-                    np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, IWVL],
-                        y=ori_bunches[:, IWVL],
-                        decimal=9)
-
-                    # Correct for detector-sphere in iact.c
-                    # See function: photon_hit()
-                    # -------------------------------------
-                    DET_ZO = telescope_sphere_radius
-                    DET_XO = 0.
-                    DET_YO = 0.
-                    cx2_cy2 = mod_bunches[:, ICX]**2 + mod_bunches[:, ICY]**2
-                    mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
-                    mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
-
-                    mod_x = mod_bunches[:, IX] - mod_sx*DET_ZO - DET_XO
-                    mod_y = mod_bunches[:, IY] - mod_sy*DET_ZO - DET_YO
-
-                    # ctime
-                    # -----
-                    HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
-                    mod_time_sphere_z = (
-                        DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
-                        SPPED_OF_LIGHT)
-
-                    mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
-
-                    mod_toffset = (
-                        HEIGHT_AT_ZERO_GRAMMAGE + obs_level
-                    )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
-
-                    mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
-                    mod_ctime = mod_ctime - mod_toffset
-
-                    np.testing.assert_array_almost_equal(
-                        x=mod_ctime,
-                        y=ori_bunches[:, ITIME],
-                        decimal=6)
-
-                    if particle != "electron" and particle != "proton":
-                        # Charged cosimc-rays such as electron and proton
-                        # have corrections implemented in iact.c for
-                        # deflections in earth's magnetic field.
-                        np.testing.assert_array_almost_equal(
-                            x=mod_x,
-                            y=ori_bunches[:, IX],
-                            decimal=2)
-                        np.testing.assert_array_almost_equal(
-                            x=mod_y,
-                            y=ori_bunches[:, IY],
-                            decimal=2)
-
+                    if zenith_deg == 0. and azimuth_deg == 0.:
+                        # When angles are different from zero, numeric
+                        # precision will cause slightly differrent start
+                        # values for primary.
+                        assert ori_bunches.shape[0] == mod_bunches.shape[0]
+                    else:
                         assert (
-                            cpw._evth_z_coordinate_of_first_interaction_cm(
-                                mod_evth) < 0.)
-                        assert (
-                            cpw._evth_z_coordinate_of_first_interaction_cm(
-                                ori_evth) < 0.)
+                            np.abs(
+                                ori_bunches.shape[0] -
+                                mod_bunches.shape[0]) <
+                            1000)
+
+                    if ori_bunches.shape[0] == mod_bunches.shape[0]:
+                        np.testing.assert_array_almost_equal(
+                            x=mod_bunches[:, ICX],
+                            y=ori_bunches[:, ICX],
+                            decimal=5)
+                        np.testing.assert_array_almost_equal(
+                            x=mod_bunches[:, ICY],
+                            y=ori_bunches[:, ICY],
+                            decimal=5)
+
+                        np.testing.assert_array_almost_equal(
+                            x=mod_bunches[:, IZEM],
+                            y=ori_bunches[:, IZEM],
+                            decimal=1)
+                        np.testing.assert_array_almost_equal(
+                            x=mod_bunches[:, IBSIZE],
+                            y=ori_bunches[:, IBSIZE],
+                            decimal=6)
+                        np.testing.assert_array_almost_equal(
+                            x=mod_bunches[:, IWVL],
+                            y=ori_bunches[:, IWVL],
+                            decimal=9)
+
+                        # Correct for detector-sphere in iact.c
+                        # See function: photon_hit()
+                        # -------------------------------------
+                        DET_ZO = telescope_sphere_radius
+                        DET_XO = 0.
+                        DET_YO = 0.
+                        cx2_cy2 = (
+                            mod_bunches[:, ICX]**2 +
+                            mod_bunches[:, ICY]**2)
+                        mod_sx = mod_bunches[:, ICX]/np.sqrt(1.-cx2_cy2)
+                        mod_sy = mod_bunches[:, ICY]/np.sqrt(1.-cx2_cy2)
+
+                        mod_x = mod_bunches[:, IX] - mod_sx*DET_ZO - DET_XO
+                        mod_y = mod_bunches[:, IY] - mod_sy*DET_ZO - DET_YO
+
+                        # ctime
+                        # -----
+                        HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
+                        mod_time_sphere_z = (
+                            DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
+                            SPPED_OF_LIGHT)
+
+                        mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
+
+                        mod_toffset = (
+                            HEIGHT_AT_ZERO_GRAMMAGE + obs_level
+                        )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
+
+                        mod_ctime = mod_bunches[:, ITIME] - mod_time_sphere_z
+                        mod_ctime = mod_ctime - mod_toffset
+
+                        np.testing.assert_array_almost_equal(
+                            x=mod_ctime,
+                            y=ori_bunches[:, ITIME],
+                            decimal=6)
+
+                        if particle != "electron":
+                            # Charged cosimc-rays such as electron and proton
+                            # have corrections implemented in iact.c for
+                            # deflections in earth's magnetic field.
+                            np.testing.assert_array_almost_equal(
+                                x=mod_x,
+                                y=ori_bunches[:, IX],
+                                decimal=2)
+                            np.testing.assert_array_almost_equal(
+                                x=mod_y,
+                                y=ori_bunches[:, IY],
+                                decimal=2)
+
+                            assert (
+                                cpw._evth_z_coordinate_of_first_interaction_cm(
+                                    mod_evth) < 0.)
+                            assert (
+                                cpw._evth_z_coordinate_of_first_interaction_cm(
+                                    ori_evth) < 0.)
         run += 1

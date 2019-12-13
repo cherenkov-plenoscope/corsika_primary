@@ -312,6 +312,20 @@ def _parse_random_seeds_from_corsika_stdout(stdout):
     return events
 
 
+def _parse_num_bunches_from_corsika_stdout(stdout):
+    marker = " Total number of photons in shower:"
+    nums = []
+    lines = stdout.split("\n")
+    for ll in range(len(lines)):
+        pos = lines[ll].find(" Total number of photons in shower:")
+        if pos == 0:
+            work_line = lines[ll][len(marker):-1]
+            pos_2nd_in = work_line.find("in")
+            work_line = work_line[pos_2nd_in + 2: -len("bunch") -1]
+            nums.append(int(float(work_line)))
+    return nums
+
+
 def _evth_marker(evth): return evth[1-1]
 
 
