@@ -17,6 +17,8 @@ For CORSIKA's credentials (`username` and `password`) follow the instructions on
 ## CORSIKA-primary-mod
 This mod allows you to control the properties of each primary particle. When starting CORSIKA, you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run.
 
+
+### Example steering-card
 ```
 RUNNR 1
 EVTNR 1
@@ -37,10 +39,11 @@ TELFIL /home/my_username/Desktop/test_depth/different_starting_depths.tar
 EXIT
 ```
 Note the abscence of steering for directions such as ```PHIP``` and ```THETAP```. ```CSCATT``` for the core-position's scatter, and ```ESLOPE``` for the energy-spectrum are missing, too. Also the ```SEED```s are missing.
-Those are now defined for each event seperately in a dedicated file located at the path ```PRMFIL```.
+Those are now defined for each event seperately in a dedicated file located at the path defined in ```PRMFIL```.
 
-The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-properties. The mod reads ```NSHOW``` blocks from the ```PRMFIL```, where ```NSHOW``` is defined in the steering-card.
+The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-blocks. The mod reads ```NSHOW``` blocks from the ```PRMFIL```, where ```NSHOW``` is defined in the steering-card.
 
+### Primary-particle-block
 ```
     +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
     |             particle id               |            energy in GeV              | -->
@@ -77,9 +80,6 @@ The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-prope
     +----+----+----+----+----+----+----+----+----+----+----+----+
          int 32 bit          int 32 bit          int 32 bit
 ```
-
-
-
 
 ## corsika-primary-wrapper
 The ```corsika_primary_wrapper``` is a python 3 package to test and call the CORSIKA-primary modification.
