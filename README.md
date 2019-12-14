@@ -194,3 +194,12 @@ The call will NOT write to the "run"-directory in ```corsika_path```. Instead th
 
 ### Test
 The installer installs both the original and the modified CORSIKA to allow testing for equality of both versions with input parameters which are accesible to both versions.
+
+To run the tests, you have to explicitly provide the paths to the corsika executables, and the merlict-eventio-converter. There are defaults which allow to call the tests in the Cherenkov-plenoscope's starter-kit-directory.
+
+```bash
+py.test ./cor
+```
+
+
+
