@@ -123,7 +123,7 @@ Photon-bunch:
 
 ## corsika-primary-wrapper
 The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification. 
-The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary. It then creates the CORSIKA steering-card, and the additional ```PRMFIL```, and feeds both into CORSIKA.
+The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
 
 ### install 
 ```bash
