@@ -175,5 +175,4 @@ EXAMPLE_STEERING_DICT = {
     ],
 }
 ```
-This run will create two showers. Ine gamma-ray ```particle_id=1```, and one electron ```particle_id=3```.
-
+This run will create two showers. Ine gamma-ray ```particle_id=1```, and one electron ```particle_id=3```. The gamma-ray will start at CORSIKA's edge of the atmosphere at a depth of 0.0 g/cm^{-2} corresponding to ~115km a.s.l., but the electron will start lower in tha atmosphere at a depth of 3.6 g/cm^{-2}.
