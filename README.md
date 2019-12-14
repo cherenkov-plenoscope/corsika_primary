@@ -13,11 +13,10 @@ This repository contains:
 ```bash
 ./corsika_install/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
 ```
-This installs both the original CORSIKA 7.56, and our modified CORSIKA-primary to the ```install_path```.
-For CORSIKA's credentials (`username` and `password`), drop the [CORSIKA-team](https://www.ikp.kit.edu/corsika/index.php) an email, and express your interest in CORSIKA to learn about cosmic-rays and air-showers. They will send you the credentials.
+This installs both the original CORSIKA 7.56, and our CORSIKA-primary-modification to the ```install_path```.
+For CORSIKA's credentials (`username` and `password`), drop the [CORSIKA-team](https://www.ikp.kit.edu/corsika/index.php) an email, and express your interest in cosmic-rays. They will send you the credentials.
 
-This mod allows you to control the:
-
+This modification allows you to control the:
 - particle (gamma, electron, proton...)
 - energy
 - direction (zenith, and azimuth)
@@ -46,8 +45,7 @@ PRMFIL /tmp/corsika_primary_o2j62_aw/primary_bytes.f8f8f8f8f8i4
 TELFIL /home/my_username/Desktop/test_depth/different_starting_depths.tar
 EXIT
 ```
-Note the abscence of steering for directions such as ```PHIP``` and ```THETAP```. ```CSCATT``` for the core-position's scatter, and ```ESLOPE``` for the energy-spectrum are missing, too. Also the ```SEED```s are missing.
-Those are now defined for each event seperately in a dedicated file located at the path defined in ```PRMFIL```.
+Note the abscence of steering for properties which can be changed from event to event. Such as ```PHIP```, ```THETAP```, ```CSCATT```, and ```ESLOPE```. Also the ```SEED```s are missing. Such properties are now explicitly defined for each primary particle seperately in a dedicated file located at the path defined in ```PRMFIL```.
 
 ### Primary-particle-block
 The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block describes a primary particle.
@@ -90,9 +88,9 @@ The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block de
 The ```PRMFIL``` contains ```NSHOW``` of such blocks.
 
 ### Cherenkov-output
-This mod always outputs ALL Cherenkov-photons emitted in an air-shower.
-The photon's coordinate-frame is with respect to the observation-level ```OBSLEV```, and the primary particle always starts at ```x=0, y=0```. There is no scattering of the core-position.
-This mod writes a tape-archive ```.tar```. Each file in the tape-archive contains the same payload as the containers in the event-io-format. The tape-archive contains no folders, and can be streamed just like event-io.
+This mod always outputs all Cherenkov-photons emitted in an air-shower.
+The photon's coordinate-frame is with respect to the observation-level ```OBSLEV```, and the primary particle always starts at ```x=0, y=0```. There is no scattering of the core-position. There is no concept for multiple telescopes and detector-spheres as it is in Konrad Bernloehr's IACT-packege. This mod writes a tape-archive ```.tar```. Each file in the tape-archive contains the same payload as the containers in the event-io-format in the IACT-packege. Only difference: This mod outputs photons in CORSIKA's coordinate-frame, i.e. relative to the observation-level, and the IACT-packege outputs photons in the coordinate-frames of predefined telescopes (detecor-spheres).
+The tape-archive contains no folders, and can be streamed just like event-io.
 
 Tape-archive:
 ```
