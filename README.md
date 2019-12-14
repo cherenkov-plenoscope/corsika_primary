@@ -123,14 +123,17 @@ Photon-bunch:
 ```
 
 ## corsika-primary-wrapper
-The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification.
+The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification. 
+The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary. It then creates the CORSIKA steering-card, and the additional ```PRMFIL```, and feeds both into CORSIKA.
+
+### install 
 ```bash
 pip install -e ./corsika_primary_wrapper
 ```
 I use pip's ```-e``` option to modify the wrapper in place.
 
 ## Steering-dictionary
-A CORSIKA-run is fully described in steering-dictionary:
+A CORSIKA-run is fully described in steering-dictionary. The example shows all possible options.
 
 ```python
 EXAMPLE_STEERING_DICT = {
@@ -157,7 +160,7 @@ EXAMPLE_STEERING_DICT = {
             ]
         },
         {
-            "particle_id": 1,
+            "particle_id": 3,
             "energy_GeV": 1.52,
             "zenith_rad": 0.1,
             "azimuth_rad": 0.2,
@@ -171,5 +174,6 @@ EXAMPLE_STEERING_DICT = {
         },
     ],
 }
-
 ```
+This run will create two showers. Ine gamma-ray ```particle_id=1```, and one electron ```particle_id=3```.
+
