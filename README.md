@@ -3,18 +3,19 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays for the Cherenkov-plenoscope. This is based on CORSIKA 7.56 with minor modifications to gain more control over the primary particle. 
+This repository contains:
+- The installer for the CORSIKA-primary-modification
+- A python-3 wrapper to call and test the CORSIKA-primary-modification
 
-## Install:
+## CORSIKA-primary-modification
+
+### Install
 ```bash
 ./corsika_install/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
 ```
 This installs both the original CORSIKA 7.56, and our modified CORSIKA-primary to the ```install_path```.
-
-### Credentials
 For CORSIKA's credentials (`username` and `password`) follow the instructions on: https://www.ikp.kit.edu/corsika/index.php. Drop the CORSIKA-team an email, and express your interest in CORSIKA to learn about cosmic-rays and air-showers. They will send you an email back with the credentials. They will not spam you.
 
-
-## CORSIKA-primary-mod
 This mod allows you to control the:
 
 - particle (gamma, electron, proton...)
@@ -132,7 +133,7 @@ pip install -e ./corsika_primary_wrapper
 ```
 I use pip's ```-e``` option to modify the wrapper in place.
 
-## Steering-dictionary
+### Steering-dictionary
 A CORSIKA-run is fully described in steering-dictionary. The example shows all possible options.
 
 ```python
@@ -177,7 +178,7 @@ EXAMPLE_STEERING_DICT = {
 ```
 This run will create two showers. One gamma-ray ```particle_id=1```, and one electron ```particle_id=3```. The gamma-ray will start at CORSIKA's edge of the atmosphere at a depth of 0.0 g/cm^{-2} corresponding to ~115km a.s.l., but the electron will start lower in tha atmosphere at a depth of 3.6 g/cm^{-2}.
 
-### Call CORSIKA
+### Call
 In python do:
 ```python
 import corsika_primary_wrapper as cpw
@@ -190,3 +191,6 @@ cpw.corsika_primary(
 The std-out, and std-error of CORSIKA are written into text-files next to ```output_path``` with postfixes.
 The std-error is expected to be empty. The ```corsika_path``` must be the executable within its "run"-directory.
 The call will NOT write to the "run"-directory in ```corsika_path```. Instead the "run"-directory is copied to a temporary directory from which the CORSIKA call is made. This allows thread safety.
+
+### Test
+The installer installs both the original and the modified CORSIKA to allow testing for equality of both versions with input parameters which are accesible to both versions.
