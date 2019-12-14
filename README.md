@@ -175,4 +175,18 @@ EXAMPLE_STEERING_DICT = {
     ],
 }
 ```
-This run will create two showers. Ine gamma-ray ```particle_id=1```, and one electron ```particle_id=3```. The gamma-ray will start at CORSIKA's edge of the atmosphere at a depth of 0.0 g/cm^{-2} corresponding to ~115km a.s.l., but the electron will start lower in tha atmosphere at a depth of 3.6 g/cm^{-2}.
+This run will create two showers. One gamma-ray ```particle_id=1```, and one electron ```particle_id=3```. The gamma-ray will start at CORSIKA's edge of the atmosphere at a depth of 0.0 g/cm^{-2} corresponding to ~115km a.s.l., but the electron will start lower in tha atmosphere at a depth of 3.6 g/cm^{-2}.
+
+### Call CORSIKA
+In python do:
+```python
+import corsika_primary_wrapper as cpw
+
+cpw.corsika_primary(
+    corsika_path="/path/to/my/modified/corsika-75600/run/corsika75600Linux_QGSII_urqmd",
+    steering_dict=EXAMPLE_STEERING_DICT,
+    output_path="/path/to/my/output/run.tar")
+```
+The std-out, and std-error of CORSIKA are written into text-files next to ```output_path``` with postfixes.
+The std-error is expected to be empty. The ```corsika_path``` must be the executable within its "run"-directory.
+The call will NOT write to the "run"-directory in ```corsika_path```. Instead the "run"-directory is copied to a temporary directory from which the CORSIKA call is made. This allows thread safety.
