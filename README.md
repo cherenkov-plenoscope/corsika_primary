@@ -42,41 +42,40 @@ Those are now defined for each event seperately in a dedicated file located at t
 The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-properties. The mod reads ```NSHOW``` blocks from the ```PRMFIL```, where ```NSHOW``` is defined in the steering-card.
 
 ```
-+----+----+----+----+----+----+----+----+
-|             particle id               |  float 64 bit
-+----+----+----+----+----+----+----+----+
-|            energy in GeV              |  float 64 bit
-+----+----+----+----+----+----+----+----+
-|        zenith-distnce in rad          |  float 64 bit
-+----+----+----+----+----+----+----+----+
-|   azimuth rel. to mag. north in rad   |  float 64 bit
-+----+----+----+----+----+----+----+----+
-|      starting depth in g cm^{-2}      |  float 64 bit
-+----+----+----+----+----+----+----+----+
-|    SEED seq. 1    |  int 32 bit
-+----+----+----+----+
-|   CALLS seq. 1    |  int 32 bit
-+----+----+----+----+
-|BILLIONS seq. 1    |  int 32 bit
-+----+----+----+----+
-|    SEED seq. 2    |  int 32 bit
-+----+----+----+----+
-|   CALLS seq. 2    |  int 32 bit
-+----+----+----+----+
-|BILLIONS seq. 2    |  int 32 bit
-+----+----+----+----+
-|    SEED seq. 3    |  int 32 bit
-+----+----+----+----+
-|   CALLS seq. 3    |  int 32 bit
-+----+----+----+----+
-|BILLIONS seq. 3    |  int 32 bit
-+----+----+----+----+
-|    SEED seq. 4    |  int 32 bit
-+----+----+----+----+
-|   CALLS seq. 4    |  int 32 bit
-+----+----+----+----+
-|BILLIONS seq. 4    |  int 32 bit
-+----+----+----+----+
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+    |             particle id               |            energy in GeV              | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+                   float 64 bit                            float 64 bit
+               
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+--> |        zenith-distnce in rad          |   azimuth rel. to mag. north in rad   | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+                   float 64 bit                            float 64 bit
+                   
+    +----+----+----+----+----+----+----+----+
+--> |      starting depth in g cm^{-2}      |  -->
+    +----+----+----+----+----+----+----+----+
+                   float 64 bit
+
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+--> |    SEED seq. 1    |  CALLS seq. 1     |BILLIONS seq. 1    | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+         int 32 bit          int 32 bit          int 32 bit
+
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+--> |    SEED seq. 2    |  CALLS seq. 2     |BILLIONS seq. 2    | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+         int 32 bit          int 32 bit          int 32 bit
+
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+--> |    SEED seq. 3    |  CALLS seq. 3     |BILLIONS seq. 3    | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+         int 32 bit          int 32 bit          int 32 bit
+
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+--> |    SEED seq. 4    |  CALLS seq. 4     |BILLIONS seq. 4    |
+    +----+----+----+----+----+----+----+----+----+----+----+----+
+         int 32 bit          int 32 bit          int 32 bit
 ```
 
 
