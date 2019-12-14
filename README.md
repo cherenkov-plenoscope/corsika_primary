@@ -48,8 +48,6 @@ EXIT
 Note the abscence of steering for directions such as ```PHIP``` and ```THETAP```. ```CSCATT``` for the core-position's scatter, and ```ESLOPE``` for the energy-spectrum are missing, too. Also the ```SEED```s are missing.
 Those are now defined for each event seperately in a dedicated file located at the path defined in ```PRMFIL```.
 
-
-
 ### Primary-particle-block
 The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block describes a primary particle.
 ```
@@ -90,15 +88,88 @@ The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block de
 ```
 The ```PRMFIL``` contains ```NSHOW``` of such blocks.
 
+### Cherenkov-output
+This mod always outputs ALL Cherenkov-photons emitted in an air-shower.
+The photon's coordinate-frame is with respect to the observation-level ```OBSLEV```, and the primary particle always starts at ```x=0, y=0```. There is no scattering of the core-position.
+This mod writes a tape-archive ```.tar```. Each file in the tape-archive contains the same payload as the containers in the event-io-format. The tape-archive contains no folders, and can be streamed just like event-io.
+
+Tape-archive:
+```
+   |
+   |--> runh.float32
+   |--> 000000001.evth.float32
+   |--> 000000001.cherenkov_bunches.Nx8_float32
+   |--> 000000002.evth.float32
+   |--> 000000002.cherenkov_bunches.Nx8_float32
+   .
+   .
+   .
+   |-->     NSHOW.evth.float32
+   |-->     NSHOW.cherenkov_bunches.Nx8_float32
+```
+Both ```runh.float32``` and ```XXXXXXXXX.evth.float32``` are the classic 273 float32 binary blocks. And the ```XXXXXXXXX.cherenkov_bunches.Nx8_float32``` is the classic binary block of ```N``` photon-bunches of 8 float32.
+
+Photon-bunch:
+```
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+    |      x / cm       |      y / cm       |      cx / rad     |      cy / rad     | -->
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+         float 32            float 32            float 32            float 32
+
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+--> |     time / ns     |  z-emission / cm  |  bunch-size / 1   |  wavelength / nm  |
+    +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+         float 32            float 32            float 32            float 32
+```
+
 ## corsika-primary-wrapper
-The ```corsika_primary_wrapper``` is a python 3 package to test and call the CORSIKA-primary modification.
+The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification.
 ```bash
 pip install -e ./corsika_primary_wrapper
 ```
-For editing in place you may use pip's ```-e``` option.
+I use pip's ```-e``` option to modify the wrapper in place.
 
+## Steering-dictionary
+A CORSIKA-run is fully described in steering-dictionary:
 
-### How it is done:
-We first set up CORSIKA manually using its own build-tool called coconut. We then save coconut's output ```config.h```.
-When we want to build CORSIKA again, we use this ```config.h``` to reproduce our specific build-options.
-Further, we include additional atmospheric profiles which are taken from [Konrad Bernloehr's IACT/ATMO-package](https://www.mpi-hd.mpg.de/hfm/~bernlohr/iact-atmo/).
+```python
+EXAMPLE_STEERING_DICT = {
+    "run": {
+        "run_id": 1,
+        "event_id_of_first_event": 1,
+        "observation_level_altitude_asl": 2300,
+        "earth_magnetic_field_x_muT": 12.5,
+        "earth_magnetic_field_z_muT": -25.9,
+        "atmosphere_id": 10,
+    },
+    "primaries": [
+        {
+            "particle_id": 1,
+            "energy_GeV": 1.32,
+            "zenith_rad": 0.0,
+            "azimuth_rad": 0.0,
+            "depth_g_per_cm2": 0.0,
+            "random_seed": [
+                {"SEED": 0, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 1, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 2, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 3, "CALLS": 0, "BILLIONS": 0}
+            ]
+        },
+        {
+            "particle_id": 1,
+            "energy_GeV": 1.52,
+            "zenith_rad": 0.1,
+            "azimuth_rad": 0.2,
+            "depth_g_per_cm2": 3.6,
+            "random_seed": [
+                {"SEED": 2, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 3, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 4, "CALLS": 0, "BILLIONS": 0},
+                {"SEED": 5, "CALLS": 0, "BILLIONS": 0}
+            ]
+        },
+    ],
+}
+
+```
