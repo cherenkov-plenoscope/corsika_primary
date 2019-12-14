@@ -15,14 +15,14 @@ For CORSIKA's credentials (`username` and `password`) follow the instructions on
 
 
 ## CORSIKA-primary-mod
-This mod allows you to fully control the properties of each individual primary particle. When starting CORSIKA you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run.
+This mod allows you to control the properties of each primary particle. When starting CORSIKA, you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run.
 
 ```
 RUNNR 1
 EVTNR 1
-ERANGE 1.000000 1.000000
-OBSLEV 0.000000
-MAGNET 12.500000 -25.900000
+ERANGE 1. 10.
+OBSLEV 2300e2
+MAGNET 12.5 -25.9
 MAXPRT 1
 PAROUT F F
 ATMOSPHERE 10 T
@@ -36,6 +36,83 @@ PRMFIL /tmp/corsika_primary_o2j62_aw/primary_bytes.f8f8f8f8f8i4
 TELFIL /home/my_username/Desktop/test_depth/different_starting_depths.tar
 EXIT
 ```
+Note the abscence of steering for directions such as ```PHIP``` and ```THETAP```. ```CSCATT``` for the core-position's scatter, and ```ESLOPE``` for the energy-spectrum are missing, too. Also the ```SEED```s are missing.
+Those are now defined for each event seperately in a dedicated file located at the path ```PRMFIL```.
+
+The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-properties. The mod reads ```NSHOW``` blocks from the ```PRMFIL```, where ```NSHOW``` is defined in the steering-card.
+
+```
++----+----+----+----+----+----+----+----+
+|             particle id               |  float 64 bit
++----+----+----+----+----+----+----+----+
+
++----+----+----+----+----+----+----+----+
+|            energy in GeV              |  float 64 bit
++----+----+----+----+----+----+----+----+
+
++----+----+----+----+----+----+----+----+
+|        zenith-distnce in rad          |  float 64 bit
++----+----+----+----+----+----+----+----+
+
++----+----+----+----+----+----+----+----+
+|   azimuth rel. to mag. north in rad   |  float 64 bit
++----+----+----+----+----+----+----+----+
+
++----+----+----+----+----+----+----+----+
+|      starting depth in g cm^{-2}      |  float 64 bit
++----+----+----+----+----+----+----+----+
+
++----+----+----+----+
+|    SEED seq. 1    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|   CALLS seq. 1    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+| BILLION seq. 1    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|    SEED seq. 2    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|   CALLS seq. 2    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+| BILLION seq. 2    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|    SEED seq. 3    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|   CALLS seq. 3    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+| BILLION seq. 3    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|    SEED seq. 4    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+|   CALLS seq. 4    |  int 32 bit
++----+----+----+----+
+
++----+----+----+----+
+| BILLION seq. 4    |  int 32 bit
++----+----+----+----+
+```
+
+
+
 
 ## corsika-primary-wrapper
 The ```corsika_primary_wrapper``` is a python 3 package to test and call the CORSIKA-primary modification.
