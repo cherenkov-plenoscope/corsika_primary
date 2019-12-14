@@ -14,7 +14,7 @@ This repository contains:
 ./corsika_install/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
 ```
 This installs both the original CORSIKA 7.56, and our modified CORSIKA-primary to the ```install_path```.
-For CORSIKA's credentials (`username` and `password`) follow the instructions on: https://www.ikp.kit.edu/corsika/index.php. Drop the CORSIKA-team an email, and express your interest in CORSIKA to learn about cosmic-rays and air-showers. They will send you an email back with the credentials. They will not spam you.
+For CORSIKA's credentials (`username` and `password`), drop the [CORSIKA-team](https://www.ikp.kit.edu/corsika/index.php) an email, and express your interest in CORSIKA to learn about cosmic-rays and air-showers. They will send you the credentials.
 
 This mod allows you to control the:
 
