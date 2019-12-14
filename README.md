@@ -198,8 +198,14 @@ The installer installs both the original and the modified CORSIKA to allow testi
 To run the tests, you have to explicitly provide the paths to the corsika executables, and the merlict-eventio-converter. There are defaults which allow to call the tests in the Cherenkov-plenoscope's starter-kit-directory.
 
 ```bash
-py.test ./cor
+py.test ./corsika_primary_wrapper/corsika_primary_wrapper/tests/ 
+    --corsika_path /path/to/original/corsika/executable
+    --corsika_primary_path /path/to/modified/corsika/executable
+    --merlict_eventio_converter /path/to/merlict_eventio_converter/executable
 ```
+Thers is also an option ```--non_temporary_path``` which will write the files created during the tests to the path specified in ```non_temporary_path``` to allow debugging and inspection.
+
+See all options defined in: ```./corsika_primary_wrapper/corsika_primary_wrapper/tests/conftest.py```
 
 
 
