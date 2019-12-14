@@ -15,8 +15,15 @@ For CORSIKA's credentials (`username` and `password`) follow the instructions on
 
 
 ## CORSIKA-primary-mod
-This mod allows you to control the properties of each primary particle. When starting CORSIKA, you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run.
+This mod allows you to control the:
 
+- particle (gamma, electron, proton...)
+- energy
+- direction (zenith, and azimuth)
+- starting depth in atmosphere
+- random-seed
+
+of each primary particle. When starting CORSIKA, you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run, and a second additional file which lists all the properties of the primary particles.
 
 ### Example steering-card
 ```
@@ -41,9 +48,10 @@ EXIT
 Note the abscence of steering for directions such as ```PHIP``` and ```THETAP```. ```CSCATT``` for the core-position's scatter, and ```ESLOPE``` for the energy-spectrum are missing, too. Also the ```SEED```s are missing.
 Those are now defined for each event seperately in a dedicated file located at the path defined in ```PRMFIL```.
 
-The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-blocks. The mod reads ```NSHOW``` blocks from the ```PRMFIL```, where ```NSHOW``` is defined in the steering-card.
+
 
 ### Primary-particle-block
+The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block describes a primary particle.
 ```
     +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
     |             particle id               |            energy in GeV              | -->
@@ -80,6 +88,7 @@ The ```PRMFIL``` is a binary file with number ```NSHOW``` primary-particle-block
     +----+----+----+----+----+----+----+----+----+----+----+----+
          int 32 bit          int 32 bit          int 32 bit
 ```
+The ```PRMFIL``` contains ```NSHOW``` of such blocks.
 
 ## corsika-primary-wrapper
 The ```corsika_primary_wrapper``` is a python 3 package to test and call the CORSIKA-primary modification.
