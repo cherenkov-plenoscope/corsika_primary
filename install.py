@@ -33,6 +33,9 @@ import shutil
 import subprocess
 import glob
 import hashlib
+from Crypto.Cipher import AES
+import tarfile
+import io
 
 
 CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST = '9ef453eebc4bf5b8b04209b1acdebda2'
@@ -46,30 +49,70 @@ def md5sum(path):
     return hash_md5.hexdigest()
 
 
+def aes(key, in_path, out_path, mode):
+    # Wrap payload in tape-archive to enforce fixed 16byte block-length for
+    # AES-algorithm
+    _key = hashlib.sha256(key.encode()).digest()
+    cipher_obj = AES.new(_key, AES.MODE_CBC, 'This is an IV456')
+    with open(in_path, "rb") as fin, open(out_path, "wb") as fout:
+        if mode == "encrypt":
+            tarinfo = tarfile.TarInfo(name="payload")
+            inb = io.BytesIO()
+            inb.write(fin.read())
+            tarinfo.size = inb.tell()
+            inb.seek(0)
+            raw = io.BytesIO()
+            tarf = tarfile.open(fileobj=raw, mode="w")
+            tarf.addfile(
+                tarinfo=tarinfo,
+                fileobj=inb)
+            tarf.close()
+            raw.seek(0)
+            tmp = cipher_obj.encrypt(raw.read())
+        elif mode == "decrypt":
+            raw = io.BytesIO(cipher_obj.decrypt(fin.read()))
+            tarf = tarfile.open(fileobj=raw, mode="r")
+            tarinfo = tarf.getmember("payload")
+            tmp = tarf.extractfile(tarinfo).read()
+        else:
+            raise ValueError("Unknown mode '{:s}'.".format(mode))
+        fout.write(tmp)
+
+
 def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
     with open(stdout_path, 'w') as stdout, open(stderr_path, 'w') as stderr:
         subprocess.call(target, stdout=stdout, stderr=stderr, stdin=stdin)
 
 
-def install(install_path, username, password, resource_path):
+def download_corsika_tar(
+    output_dir,
+    username,
+    password,
+    web_path,
+    corsika_tar_filename,
+):
+    # download CORSIKA from KIT
+    # wget uses $http_proxy environment-variables in case of proxy
+    call_and_save_std(
+        target=[
+            'wget',
+            '--directory-prefix', output_dir,
+            '--user', username,
+            '--password', password,
+            web_path + corsika_tar_filename],
+        stdout_path=join(output_dir, corsika_tar_filename+'.wget.stdout'),
+        stderr_path=join(output_dir, corsika_tar_filename+'.wget.stderror'))
+
+
+def install(
+    corsika_tar_path,
+    install_path,
+    resource_path,
+    modify,
+):
     install_path = os.path.abspath(install_path)
     resource_path = os.path.abspath(resource_path)
     os.makedirs(install_path, exist_ok=True)
-    os.chdir(install_path)
-
-    corsika_tar_path = 'corsika-75600.tar.gz'
-    if not os.path.exists(corsika_tar_path):
-        # download CORSIKA from KIT
-        # wget uses $http_proxy environment-variables in case of proxy
-        call_and_save_std(
-            target=[
-                'wget',
-                'ftp://' + username + ':' + password + '@' +
-                'ikp-ftp.ikp.kit.edu/old/v750/' + corsika_tar_path],
-            stdout_path='wget-ftp-download.o',
-            stderr_path='wget-ftp-download.e')
-
-    assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(corsika_tar_path)
 
     # untar, unzip the CORSIKA download
     tar = tarfile.open(corsika_tar_path)
@@ -77,7 +120,10 @@ def install(install_path, username, password, resource_path):
     tar.close()
 
     # Go into CORSIKA dir
-    corsika_path = os.path.splitext(os.path.splitext(corsika_tar_path)[0])[0]
+    corsika_basename = os.path.basename(
+        os.path.splitext(
+            os.path.splitext(corsika_tar_path)[0])[0])
+    corsika_path = join(install_path, corsika_basename)
     os.chdir(corsika_path)
 
     # Provide the ACP coconut config.h
@@ -90,6 +136,17 @@ def install(install_path, username, password, resource_path):
         stdout_path=join(install_path, 'coconut_configure.stdout'),
         stderr_path=join(install_path, 'coconut_configure.stderr'),
         stdin=open('/dev/null', 'r'))
+
+    if modify:
+        shutil.copyfile(
+            join(resource_path, 'corsikacompilefile_modified.f'),
+            join('src', 'corsikacompilefile.f'))
+        shutil.copy(
+            join(resource_path, 'microtar.h'),
+            join('bernlohr', 'microtar.h'))
+        shutil.copy(
+            join(resource_path, 'iact.c'),
+            join('bernlohr', 'iact.c'))
 
     # coconut build
     call_and_save_std(
@@ -106,20 +163,54 @@ def install(install_path, username, password, resource_path):
     for atmprof in glob.glob(add_atmprofs_path):
         shutil.copy(atmprof, 'run')
 
-    if os.path.isfile('run/corsika75600Linux_QGSII_urqmd'):
-        return 0
-    else:
-        return 1
+    assert os.path.isfile('run/corsika75600Linux_QGSII_urqmd')
+
 
 
 def main():
     try:
         args = docopt.docopt(__doc__)
-        return install(
-            install_path=args['--install_path'],
-            username=args['--username'],
-            password=args['--password'],
-            resource_path=args['--resource_path'],)
+        web_path = 'https://web.ikp.kit.edu/corsika/download/old/v750/'
+        corsika_tar_filename = 'corsika-75600.tar.gz'
+
+        install_path = os.path.abspath(args['--install_path'])
+        resource_path = os.path.abspath(args['--resource_path'])
+        os.makedirs(install_path, exist_ok=True)
+
+        corsika_tar_path = join(install_path, corsika_tar_filename)
+
+        if not os.path.exists(corsika_tar_path):
+            download_corsika_tar(
+                output_dir=install_path,
+                username=args['--username'],
+                password=args['--password'],
+                web_path=web_path,
+                corsika_tar_filename=corsika_tar_filename)
+
+        compilefile_path = join(resource_path, 'corsikacompilefile_modified.f')
+        if not os.path.exists(compilefile_path):
+            aes(key=args['--username'],
+                in_path=compilefile_path+".enc",
+                out_path=compilefile_path,
+                mode="decrypt")
+
+        assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(
+            corsika_tar_path)
+
+        if not os.path.exists(join(install_path, "original")):
+            install(
+                corsika_tar_path=corsika_tar_path,
+                install_path=join(install_path, "original"),
+                resource_path=resource_path,
+                modify=False)
+
+        if not os.path.exists(join(install_path, "modified")):
+            install(
+                corsika_tar_path=corsika_tar_path,
+                install_path=join(install_path, "modified"),
+                resource_path=resource_path,
+                modify=True)
+
     except docopt.DocoptExit as e:
         print(e)
 
