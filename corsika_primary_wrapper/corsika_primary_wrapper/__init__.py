@@ -107,8 +107,8 @@ def _dict_to_card_and_bytes(steering_dict):
         'RUNNR {:d}'.format(run["run_id"]),
         'EVTNR {:d}'.format(run["event_id_of_first_event"]),
         'ERANGE {e_min:f} {e_max:f}'.format(
-            e_min=np.min(_energies),
-            e_max=np.max(_energies)),
+            e_min=np.min(_energies)*0.97,
+            e_max=np.max(_energies)*1.03),  # 3 percent overhead
         'OBSLEV {:f}'.format(1e2*run["observation_level_altitude_asl"]),
         'MAGNET {x:f} {z:f}'.format(
             x=run["earth_magnetic_field_x_muT"],
