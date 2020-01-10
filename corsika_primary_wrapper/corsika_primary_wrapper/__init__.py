@@ -293,7 +293,6 @@ def stdout_ends_with_end_of_run_marker(stdout):
     """
     lines = stdout.split("\n")
     second_last_line = lines[-2]
-    print('last line', second_last_line)
     MARKER = (
         " " +
         "==========" +
