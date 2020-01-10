@@ -64,6 +64,8 @@ IZEM = 5
 IBSIZE = 6
 IWVL = 7
 
+ENERGY_LIMIT_OVERHEAD = 0.01
+
 
 def _overwrite_steering_card(
     steering_card,
@@ -107,8 +109,8 @@ def _dict_to_card_and_bytes(steering_dict):
         'RUNNR {:d}'.format(run["run_id"]),
         'EVTNR {:d}'.format(run["event_id_of_first_event"]),
         'ERANGE {e_min:f} {e_max:f}'.format(
-            e_min=np.min(_energies)*0.97,
-            e_max=np.max(_energies)*1.03),  # 3 percent overhead
+            e_min=np.min(_energies)*(1.0 - ENERGY_LIMIT_OVERHEAD),
+            e_max=np.max(_energies)*(1.0 + ENERGY_LIMIT_OVERHEAD)),
         'OBSLEV {:f}'.format(1e2*run["observation_level_altitude_asl"]),
         'MAGNET {x:f} {z:f}'.format(
             x=run["earth_magnetic_field_x_muT"],
@@ -284,6 +286,25 @@ class Tario:
 NUM_RANDOM_SEQUENCES = 4
 
 
+def stdout_ends_with_end_of_run_marker(stdout):
+    """
+    According to CORSIKA-author Heck, this is the only sane way to check
+    whether CORSIKA has finished.
+    """
+    lines = stdout.split("\n")
+    second_last_line = lines[-2]
+    print('last line', second_last_line)
+    MARKER = (
+        " " +
+        "==========" +
+        " END OF RUN " +
+        "================================================")
+    if MARKER in second_last_line:
+        return True
+    else:
+        return False
+
+
 def _parse_random_seeds_from_corsika_stdout(stdout):
     events = []
     MARKER = " AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :"
@@ -330,7 +351,7 @@ def _parse_num_bunches_from_corsika_stdout(stdout):
         if pos == 0:
             work_line = lines[ll][len(marker):-1]
             pos_2nd_in = work_line.find("in")
-            work_line = work_line[pos_2nd_in + 2: -len("bunch") -1]
+            work_line = work_line[pos_2nd_in + 2: -len("bunch") - 1]
             nums.append(int(float(work_line)))
     return nums
 

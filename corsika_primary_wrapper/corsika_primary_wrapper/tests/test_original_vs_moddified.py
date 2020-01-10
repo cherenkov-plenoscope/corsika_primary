@@ -38,10 +38,27 @@ def equal(a, b, absolute_margin=1e-6):
 
 
 def evth_is_equal_enough(ori_evth, mod_evth):
+    I_ENERGY_LOWER_LIMIT = 59
+    I_ENERGY_UPPER_LIMIT = 60
     assert ori_evth.shape[0] == mod_evth.shape[0]
     equal = True
     for ii in range(ori_evth.shape[0]):
-        if ii == (77-1):
+        if ii == (I_ENERGY_LOWER_LIMIT - 1):
+            # Our CORSIKA-primary mod is told to only accept energies within
+            # upper and lower limits. Therefore, a small overhead is added when
+            # declaring the energy-limits to CORSIKA in the beginning of a run.
+            d = np.abs(
+                ori_evth[ii]*(1.0 - cpw.ENERGY_LIMIT_OVERHEAD) - mod_evth[ii])
+            if d > 1e-6:
+                equal = False
+
+        elif ii == (I_ENERGY_UPPER_LIMIT - 1):
+            d = np.abs(
+                ori_evth[ii]*(1.0 + cpw.ENERGY_LIMIT_OVERHEAD) - mod_evth[ii])
+            if d > 1e-6:
+                equal = False
+
+        elif ii == (77-1):
             # We ignore field 77. (fortran77 idx starts at 1)
             # Here iact.c sets a flag in case of VOLUMEDET option.
             # Its only relevant for the geometry of the scattering,
