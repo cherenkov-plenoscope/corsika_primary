@@ -235,6 +235,10 @@ def explicit_corsika_primary(
 RUNH_MARKER_FLOAT32 = struct.unpack('f', "RUNH".encode())[0]
 EVTH_MARKER_FLOAT32 = struct.unpack('f', "EVTH".encode())[0]
 
+TARIO_RUNH_FILENAME = "runh.float32"
+TARIO_EVTH_FILENAME = "{:09d}.evth.float32"
+TARIO_BUNCHES_FILENAME = "{:09d}.cherenkov_bunches.Nx8_float32"
+
 
 class Tario:
     def __init__(self, path):
@@ -434,6 +438,9 @@ def _evth_number_offsets_random_calls_mod_million(evth, i):
 
 def _evth_number_offsets_random_calls_divide_million(evth, i):
     return evth[31+(3*i)-1]
+
+
+def _evth_starting_height_cm(evth): return evth[158-1]
 
 
 def _runh_number_events(runh):
