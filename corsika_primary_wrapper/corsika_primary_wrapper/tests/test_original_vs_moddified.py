@@ -212,7 +212,7 @@ def test_original_vs_moddified(
                 "run": {
                     "run_id": 1,
                     "event_id_of_first_event": 1,
-                    "observation_level_altitude_asl": obs_level,
+                    "observation_level_asl_m": obs_level,
                     "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
                     "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
                     "atmosphere_id": atmosphere_id,

@@ -27,7 +27,7 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
         "run": {
             "run_id": 1,
             "event_id_of_first_event": 1,
-            "observation_level_altitude_asl": 0.,
+            "observation_level_asl_m": 0.,
             "earth_magnetic_field_x_muT": 12.5,
             "earth_magnetic_field_z_muT": -25.9,
             "atmosphere_id": 10,

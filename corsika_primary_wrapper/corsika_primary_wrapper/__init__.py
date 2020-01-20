@@ -20,7 +20,7 @@ EXAMPLE_STEERING_DICT = {
     "run": {
         "run_id": 1,
         "event_id_of_first_event": 1,
-        "observation_level_altitude_asl": 2300,
+        "observation_level_asl_m": 2300,
         "earth_magnetic_field_x_muT": 12.5,
         "earth_magnetic_field_z_muT": -25.9,
         "atmosphere_id": 10,
@@ -111,7 +111,7 @@ def _dict_to_card_and_bytes(steering_dict):
         'ERANGE {e_min:f} {e_max:f}'.format(
             e_min=np.min(_energies)*(1.0 - ENERGY_LIMIT_OVERHEAD),
             e_max=np.max(_energies)*(1.0 + ENERGY_LIMIT_OVERHEAD)),
-        'OBSLEV {:f}'.format(1e2*run["observation_level_altitude_asl"]),
+        'OBSLEV {:f}'.format(1e2*run["observation_level_asl_m"]),
         'MAGNET {x:f} {z:f}'.format(
             x=run["earth_magnetic_field_x_muT"],
             z=run["earth_magnetic_field_z_muT"]),

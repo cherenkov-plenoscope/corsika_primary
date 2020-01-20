@@ -19,7 +19,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             "run": {
                 "run_id": 1,
                 "event_id_of_first_event": 1,
-                "observation_level_altitude_asl": 2300,
+                "observation_level_asl_m": 2300,
                 "earth_magnetic_field_x_muT": 12.5,
                 "earth_magnetic_field_z_muT": -25.9,
                 "atmosphere_id": 10,
