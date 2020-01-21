@@ -106,6 +106,7 @@ def _dict_to_card_and_bytes(steering_dict):
     corsika_card = '\n'.join([
         'RUNNR {:d}'.format(run["run_id"]),
         'EVTNR {:d}'.format(run["event_id_of_first_event"]),
+        'PRMPAR 1',
         'ERANGE {e_min:f} {e_max:f}'.format(
             e_min=np.min(_energies)*(1.0 - ENERGY_LIMIT_OVERHEAD),
             e_max=np.max(_energies)*(1.0 + ENERGY_LIMIT_OVERHEAD)),
