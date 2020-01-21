@@ -107,12 +107,11 @@ extern double refidx_(double *height);
 
 //-------------------- init ----------------------------------------------------
 int event_number;
-int num_photons_in_event;
 
-char *primary_path = "primary_bytes.5xf8_12xi4";
+const char *PRIMARY_PATH = "primary_bytes.5xf8_12xi4";
 FILE *primary_file = NULL;
 
-char* cherenkov_buffer_path = "cherenkov_buffer.float32";
+const char* CHERENKOV_BUFFER_PATH = "cherenkov_buffer.float32";
 FILE *cherenkov_buffer = NULL;
 
 char output_path[1024] = "";
@@ -151,7 +150,7 @@ void telrnh_(cors_real_t runh[273]) {
         mtar_write_data(&tar, runh, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
         "Can not write data of 'runh.float32' to tar.");
 
-    primary_file = fopen(primary_path, "rb");
+    primary_file = fopen(PRIMARY_PATH, "rb");
     iact_check(primary_file, "Can not open primary_file.");
     return;
 error:
@@ -260,10 +259,9 @@ void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
         mtar_write_data(&tar, evth, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
         "Can not write data of EVTH to tar-file.");
 
-    cherenkov_buffer = fopen(cherenkov_buffer_path, "w");
+    cherenkov_buffer = fopen(CHERENKOV_BUFFER_PATH, "w");
     iact_check(cherenkov_buffer, "Can not open cherenkov_buffer.");
 
-    num_photons_in_event = 0;
     return;
 error:
     exit(1);
@@ -315,7 +313,6 @@ int telout_(
     iact_fwrite(&zem_f, sizeof(float), 1, cherenkov_buffer);
     iact_fwrite(&bsize_f, sizeof(float), 1, cherenkov_buffer);
     iact_fwrite(&lambda_f, sizeof(float), 1, cherenkov_buffer);
-    num_photons_in_event = num_photons_in_event + 1;
     return 1;
 error:
     exit(1);
@@ -333,7 +330,7 @@ void telend_(cors_real_t evte[273]) {
 
     iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
 
-    cherenkov_buffer = fopen(cherenkov_buffer_path, "r");
+    cherenkov_buffer = fopen(CHERENKOV_BUFFER_PATH, "r");
     iact_check(cherenkov_buffer, "Can not re-open cherenkov_buffer for read.");
 
     char bunch_filename[1024] = "";
