@@ -110,10 +110,10 @@ int event_number;
 int num_photons_in_event;
 
 char *primary_path = "primary_bytes.5xf8_12xi4";
-FILE *primary_file;
+FILE *primary_file = NULL;
 
 char* cherenkov_buffer_path = "cherenkov_buffer.float32";
-FILE *cherenkov_buffer;
+FILE *cherenkov_buffer = NULL;
 
 char output_path[1024] = "";
 mtar_t tar;
@@ -327,6 +327,7 @@ error:
  *  End of event. Write photon-bunches into tar-file.
 */
 void telend_(cors_real_t evte[273]) {
+    iact_check(cherenkov_buffer != NULL, "Expected cherenkov_buffer != NULL");
     int64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
     iact_check(sizeof_cherenkov_buffer >= 0, "Can't ftell cherenkov_buffer");
 
@@ -369,6 +370,9 @@ void telrne_(cors_real_t rune[273]) {
     iact_check(
         mtar_close(&tar) == MTAR_ESUCCESS,
         "Can't close tar-file.");
+    iact_check(
+        primary_file != NULL,
+        "Expected primary_file != NULL");
     iact_check(
         fclose(primary_file) == 0,
         "Can't close primary_file.");
