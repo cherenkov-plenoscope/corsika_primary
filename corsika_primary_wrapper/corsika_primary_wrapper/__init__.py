@@ -65,21 +65,19 @@ IBSIZE = 6
 IWVL = 7
 
 ENERGY_LIMIT_OVERHEAD = 0.01
-
+PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primary_bytes.5xf8_12xi4"
 
 def _overwrite_steering_card(
     steering_card,
     output_path,
-    primary_path,
     num_shower,
 ):
     lines = []
     for line in steering_card.splitlines():
         key = line.split(' ')[0]
-        if key not in ["EXIT", "TELFIL", "PRMFIL", "NSHOW"]:
+        if key not in ["EXIT", "TELFIL", "NSHOW"]:
             lines.append(line)
     lines.append("NSHOW {:d}".format(num_shower))
-    lines.append("PRMFIL {:s}".format(primary_path))
     lines.append("TELFIL {:s}".format(output_path))
     lines.append("EXIT")
     return "\n".join(lines)
@@ -124,7 +122,6 @@ def _dict_to_card_and_bytes(steering_dict):
         'CERFIL F',
         'TSTART T',
         'NSHOW {:d}'.format(len(steering_dict["primaries"])),
-        'PRMFIL primary_bytes.f8f8f8f8f8i4',
         'TELFIL run.tar',
         'EXIT'])
     return corsika_card, primary_binary
@@ -204,14 +201,15 @@ def explicit_corsika_primary(
             tmp_corsika_run_dir,
             op.basename(corsika_path))
 
-        primary_path = op.join(tmp_dir, "primary_bytes.f8f8f8f8f8i4")
+        primary_path = op.join(
+            tmp_corsika_run_dir,
+            PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR)
         with open(primary_path, "wb") as f:
             f.write(primary_bytes)
 
         steering_card = _overwrite_steering_card(
             steering_card=steering_card,
             output_path=output_path,
-            primary_path=primary_path,
             num_shower=num_primaries)
 
         steering_card_pipe, pwrite = os.pipe()

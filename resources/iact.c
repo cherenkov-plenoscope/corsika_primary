@@ -72,7 +72,6 @@ typedef double cors_dbl_t;
 /* =============================================================== */
 /* functions called from CORSIKA in fortran77                      */
 void telfil_(char *name);
-void prmfil_(char *name);
 void telrnh_(cors_real_t runh[273]);
 void telrne_(cors_real_t rune[273]);
 void televt_(
@@ -110,7 +109,7 @@ extern double refidx_(double *height);
 int event_number;
 int num_photons_in_event;
 
-char primary_path[1024] = "";
+char *primary_path = "primary_bytes.5xf8_12xi4";
 FILE *primary_file;
 
 char* cherenkov_buffer_path = "cherenkov_buffer.float32";
@@ -133,20 +132,6 @@ void telfil_(char *name) {
 error:
     exit(1);
 }
-
-/**
- * Define the input file for controling the primary particle.
- * @param  name    Input-file-name.
-*/
-void prmfil_(char *name) {
-    const uint64_t sz = sizeof(primary_path);
-    const int rc = snprintf(primary_path, sz, "%s", name);
-    iact_check(rc > 0 && rc < sz, "Can not copy PRMFIL path.");
-    return;
-error:
-    exit(1);
-}
-
 
 /**
  *  Save aparameters from CORSIKA run header.
