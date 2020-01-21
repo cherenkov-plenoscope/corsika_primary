@@ -295,3 +295,40 @@
 > C-prmC  WHICH IS 112.8 KM FOR THICK0 = 0
 > C-prm# 2154 "corsika.F"
 > C-prm   PRMPAR(5) = HEIGH( THICK0 )
+106230c106267,106268
+<         GOTO 420
+---
+>         IF ( FNPRIM ) GOTO 420
+>         GOTO 498
+106308c106346,106347
+<             GOTO 420
+---
+>             IF ( FNPRIM ) GOTO 420
+>             GOTO 498
+106414c106453,106454
+<           GOTO 420
+---
+>           IF (FNPRIM) GOTO 420
+>           GOTO 498
+106444c106484,106485
+<           GOTO 420
+---
+>           IF (FNPRIM) GOTO 420
+>           GOTO 498
+106518c106559,106560
+<         GOTO 420
+---
+>         IF ( FNPRIM ) GOTO 420
+>         GOTO 498
+106736c106778,106779
+<         GOTO 420
+---
+>         IF ( FNPRIM ) GOTO 420
+>         GOTO 498
+106869c106912,106915
+<         IF ( PEIE .LE. ECUT(IRL) ) GOTO 390
+---
+>         IF ( PEIE .LE. ECUT(IRL) ) THEN
+>             IF ( FNPRIM ) GOTO 390
+>             GOTO 498
+>         ENDIF
