@@ -33,8 +33,6 @@ import shutil
 import subprocess
 import glob
 import hashlib
-from Crypto.Cipher import AES
-import tarfile
 import io
 
 
@@ -49,34 +47,20 @@ def md5sum(path):
     return hash_md5.hexdigest()
 
 
-def aes(key, in_path, out_path, mode):
-    # Wrap payload in tape-archive to enforce fixed 16byte block-length for
-    # AES-algorithm
-    _key = hashlib.sha256(key.encode()).digest()
-    cipher_obj = AES.new(_key, AES.MODE_CBC, 'This is an IV456')
-    with open(in_path, "rb") as fin, open(out_path, "wb") as fout:
-        if mode == "encrypt":
-            tarinfo = tarfile.TarInfo(name="payload")
-            inb = io.BytesIO()
-            inb.write(fin.read())
-            tarinfo.size = inb.tell()
-            inb.seek(0)
-            raw = io.BytesIO()
-            tarf = tarfile.open(fileobj=raw, mode="w")
-            tarf.addfile(
-                tarinfo=tarinfo,
-                fileobj=inb)
-            tarf.close()
-            raw.seek(0)
-            tmp = cipher_obj.encrypt(raw.read())
-        elif mode == "decrypt":
-            raw = io.BytesIO(cipher_obj.decrypt(fin.read()))
-            tarf = tarfile.open(fileobj=raw, mode="r")
-            tarinfo = tarf.getmember("payload")
-            tmp = tarf.extractfile(tarinfo).read()
-        else:
-            raise ValueError("Unknown mode '{:s}'.".format(mode))
-        fout.write(tmp)
+def diff(original_path, modified_path, out_path):
+    with open(out_path, 'w') as stdout:
+        subprocess.call(
+            ['diff', original_path, modified_path],
+            stdout=stdout)
+
+
+def patch(original_path, diff_path, out_path):
+    subprocess.call([
+        'patch',
+        original_path,
+        diff_path,
+        "-o",
+        out_path])
 
 
 def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
@@ -187,13 +171,6 @@ def main():
                 web_path=web_path,
                 corsika_tar_filename=corsika_tar_filename)
 
-        compilefile_path = join(resource_path, 'corsikacompilefile_modified.f')
-        if not os.path.exists(compilefile_path):
-            aes(key=args['--username'],
-                in_path=compilefile_path+".enc",
-                out_path=compilefile_path,
-                mode="decrypt")
-
         assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(
             corsika_tar_path)
 
@@ -205,6 +182,21 @@ def main():
                 modify=False)
 
         if not os.path.exists(join(install_path, "modified")):
+            compilefile_path = join(
+                resource_path,
+                'corsikacompilefile_modified.f')
+            if not os.path.exists(compilefile_path):
+                patch(
+                    original_path=join(
+                        install_path,
+                        "original",
+                        "corsika-75600",
+                        "src",
+                        "corsikacompilefile.f"),
+                    diff_path=join(
+                        resource_path,
+                        "corsikacompilefile.f.diff"),
+                    out_path=compilefile_path)
             install(
                 corsika_tar_path=corsika_tar_path,
                 install_path=join(install_path, "modified"),

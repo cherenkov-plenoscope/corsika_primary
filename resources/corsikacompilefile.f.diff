@@ -1,0 +1,297 @@
+6174,6179c6174,6216
+< 
+< 
+< 
+< 
+< 
+<         THICK0 = THICK00
+---
+> C-prm--------------------
+> C-prm SET PRIMARY PARTICLE
+>         CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP, THICK0,
+>      *       ISEED(1,1), ISEED(2,1), ISEED(3,1),
+>      *       ISEED(1,2), ISEED(2,2), ISEED(3,2),
+>      *       ISEED(1,3), ISEED(2,3), ISEED(3,3),
+>      *       ISEED(1,4), ISEED(2,4), ISEED(3,4))
+>         PRMPAR(2) = COS( THETAP )
+>         PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
+>         PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
+>         PRMPAR(5) = HEIGH( THICK0 )
+>         NSEQ = 4
+>         DO  MYL = 1, NSEQ
+>           CALL RMMAQD( ISEED(1:3, MYL), MYL, 'S' )
+>         ENDDO
+>         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
+>           WRITE(MONIOU,*) '-----------------------------------'
+>           WRITE(MONIOU,*) 'PRIMARY PARTICLE = ', PRMPAR(0)
+>           WRITE(MONIOU,*) 'PRIMARY ENERGY   = ', PRMPAR(1), ' GEV'
+>           WRITE(MONIOU,*) 'PRIMARY THETAP   = ', THETAP, ' RAD'
+>           WRITE(MONIOU,*) 'PRIMARY PHIP     = ', PHIP, ' RAD'
+>           WRITE(MONIOU,*) 'PRIMARY HEIGHT   = ', PRMPAR(5), ' CM'
+>           WRITE(MONIOU,*) '                 = ', THICK0, ' G/CM**2'
+>           WRITE(MONIOU,*) 'RANDOM ISEED(1,1)= ', ISEED(1,1)
+>           WRITE(MONIOU,*) '-----------------------------------'
+>         ENDIF
+>         IF ( PRMPAR(1) .LT. LLIMIT .OR. PRMPAR(1) .GT. ULIMIT ) THEN
+>           WRITE(MONIOU,*) 'EXPECTED LLIMIT < PRMPAR(1) < ULIMIT'
+>           WRITE(MONIOU,*) 'BUT ACTUAL'
+>           WRITE(MONIOU,*) 'LLIMIT= ', LLIMIT
+>           WRITE(MONIOU,*) 'PRMPAR(1)==PRIMARY ENERGY= ', PRMPAR(1)
+>           WRITE(MONIOU,*) 'ULIMIT= ', ULIMIT
+>           STOP
+>         ENDIF
+>         IF ( THICK0 .LT. 0.0 ) THEN
+>           WRITE(MONIOU,*) 'EXPECTED THICK0 > 0.0, '
+>           WRITE(MONIOU,*) 'BUT ACTUAL THICK0= ', THICK0
+>           STOP
+>         ENDIF
+> C-prm-------------------------
+> C prm END SET PRIMARY PARTICLE
+> C-prm
+> C-prm   THICK0 = THICK00
+6300,6421c6337,6458
+< C  GET PRIMARY ENERGY INTO PRMPAR(1)
+<         IF ( ISPEC .EQ. 0 ) THEN
+<           PRMPAR(1) = LLIMIT
+<         ELSE
+<           CALL RMMARD( RD,1,1 )
+<           IF ( PSLOPE .NE. -1.D0 ) THEN
+<             PRMPAR(1) = ( RD(1)*UL + ( 1.D0-RD(1) )*LL )**SLEX
+<           ELSE
+<             PRMPAR(1) = LLIMIT * LL**RD(1)
+<           ENDIF
+<           IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 )
+<      *       WRITE(MONIOU,*) 'PRIMARY ENERGY = ',PRMPAR(1),' GEV'
+<         ENDIF
+< C  IF YOU WANT TO USE KINETIC ENERGY IN PRIMARY SPECTRUM
+< C  YOU HAVE TO ADD THE PRIMARY''S REST MASS:
+< cc       PRMPAR(1) = PRMPAR(1) + PAMA(NINT( PRMPAR(0) ))
+< 
+< 
+< C  GET PRIMARY ANGLES OF INCIDENCE
+< # 1987 "corsika.F"
+<         IF ( FIXINC ) THEN
+< C  PRIMARY ANGLE FIXED
+<           THETAP = THETPR(1)
+<           PHIP   = PHIPR(1)
+< 
+<           IF ( VUECON(2) .GT. 0.D0 ) THEN
+< C  THROW UNIFORMLY DISTRIBUTED DIRECTION IN VIEWING CONE OR CONE RING
+< C  FOR NOW
+< 
+<    46       CALL RMMARD( RD,2,1 )
+< 
+< 
+< 
+< 
+< 
+< 
+< 
+<             CT1 = COS( VUECON(1) )
+<             CT2 = COS( VUECON(2) )
+<             CTT = RD(2) * ( CT2 - CT1 ) + CT1
+<             THETAP = ACOS( CTT )
+<             PHIP = RD(1) * PI2
+< C  TEMPORARY CARTESIAN COORDINATES
+<             XVC1 = COS( PHIP )*SIN( THETAP )
+<             YVC1 = SIN( PHIP )*SIN( THETAP )
+<             ZVC1 = COS( THETAP )
+< C  ROTATE AROUND Y AXIS
+<             XVC2 = XVC1*COS( THETPR(1) ) + ZVC1*SIN( THETPR(1) )
+<             YVC2 = YVC1
+<             ZVC2 = ZVC1*COS( THETPR(1) ) - XVC1*SIN( THETPR(1) )
+< 
+< 
+< 
+< 
+< 
+<             THETAP = ACOS( ZVC2 )
+< 
+< 
+< 
+< 
+< 
+< 
+< 
+<             IF ( THETAP .GT. 70.D0*(PI/180.D0) ) GOTO 46
+< 
+<             IF ( XVC2 .NE. 0.D0  .OR.  YVC2 .NE. 0.D0 ) THEN
+<               PHIP = ATAN2(YVC2,XVC2) + PHIPR(1)
+<             ELSE
+<               PHIP = PHIPR(1)
+<             ENDIF
+<             IF ( PHIP .GT. PI2  ) PHIP = PHIP - PI2
+<             IF ( PHIP .LT. 0.D0 ) PHIP = PHIP + PI2
+<           ENDIF
+< 
+< 
+<           CALL EXTPRM(PRMPAR(0), PRMPAR(1), THETAP, PHIP)
+<           CTT = COS( THETAP )
+< 
+< 
+< 
+< 
+< 
+< 
+<           PRMPAR(2) = COS( THETAP )
+< 
+<         ELSE
+< # 2071 "corsika.F"
+< C  USE EQUAL FLUX FROM ALL DIRECTIONS. THIS ASSUMES A VOLUME DETECTOR
+< C  INSENSITIVE ON THE INCIDENCE ANGLE.
+<            CALL RMMARD( RD,2,1 )
+<            CT1 = COS( THETPR(1) )
+<            CT2 = COS( THETPR(2) )
+<            CTT = RD(2) * ( CT2 - CT1 ) + CT1
+<            THETAP = ACOS( CTT )
+< # 2105 "corsika.F"
+<           PHIP   = RD(1) * ( PHIPR(2) - PHIPR(1) ) + PHIPR(1)
+< 
+<           CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP )
+<           CTT = COS( THETAP )
+< # 2120 "corsika.F"
+<           PRMPAR(2) = CTT
+<         ENDIF
+< 
+< 
+< 
+< 
+<         PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
+<         PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
+<         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
+< 
+<           IF ( VUECON(2) .GT. 0.D0 ) WRITE(MONIOU,669) THETAP,PHIP
+< 
+< 
+< 
+<  669      FORMAT(' PRIMARY ANGLES ARE: THETA = ',F7.4,
+<      *           ' RAD,',' PHI = ',F7.4,' RAD')
+<         ENDIF
+< 
+< C  DEFINE HEIGHT FOR START AT THICK0 (IN G/CM**2)
+< C  WHICH IS 112.8 KM FOR THICK0 = 0
+< # 2154 "corsika.F"
+<         PRMPAR(5) = HEIGH( THICK0 )
+---
+> C-prmC  GET PRIMARY ENERGY INTO PRMPAR(1)
+> C-prm        IF ( ISPEC .EQ. 0 ) THEN
+> C-prm          PRMPAR(1) = LLIMIT
+> C-prm        ELSE
+> C-prm          CALL RMMARD( RD,1,1 )
+> C-prm          IF ( PSLOPE .NE. -1.D0 ) THEN
+> C-prm            PRMPAR(1) = ( RD(1)*UL + ( 1.D0-RD(1) )*LL )**SLEX
+> C-prm          ELSE
+> C-prm            PRMPAR(1) = LLIMIT * LL**RD(1)
+> C-prm          ENDIF
+> C-prm          IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 )
+> C-prm     *       WRITE(MONIOU,*) 'PRIMARY ENERGY = ',PRMPAR(1),' GEV'
+> C-prm        ENDIF
+> C-prmC  IF YOU WANT TO USE KINETIC ENERGY IN PRIMARY SPECTRUM
+> C-prmC  YOU HAVE TO ADD THE PRIMARY''S REST MASS:
+> C-prmcc       PRMPAR(1) = PRMPAR(1) + PAMA(NINT( PRMPAR(0) ))
+> C-prm
+> C-prm
+> C-prmC  GET PRIMARY ANGLES OF INCIDENCE
+> C-prm# 1987 "corsika.F"
+> C-prm        IF ( FIXINC ) THEN
+> C-prmC  PRIMARY ANGLE FIXED
+> C-prm          THETAP = THETPR(1)
+> C-prm          PHIP   = PHIPR(1)
+> C-prm
+> C-prm          IF ( VUECON(2) .GT. 0.D0 ) THEN
+> C-prmC  THROW UNIFORMLY DISTRIBUTED DIRECTION IN VIEWING CONE OR CONE RING
+> C-prmC  FOR NOW
+> C-prm
+> C-prm   46       CALL RMMARD( RD,2,1 )
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm            CT1 = COS( VUECON(1) )
+> C-prm            CT2 = COS( VUECON(2) )
+> C-prm            CTT = RD(2) * ( CT2 - CT1 ) + CT1
+> C-prm            THETAP = ACOS( CTT )
+> C-prm            PHIP = RD(1) * PI2
+> C-prmC  TEMPORARY CARTESIAN COORDINATES
+> C-prm            XVC1 = COS( PHIP )*SIN( THETAP )
+> C-prm            YVC1 = SIN( PHIP )*SIN( THETAP )
+> C-prm            ZVC1 = COS( THETAP )
+> C-prmC  ROTATE AROUND Y AXIS
+> C-prm            XVC2 = XVC1*COS( THETPR(1) ) + ZVC1*SIN( THETPR(1) )
+> C-prm            YVC2 = YVC1
+> C-prm            ZVC2 = ZVC1*COS( THETPR(1) ) - XVC1*SIN( THETPR(1) )
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm            THETAP = ACOS( ZVC2 )
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm            IF ( THETAP .GT. 70.D0*(PI/180.D0) ) GOTO 46
+> C-prm
+> C-prm            IF ( XVC2 .NE. 0.D0  .OR.  YVC2 .NE. 0.D0 ) THEN
+> C-prm              PHIP = ATAN2(YVC2,XVC2) + PHIPR(1)
+> C-prm            ELSE
+> C-prm              PHIP = PHIPR(1)
+> C-prm            ENDIF
+> C-prm            IF ( PHIP .GT. PI2  ) PHIP = PHIP - PI2
+> C-prm            IF ( PHIP .LT. 0.D0 ) PHIP = PHIP + PI2
+> C-prm          ENDIF
+> C-prm
+> C-prm
+> C-prm          CALL EXTPRM(PRMPAR(0), PRMPAR(1), THETAP, PHIP)
+> C-prm          CTT = COS( THETAP )
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm          PRMPAR(2) = COS( THETAP )
+> C-prm
+> C-prm        ELSE
+> C-prm# 2071 "corsika.F"
+> C-prmC  USE EQUAL FLUX FROM ALL DIRECTIONS. THIS ASSUMES A VOLUME DETECTOR
+> C-prmC  INSENSITIVE ON THE INCIDENCE ANGLE.
+> C-prm           CALL RMMARD( RD,2,1 )
+> C-prm           CT1 = COS( THETPR(1) )
+> C-prm           CT2 = COS( THETPR(2) )
+> C-prm           CTT = RD(2) * ( CT2 - CT1 ) + CT1
+> C-prm           THETAP = ACOS( CTT )
+> C-prm# 2105 "corsika.F"
+> C-prm          PHIP   = RD(1) * ( PHIPR(2) - PHIPR(1) ) + PHIPR(1)
+> C-prm
+> C-prm          CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP )
+> C-prm          CTT = COS( THETAP )
+> C-prm# 2120 "corsika.F"
+> C-prm          PRMPAR(2) = CTT
+> C-prm        ENDIF
+> C-prm
+> C-prm
+> C-prm
+> C-prm
+> C-prm        PRMPAR(3) = SIN( THETAP ) * COS( PHIP )
+> C-prm        PRMPAR(4) = SIN( THETAP ) * SIN( PHIP )
+> C-prm        IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
+> C-prm
+> C-prm          IF ( VUECON(2) .GT. 0.D0 ) WRITE(MONIOU,669) THETAP,PHIP
+> C-prm
+> C-prm
+> C-prm
+> C-prm 669      FORMAT(' PRIMARY ANGLES ARE: THETA = ',F7.4,
+> C-prm     *           ' RAD,',' PHI = ',F7.4,' RAD')
+> C-prm        ENDIF
+> C-prm
+> C-prmC  DEFINE HEIGHT FOR START AT THICK0 (IN G/CM**2)
+> C-prmC  WHICH IS 112.8 KM FOR THICK0 = 0
+> C-prm# 2154 "corsika.F"
+> C-prm   PRMPAR(5) = HEIGH( THICK0 )
