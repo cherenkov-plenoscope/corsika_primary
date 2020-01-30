@@ -297,22 +297,16 @@ int telout_(
     cors_real_now_t *ctime,
     cors_real_now_t *zem ,
     cors_real_now_t *lambda) {
-    float bsize_f = (float)(*bsize);
-    float px_f = (float)(*px);
-    float py_f = (float)(*py);
-    float pu_f = (float)(*pu);
-    float pv_f = (float)(*pv);
-    float ctime_f = (float)(*ctime);
-    float zem_f = (float)(*zem);
-    float lambda_f = (float)(*lambda);
-    iact_fwrite(&px_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&py_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&pu_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&pv_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&ctime_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&zem_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&bsize_f, sizeof(float), 1, cherenkov_buffer);
-    iact_fwrite(&lambda_f, sizeof(float), 1, cherenkov_buffer);
+    float bunch[8];
+    bunch[0] = (float)(*px);
+    bunch[1] = (float)(*py);
+    bunch[2] = (float)(*pu);
+    bunch[3] = (float)(*pv);
+    bunch[4] = (float)(*ctime);
+    bunch[5] = (float)(*zem);
+    bunch[6] = (float)(*bsize);
+    bunch[7] = (float)(*lambda);
+    iact_fwrite(bunch, sizeof(float), 8, cherenkov_buffer);
     return 1;
 error:
     exit(1);
