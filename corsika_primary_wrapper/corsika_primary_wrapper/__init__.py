@@ -6,6 +6,7 @@ import shutil
 import io
 import tarfile
 import struct
+from . import random_distributions
 
 
 CM2M = 1e-2
