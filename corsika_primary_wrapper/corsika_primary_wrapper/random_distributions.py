@@ -31,12 +31,14 @@ def draw_azimuth_zenith_in_viewcone(
     min_scatter_opening_angle_rad,
     max_scatter_opening_angle_rad,
     max_zenith_rad=np.deg2rad(70),
+    max_iterations=1000*1000,
 ):
     assert min_scatter_opening_angle_rad >= 0.
     assert max_scatter_opening_angle_rad >= min_scatter_opening_angle_rad
     assert max_zenith_rad >= 0.
     # Adopted from CORSIKA
     zenith_too_large = True
+    iteration = 0
     while zenith_too_large:
         rd1, rd2 = np.random.uniform(size=2)
         ct1 = np.cos(min_scatter_opening_angle_rad)
@@ -55,6 +57,9 @@ def draw_azimuth_zenith_in_viewcone(
         zd = np.arccos(zvc2)
         if zd <= max_zenith_rad:
             zenith_too_large = False
+        iteration += 1
+        if iteration > max_iterations:
+            raise RuntimeError("Rejection-sampling failed.")
     if xvc2 != 0. or yvc2 != 0.:
         az = np.arctan2(yvc2, xvc2) + azimuth_rad
     else:
