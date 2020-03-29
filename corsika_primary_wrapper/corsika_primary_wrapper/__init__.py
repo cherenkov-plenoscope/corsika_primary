@@ -11,6 +11,7 @@ from . import random_distributions
 
 CM2M = 1e-2
 M2CM = 1./CM2M
+MAX_ZENITH_DEG = 70.0
 
 
 def _simple_seed(seed):
