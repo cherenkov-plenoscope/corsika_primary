@@ -334,7 +334,7 @@ def test_original_vs_moddified(
                             DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
                             SPPED_OF_LIGHT)
 
-                        mod_zenith_rad = cpw._evth_zenith_rad(mod_evth)
+                        mod_zenith_rad = mod_evth[cpw.I_EVTH_ZENITH_RAD]
 
                         mod_toffset = (
                             HEIGHT_AT_ZERO_GRAMMAGE + obs_level
@@ -363,9 +363,9 @@ def test_original_vs_moddified(
                                 decimal=2)
 
                             assert (
-                                cpw._evth_z_coordinate_of_first_interaction_cm(
-                                    mod_evth) < 0.)
+                                mod_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] < 0.
+                            )
                             assert (
-                                cpw._evth_z_coordinate_of_first_interaction_cm(
-                                    ori_evth) < 0.)
+                                ori_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] < 0.
+                            )
         run += 1

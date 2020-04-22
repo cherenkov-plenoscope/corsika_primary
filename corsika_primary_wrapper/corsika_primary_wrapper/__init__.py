@@ -73,6 +73,7 @@ IWVL = 7
 ENERGY_LIMIT_OVERHEAD = 0.01
 PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primary_bytes.5xf8_12xi4"
 
+
 def _overwrite_steering_card(
     steering_card,
     output_path,
@@ -364,89 +365,80 @@ def _parse_num_bunches_from_corsika_stdout(stdout):
     return nums
 
 
-def _evth_marker(evth): return evth[1-1]
+# From CORSIKA manual
+# --------------
+
+# RUNHEADER
+# ---------
+I_RUNH_NUM_EVENTS = 93-1
+
+# EVENTHEADER
+# -----------
+I_EVTH_MARKER = 1-1
+I_EVTH_EVENT_NUMBER = 2-1
+I_EVTH_PARTICLE_ID = 3-1
+I_EVTH_TOTAL_ENERGY_GEV = 4-1
+I_EVTH_STARTING_DEPTH_G_PER_CM2 = 5-1
+I_EVTH_NUMBER_OF_FIRST_TARGET_IF_FIXED = 6-1
+I_EVTH_Z_FIRST_INTERACTION_CM = 7-1
+I_EVTH_PX_MOMENTUM_GEV_PER_C = 8-1
+I_EVTH_PY_MOMENTUM_GEV_PER_C = 9-1
+I_EVTH_PZ_MOMENTUM_GEV_PER_C = 10-1
+I_EVTH_ZENITH_RAD = 11-1
+I_EVTH_AZIMUTH_RAD = 12-1
+
+I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES = 13-1
 
 
-def _evth_event_number(evth): return evth[2-1]
+def I_EVTH_RANDOM_SEED(sequence):
+    assert sequence >= 1
+    assert sequence <= 10
+    return (11+3*sequence)-1
 
 
-def _evth_particle_id(evth): return evth[3-1]
+def I_EVTH_RANDOM_SEED_CALLS(sequence):
+    assert sequence >= 1
+    assert sequence <= 10
+    return (21+3*sequence)-1
 
 
-def _evth_total_energy_GeV(evth): return evth[4-1]
+def I_EVTH_RANDOM_SEED_BILLIONS(sequence):
+    assert sequence >= 1
+    assert sequence <= 10
+    return (31+3*sequence)-1
 
 
-def _evth_starting_depth_g_per_cm2(evth): return evth[5-1]
+I_EVTH_RUN_NUMBER = 44-1
+I_EVTH_DATE_OF_BEGIN_RUN = 45-1
+I_EVTH_VERSION_OF_PROGRAM = 46-1
+
+I_EVTH_NUM_OBSERVATION_LEVELS = 47-1
 
 
-def _evth_number_of_first_target_if_fixed(evth): return evth[6-1]
+def I_EVTH_HEIGHT_OBSERVATION_LEVEL(level):
+    assert level >= 1
+    assert level <= 10
+    return (47+level)-1
 
 
-def _evth_z_coordinate_of_first_interaction_cm(evth): return evth[7-1]
+I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 71-1
+I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 72-1
+
+I_EVTH_ANGLE_X_MAGNETIG_NORTH_RAD = 93-1
+
+I_EVTH_NUM_REUSES_OF_CHERENKOV_EVENT = 98-1
 
 
-def _evth_px_momentum_in_x_direction_GeV_per_c(evth): return evth[8-1]
+def I_EVTH_X_CORE_CM(reuse):
+    assert reuse >= 1
+    assert reuse <= 20
+    return (98+reuse)-1
 
 
-def _evth_py_momentum_in_y_direction_GeV_per_c(evth): return evth[9-1]
+def I_EVTH_Y_CORE_CM(reuse):
+    assert reuse >= 1
+    assert reuse <= 20
+    return (118+reuse)-1
 
 
-def _evth_pz_momentum_in_z_direction_GeV_per_c(evth): return evth[10-1]
-
-
-def _evth_zenith_rad(evth): return evth[11-1]
-
-
-def _evth_azimuth_rad(evth): return evth[12-1]
-
-
-def _evth_number_of_different_random_number_sequence(evth): return evth[13-1]
-
-
-def _evth_run_number(evth): return evth[44-1]
-
-
-def _evth_date_of_begin_run_yymmdd(evth): return evth[45-1]
-
-
-def _evth_version_of_program(evth): return evth[46-1]
-
-
-def _evth_number_of_observation_levels(evth): return evth[47-1]
-
-
-def _evth_height_of_level_1_cm(evth): return evth[48-1]
-
-
-def _evth_Cherenkov_bunch_size(evth): return evth[85-1]
-
-
-def _evth_angle_between_x_direction_and_magnetic_north_rad(evth):
-    return evth[93-1]
-
-
-def _evth_Cherenkov_wavelength_start_nm(evth): return evth[96-1]
-
-
-def _evth_Cherenkov_wavelength_stop_nm(evth): return evth[97-1]
-
-
-def _evth_number_reuses(evth): return evth[98-1]
-
-
-def _evth_integer_seed_of_sequence(evth, i): return evth[11+(3*i)-1]
-
-
-def _evth_number_offsets_random_calls_mod_million(evth, i):
-    return evth[21+(3*i)-1]
-
-
-def _evth_number_offsets_random_calls_divide_million(evth, i):
-    return evth[31+(3*i)-1]
-
-
-def _evth_starting_height_cm(evth): return evth[158-1]
-
-
-def _runh_number_events(runh):
-    return runh[93-1]
+I_EVTH_STARTING_HEIGHT_CM = 158-1

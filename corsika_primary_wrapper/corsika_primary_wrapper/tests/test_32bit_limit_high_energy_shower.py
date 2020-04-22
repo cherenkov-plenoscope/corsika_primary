@@ -60,9 +60,9 @@ def test_no_obvious_32bit_limitations(
         with pytest.raises(StopIteration):
             next(run)
 
-        assert(cpw._evth_event_number(evth) == 1.)
-        assert(cpw._evth_particle_id(evth) == 3.)
-        assert(cpw._evth_starting_depth_g_per_cm2(evth) == 0.)
+        assert(evth[cpw.I_EVTH_EVENT_NUMBER] == 1.)
+        assert(evth[cpw.I_EVTH_PARTICLE_ID] == 3.)
+        assert(evth[cpw.I_EVTH_STARTING_DEPTH_G_PER_CM2] == 0.)
 
         sufficient_bunches = int(5e9//cpw.NUM_BYTES_PER_BUNCH)
 
