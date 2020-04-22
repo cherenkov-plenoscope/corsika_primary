@@ -37,7 +37,7 @@ def test_no_obvious_32bit_limitations(
                 "zenith_rad": 0.0,
                 "azimuth_rad": 0.0,
                 "depth_g_per_cm2": 0.0,
-                "random_seed": cpw._simple_seed(0),
+                "random_seed": cpw.simple_seed(0),
             }
         ]
     }

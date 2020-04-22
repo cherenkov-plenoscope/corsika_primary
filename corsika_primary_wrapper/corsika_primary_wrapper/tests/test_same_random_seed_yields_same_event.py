@@ -32,7 +32,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             "zenith_rad": 0.0,
             "azimuth_rad": 0.0,
             "depth_g_per_cm2": 0.0,
-            "random_seed": cpw._simple_seed(0),
+            "random_seed": cpw.simple_seed(0),
         }
 
         num_primaries = 12

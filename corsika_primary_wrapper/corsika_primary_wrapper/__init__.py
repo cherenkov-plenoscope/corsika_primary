@@ -14,7 +14,7 @@ M2CM = 1./CM2M
 MAX_ZENITH_DEG = 70.0
 
 
-def _simple_seed(seed):
+def simple_seed(seed):
     return [
         {"SEED": seed, "CALLS": 0, "BILLIONS": 0},
         {"SEED": seed+1, "CALLS": 0, "BILLIONS": 0},
@@ -38,7 +38,7 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.0,
             "azimuth_rad": 0.0,
             "depth_g_per_cm2": 0.0,
-            "random_seed": _simple_seed(0),
+            "random_seed": simple_seed(0),
         },
         {
             "particle_id": 1,
@@ -46,7 +46,7 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.1,
             "azimuth_rad": 0.2,
             "depth_g_per_cm2": 3.6,
-            "random_seed": _simple_seed(1),
+            "random_seed": simple_seed(1),
         },
         {
             "particle_id": 1,
@@ -54,7 +54,7 @@ EXAMPLE_STEERING_DICT = {
             "zenith_rad": 0.1,
             "azimuth_rad": 0.25,
             "depth_g_per_cm2": 102.2,
-            "random_seed": _simple_seed(2),
+            "random_seed": simple_seed(2),
         },
     ],
 }
