@@ -22,7 +22,6 @@ def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
 
 
-
 def test_runtime_differences(
     corsika_primary_path,
     corsika_path,

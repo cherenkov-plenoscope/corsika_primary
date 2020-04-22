@@ -363,9 +363,11 @@ def test_original_vs_moddified(
                                 decimal=2)
 
                             assert (
-                                mod_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] < 0.
+                                mod_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] <
+                                0.
                             )
                             assert (
-                                ori_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] < 0.
+                                ori_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] <
+                                0.
                             )
         run += 1

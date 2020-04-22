@@ -72,7 +72,7 @@ def test_low_energy_electron(
     earth_magnetic_field_z_muT = -11.366
     atmosphere_id = 7
 
-    particle_id = 2  #  positron
+    particle_id = 2  # positron
     depth_g_per_cm2 = 0.0
     energy = 0.25
     zenith_deg = 45.0
@@ -111,13 +111,11 @@ def test_low_energy_electron(
         'EXIT',
     ])
 
-
     tmp_prefix = "test_low_energy_electron_"
     with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
         if non_temporary_path != "":
             tmp_dir = op.join(non_temporary_path, tmp_prefix)
             os.makedirs(tmp_dir, exist_ok=True)
-
 
         # RUN ORIGINAL CORSIKA
         # --------------------
