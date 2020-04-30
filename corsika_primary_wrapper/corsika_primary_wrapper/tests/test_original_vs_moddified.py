@@ -315,9 +315,9 @@ def test_original_vs_moddified(
                         # Correct for detector-sphere in iact.c
                         # See function: photon_hit()
                         # -------------------------------------
-                        DET_ZO = telescope_sphere_radius_m
                         DET_XO = 0.
                         DET_YO = 0.
+                        DET_ZO = telescope_sphere_radius_m
                         cx2_cy2 = (
                             mod_bunches[:, cpw.ICX]**2 +
                             mod_bunches[:, cpw.ICY]**2)
