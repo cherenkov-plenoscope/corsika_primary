@@ -329,7 +329,7 @@ def test_original_vs_moddified(
 
                         # ctime
                         # -----
-                        HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
+                        HEIGHT_AT_ZERO_GRAMMAGE_M = 112.8e3
                         mod_time_sphere_z = (
                             DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
                             SPPED_OF_LIGHT_M_PER_S)
@@ -337,7 +337,7 @@ def test_original_vs_moddified(
                         mod_zenith_rad = mod_evth[cpw.I_EVTH_ZENITH_RAD]
 
                         mod_toffset = (
-                            HEIGHT_AT_ZERO_GRAMMAGE + obs_level_m
+                            HEIGHT_AT_ZERO_GRAMMAGE_M + obs_level_m
                         )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT_M_PER_S
 
                         mod_ctime = (
