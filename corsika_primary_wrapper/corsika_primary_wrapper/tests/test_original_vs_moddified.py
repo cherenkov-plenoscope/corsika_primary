@@ -30,7 +30,7 @@ def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
 
 
-SPPED_OF_LIGHT = 299792458
+SPPED_OF_LIGHT_M_PER_S = 299792458
 
 
 def equal(a, b, absolute_margin=1e-6):
@@ -116,13 +116,13 @@ def test_original_vs_moddified(
     num_shower = 7
 
     chi_g_per_cm2 = 0.0
-    obs_level = 2.3e3
+    obs_level_m = 2.3e3
     earth_magnetic_field_x_muT = 12.5
     earth_magnetic_field_z_muT = -25.9
     atmosphere_id = 10
     zenith_deg = 0.
     azimuth_deg = 0.
-    telescope_sphere_radius = 1e4
+    telescope_sphere_radius_m = 1e4
 
     cfg = {
         "gamma": {"id": 1, "energy": 1.337},
@@ -158,7 +158,7 @@ def test_original_vs_moddified(
                 "SEED 2 0 0",
                 "SEED 3 0 0",
                 "SEED 4 0 0",
-                "OBSLEV {:f}".format(1e2*obs_level),
+                "OBSLEV {:f}".format(1e2*obs_level_m),
                 'FIXCHI {:f}'.format(chi_g_per_cm2),
                 'MAGNET {Bx:3.3e} {Bz:3.3e}'.format(
                     Bx=earth_magnetic_field_x_muT,
@@ -166,7 +166,7 @@ def test_original_vs_moddified(
                 'ELMFLG T T',
                 'MAXPRT 1',
                 'PAROUT F F',
-                'TELESCOPE 0 0 0 {:f}'.format(1e2*telescope_sphere_radius),
+                'TELESCOPE 0 0 0 {:f}'.format(1e2*telescope_sphere_radius_m),
                 'ATMOSPHERE {:d} T'.format(atmosphere_id),
                 'CWAVLG 250 700',
                 'CSCAT 1 0 0',
@@ -212,7 +212,7 @@ def test_original_vs_moddified(
                 "run": {
                     "run_id": 1,
                     "event_id_of_first_event": 1,
-                    "observation_level_asl_m": obs_level,
+                    "observation_level_asl_m": obs_level_m,
                     "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
                     "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
                     "atmosphere_id": atmosphere_id,
@@ -315,7 +315,7 @@ def test_original_vs_moddified(
                         # Correct for detector-sphere in iact.c
                         # See function: photon_hit()
                         # -------------------------------------
-                        DET_ZO = telescope_sphere_radius
+                        DET_ZO = telescope_sphere_radius_m
                         DET_XO = 0.
                         DET_YO = 0.
                         cx2_cy2 = (
@@ -332,13 +332,13 @@ def test_original_vs_moddified(
                         HEIGHT_AT_ZERO_GRAMMAGE = 112.8e3
                         mod_time_sphere_z = (
                             DET_ZO*np.sqrt(1. + mod_sx**2 + mod_sy**2) /
-                            SPPED_OF_LIGHT)
+                            SPPED_OF_LIGHT_M_PER_S)
 
                         mod_zenith_rad = mod_evth[cpw.I_EVTH_ZENITH_RAD]
 
                         mod_toffset = (
-                            HEIGHT_AT_ZERO_GRAMMAGE + obs_level
-                        )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT
+                            HEIGHT_AT_ZERO_GRAMMAGE + obs_level_m
+                        )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT_M_PER_S
 
                         mod_ctime = (
                             mod_bunches[:, cpw.ITIME] - mod_time_sphere_z)
