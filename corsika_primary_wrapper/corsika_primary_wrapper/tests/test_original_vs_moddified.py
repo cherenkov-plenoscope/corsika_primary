@@ -368,12 +368,12 @@ def test_original_vs_moddified(
                             HEIGHT_AT_ZERO_GRAMMAGE_M + obs_level_m
                         )/np.cos(mod_zenith_rad)/SPPED_OF_LIGHT_M_PER_S
 
-                        mod_ctime = (
+                        mod_ctime_wrt_detector_sphere = (
                             mod_bunches[:, cpw.ITIME] - mod_time_sphere_z)
-                        mod_ctime = mod_ctime - mod_toffset
+                        mod_ctime_wrt_detector_sphere -= mod_toffset
 
                         np.testing.assert_array_almost_equal(
-                            x=mod_ctime,
+                            x=mod_ctime_wrt_detector_sphere,
                             y=ori_bunches[:, cpw.ITIME],
                             decimal=6)
 
