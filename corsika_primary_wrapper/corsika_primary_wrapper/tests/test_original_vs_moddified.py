@@ -104,8 +104,11 @@ def test_original_vs_moddified(
     non_temporary_path,
 ):
     """
-    Check whether the moddifief CORSIKA can reproduce the statistics of the
-    original CORSIKA within the parameter-space both versions can access.
+    For gammas and electrons, check the Cherenkov-light-field
+    of original and moddified CORAIKA to be euqal.
+    For protons check at least its similar.
+    Protons scatter so much that thir Cherenkov-light-field can not be fully
+    contained in the original output.
     """
     assert(os.path.exists(corsika_primary_path))
     assert(os.path.exists(corsika_path))
