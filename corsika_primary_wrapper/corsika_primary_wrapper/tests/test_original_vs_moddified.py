@@ -349,7 +349,9 @@ def test_original_vs_moddified(
                             y=ori_bunches[:, cpw.ITIME],
                             decimal=6)
 
-                        if particle != "electron":
+                        # x-y-supports
+                        # ------------
+                        if particle == "gamma":
                             # Charged cosimc-rays such as electron and proton
                             # have corrections implemented in iact.c for
                             # deflections in earth's magnetic field.
@@ -370,4 +372,23 @@ def test_original_vs_moddified(
                                 ori_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM] <
                                 0.
                             )
+                        elif particle == "electron":
+                            # subtract the xy-offset which was added in iact.c
+                            # to correct for magnetig defelction
+                            mod_x_wrt_mean = mod_x - np.mean(mod_x)
+                            mod_y_wrt_mean = mod_y - np.mean(mod_y)
+
+                            _ori_x = ori_bunches[:, cpw.IX]
+                            _ori_y = ori_bunches[:, cpw.IY]
+                            ori_x_wrt_mean = _ori_x - np.mean(_ori_x)
+                            ori_y_wrt_mean = _ori_y - np.mean(_ori_y)
+
+                            np.testing.assert_array_almost_equal(
+                                x=mod_x_wrt_mean,
+                                y=ori_x_wrt_mean,
+                                decimal=2)
+                            np.testing.assert_array_almost_equal(
+                                x=mod_y_wrt_mean,
+                                y=ori_y_wrt_mean,
+                                decimal=2)
         run += 1
