@@ -324,8 +324,14 @@ def test_original_vs_moddified(
                         mod_sx = mod_bunches[:, cpw.ICX]/np.sqrt(1.-cx2_cy2)
                         mod_sy = mod_bunches[:, cpw.ICY]/np.sqrt(1.-cx2_cy2)
 
-                        mod_x = mod_bunches[:, cpw.IX] - mod_sx*DET_ZO - DET_XO
-                        mod_y = mod_bunches[:, cpw.IY] - mod_sy*DET_ZO - DET_YO
+                        mod_x_wrt_detector_sphere = (
+                            mod_bunches[:, cpw.IX] -
+                            mod_sx*DET_ZO - DET_XO
+                        )
+                        mod_y_wrt_detector_sphere = (
+                            mod_bunches[:, cpw.IY] -
+                            mod_sy*DET_ZO - DET_YO
+                        )
 
                         # ctime
                         # -----
@@ -356,11 +362,11 @@ def test_original_vs_moddified(
                             # have corrections implemented in iact.c for
                             # deflections in earth's magnetic field.
                             np.testing.assert_array_almost_equal(
-                                x=mod_x,
+                                x=mod_x_wrt_detector_sphere,
                                 y=ori_bunches[:, cpw.IX],
                                 decimal=2)
                             np.testing.assert_array_almost_equal(
-                                x=mod_y,
+                                x=mod_y_wrt_detector_sphere,
                                 y=ori_bunches[:, cpw.IY],
                                 decimal=2)
 
@@ -375,8 +381,14 @@ def test_original_vs_moddified(
                         elif particle == "electron":
                             # subtract the xy-offset which was added in iact.c
                             # to correct for magnetig defelction
-                            mod_x_wrt_mean = mod_x - np.mean(mod_x)
-                            mod_y_wrt_mean = mod_y - np.mean(mod_y)
+                            mod_x_wrt_mean = (
+                                mod_x_wrt_detector_sphere -
+                                np.mean(mod_x_wrt_detector_sphere)
+                            )
+                            mod_y_wrt_mean = (
+                                mod_y_wrt_detector_sphere -
+                                np.mean(mod_y_wrt_detector_sphere)
+                            )
 
                             _ori_x = ori_bunches[:, cpw.IX]
                             _ori_y = ori_bunches[:, cpw.IY]
