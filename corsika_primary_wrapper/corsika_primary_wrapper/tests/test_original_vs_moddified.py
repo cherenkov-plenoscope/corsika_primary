@@ -315,6 +315,28 @@ def test_original_vs_moddified(
                         # Correct for detector-sphere in iact.c
                         # See function: photon_hit()
                         # -------------------------------------
+                        '''
+                        ^
+                        |                         _______
+                        |                     ___/       |___
+                        |                    /          /    |_
+                        |                  /    radius /       |
+                        |                 |           /         |
+                        z = DET_Z - - - - | - - - - -X- - - - - |- - - -
+                        |                 |                     |
+                        |                  |_                 _/
+                        |                    |___         ___/
+                        z = obs. lvl.  . . . . . |_______| . . . . . . .
+                        |
+                        |                            |
+                        |                      DET_X / DET_Y
+                        z = 0m a.s.l.
+
+                        The mod_bunches have their supports x,y wrt. the
+                        observation-level.
+                        The ori_bunches have their supports x,y wrt. the
+                        plane centered in the detector-sphere.
+                        '''
                         DET_XO = 0.
                         DET_YO = 0.
                         DET_ZO = telescope_sphere_radius_m
