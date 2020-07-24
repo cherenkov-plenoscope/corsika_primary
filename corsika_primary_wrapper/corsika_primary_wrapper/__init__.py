@@ -114,11 +114,11 @@ def _dict_to_card_and_bytes(steering_dict):
         'RUNNR {:d}'.format(run["run_id"]),
         'EVTNR {:d}'.format(run["event_id_of_first_event"]),
         'PRMPAR 1',
-        'ERANGE {e_min:f} {e_max:f}'.format(
+        'ERANGE {e_min:E} {e_max:E}'.format(
             e_min=np.min(_energies)*(1.0 - ENERGY_LIMIT_OVERHEAD),
             e_max=np.max(_energies)*(1.0 + ENERGY_LIMIT_OVERHEAD)),
-        'OBSLEV {:f}'.format(M2CM*run["observation_level_asl_m"]),
-        'MAGNET {x:f} {z:f}'.format(
+        'OBSLEV {:E}'.format(M2CM*run["observation_level_asl_m"]),
+        'MAGNET {x:E} {z:E}'.format(
             x=run["earth_magnetic_field_x_muT"],
             z=run["earth_magnetic_field_z_muT"]),
         'MAXPRT 1',
