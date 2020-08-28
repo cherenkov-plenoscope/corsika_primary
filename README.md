@@ -1,8 +1,14 @@
 # Installing CORSIKA for the Cherenkov-plenoscope
 
 <p align="center">
-<img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
-<img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+<img
+    alt="License: GPL v3"
+    src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"
+>
+<img
+    alt="Code style: black"
+    src="https://img.shields.io/badge/code%20style-black-000000.svg"
+>
 </p>
 
 Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays for the Cherenkov-plenoscope. This is based on CORSIKA 7.56 with minor modifications to gain more control over the primary particle. 
