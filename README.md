@@ -63,12 +63,12 @@ The ```PRMFIL``` is a binary file. It contains a series of blocks. Each block de
     |             particle id               |            energy in GeV              | -->
     +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                    float 64 bit                            float 64 bit
-               
+
     +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
 --> |        zenith-distnce in rad          |   azimuth rel. to mag. north in rad   | -->
     +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                    float 64 bit                            float 64 bit
-                   
+
     +----+----+----+----+----+----+----+----+
 --> |      starting depth in g cm^{-2}      |  -->
     +----+----+----+----+----+----+----+----+
@@ -134,7 +134,7 @@ Photon-bunch:
 The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification. 
 The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
 
-### install 
+### Install
 ```bash
 pip install -e ./corsika_primary_wrapper
 ```
@@ -205,7 +205,7 @@ The installer installs both the original and the modified CORSIKA to allow testi
 To run the tests, you have to explicitly provide the paths to the corsika executables, and the merlict-eventio-converter. There are defaults which allow to call the tests in the Cherenkov-plenoscope's starter-kit-directory.
 
 ```bash
-py.test ./corsika_primary_wrapper/corsika_primary_wrapper/tests/ 
+py.test ./corsika_primary_wrapper/corsika_primary_wrapper/tests/
     --corsika_path /path/to/original/corsika/executable
     --corsika_primary_path /path/to/modified/corsika/executable
     --merlict_eventio_converter /path/to/merlict_eventio_converter/executable
