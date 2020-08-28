@@ -1,6 +1,9 @@
 # Installing CORSIKA for the Cherenkov-plenoscope
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<p align="center">
+<img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
+<img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
 
 Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays for the Cherenkov-plenoscope. This is based on CORSIKA 7.56 with minor modifications to gain more control over the primary particle. 
 This repository contains:
@@ -205,5 +208,8 @@ Thers is also an option ```--non_temporary_path``` which will write the files cr
 
 See all options defined in: ```./corsika_primary_wrapper/corsika_primary_wrapper/tests/conftest.py```
 
-
+### Codestyle
+```bash
+black -l 79 .
+```
 
