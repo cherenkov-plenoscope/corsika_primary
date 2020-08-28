@@ -366,6 +366,123 @@ def _parse_num_bunches_from_corsika_stdout(stdout):
     return nums
 
 
+class OpenNonBlockReadOnly:
+    def __init__(self, path):
+        self.f = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+
+    def read(self, size):
+        return os.read(self.f, size)
+
+    def close(self):
+        os.close(self.f)
+
+    def __exit__(self):
+        self.close()
+
+
+class CorsikaPrimary:
+    def __init__(self,
+        corsika_path,
+        steering_dict,
+        stdout_path,
+        stderr_path,
+        tmp_dir_prefix="corsika_primary_"
+    ):
+        self.corsika_path = corsika_path
+        self.corsika_run_dir = os.path.dirname(self.corsika_path)
+
+        self.steering_dict = steering_dict
+        self.num_primaries = len(self.steering_dict["primaries"])
+
+        self.tmp_dir_handle = tempfile.TemporaryDirectory(prefix=tmp_dir_prefix)
+        self.tmp_dir = self.tmp_dir_handle.name
+
+        self.stdout_path = stdout_path
+        self.stderr_path = stderr_path
+        self.fifo_path = os.path.join(self.tmp_dir, "fifo.tar")
+        os.mkfifo(self.fifo_path)
+
+        self.tmp_corsika_run_dir = os.path.join(self.tmp_dir, 'run')
+        shutil.copytree(
+            self.corsika_run_dir,
+            self.tmp_corsika_run_dir,
+            symlinks=False
+        )
+        self.tmp_corsika_path = os.path.join(
+            self.tmp_corsika_run_dir,
+            os.path.basename(self.corsika_path)
+        )
+
+        self.steering_card, self.primary_bytes = _dict_to_card_and_bytes(
+            self.steering_dict
+        )
+
+        self.primary_path = os.path.join(
+            self.tmp_corsika_run_dir,
+            PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+        )
+        with open(self.primary_path, "wb") as f:
+            f.write(self.primary_bytes)
+
+        self.steering_card = _overwrite_steering_card(
+            steering_card=self.steering_card,
+            output_path=self.fifo_path,
+            num_shower=self.num_primaries
+        )
+        self.steering_card += "\n"
+
+        self.stdout = open(self.stdout_path, 'w')
+        self.stderr = open(self.stderr_path, 'w')
+
+        self.corsika_process = subprocess.Popen(
+            self.tmp_corsika_path,
+            stdout=self.stdout,
+            stderr=self.stderr,
+            stdin=subprocess.PIPE,
+            cwd=self.tmp_corsika_run_dir
+        )
+        self.corsika_process.stdin.write(str.encode(self.steering_card))
+        self.corsika_process.stdin.flush()
+
+        self.tario_reader = Tario(path=self.fifo_path)
+        self.runh = self.tario_reader.runh
+
+
+    def _close(self):
+        self.tario_reader.__exit__()
+
+        self.stdout.close()
+        self.stderr.close()
+
+        with open(self.stdout_path, "rt") as f:
+            stdout_txt = f.read()
+        self.exit_ok = stdout_ends_with_end_of_run_marker(stdout_txt)
+
+        self.tmp_dir_handle.cleanup()
+        self.corsika_process.returncode
+
+
+    def __next__(self):
+        try:
+            return self.tario_reader.__next__()
+        except StopIteration:
+            self._close()
+            raise
+
+
+    def __iter__(self):
+        return self
+
+
+    def __repr__(self):
+        out = "{:s}(path='{:s}', tmp_dir='{:s}')".format(
+            self.__class__.__name__,
+            self.corsika_path,
+            self.tmp_dir
+        )
+        return out
+
+
 # From CORSIKA manual
 # --------------
 
