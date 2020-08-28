@@ -4,7 +4,8 @@ import pkg_resources
 
 
 resource_dir = pkg_resources.resource_filename(
-    'corsika_primary_wrapper', os.path.join('tests', 'resources'))
+    "corsika_primary_wrapper", os.path.join("tests", "resources")
+)
 
 
 def test_parse_num_bunches():
@@ -12,15 +13,9 @@ def test_parse_num_bunches():
     with open(path, "rt") as f:
         stdout = f.read()
     actual_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
-        stdout=stdout)
-    expected_num_bunches = [
-        50053,
-        57921,
-        38977,
-        42614,
-        29591,
-        37821,
-        33591]
+        stdout=stdout
+    )
+    expected_num_bunches = [50053, 57921, 38977, 42614, 29591, 37821, 33591]
 
     assert len(actual_num_bunches) == len(expected_num_bunches)
     for evt in range(len(actual_num_bunches)):

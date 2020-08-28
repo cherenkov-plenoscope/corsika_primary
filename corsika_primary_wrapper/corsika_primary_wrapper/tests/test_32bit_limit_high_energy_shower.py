@@ -17,10 +17,9 @@ def non_temporary_path(pytestconfig):
 
 
 def test_no_obvious_32bit_limitations(
-    corsika_primary_path,
-    non_temporary_path
+    corsika_primary_path, non_temporary_path
 ):
-    assert(os.path.exists(corsika_primary_path))
+    assert os.path.exists(corsika_primary_path)
     steering_dict = {
         "run": {
             "run_id": 1,
@@ -39,7 +38,7 @@ def test_no_obvious_32bit_limitations(
                 "depth_g_per_cm2": 0.0,
                 "random_seed": cpw.simple_seed(0),
             }
-        ]
+        ],
     }
 
     tmp_prefix = "test_32bit_limit_high_energy_shower"
@@ -53,17 +52,18 @@ def test_no_obvious_32bit_limitations(
             cpw.corsika_primary(
                 corsika_path=corsika_primary_path,
                 steering_dict=steering_dict,
-                output_path=run_path)
+                output_path=run_path,
+            )
         run = cpw.Tario(run_path)
         event = next(run)
         evth, bunches = event
         with pytest.raises(StopIteration):
             next(run)
 
-        assert(evth[cpw.I_EVTH_EVENT_NUMBER] == 1.)
-        assert(evth[cpw.I_EVTH_PARTICLE_ID] == 3.)
-        assert(evth[cpw.I_EVTH_STARTING_DEPTH_G_PER_CM2] == 0.)
+        assert evth[cpw.I_EVTH_EVENT_NUMBER] == 1.0
+        assert evth[cpw.I_EVTH_PARTICLE_ID] == 3.0
+        assert evth[cpw.I_EVTH_STARTING_DEPTH_G_PER_CM2] == 0.0
 
-        sufficient_bunches = int(5e9//cpw.NUM_BYTES_PER_BUNCH)
+        sufficient_bunches = int(5e9 // cpw.NUM_BYTES_PER_BUNCH)
 
         assert bunches.shape[0] > sufficient_bunches

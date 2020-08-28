@@ -62,7 +62,7 @@ def test_low_energy_electron(
     # 41484 "corsika.F"
 
     """
-    assert(os.path.exists(corsika_primary_path))
+    assert os.path.exists(corsika_primary_path)
     np.random.seed(0)
 
     num_shower = 10
@@ -78,38 +78,40 @@ def test_low_energy_electron(
     zenith_deg = 45.0
     telescope_sphere_radius = 1e3
 
-    ori_steering_card = "\n".join([
-        "RUNNR 1",
-        "EVTNR 1",
-        "NSHOW {:d}".format(num_shower),
-        "PRMPAR {:d}".format(particle_id),
-        "ESLOPE 0",
-        "ERANGE {:f} {:f}".format(energy, energy),
-        "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
-        "PHIP {:f} {:f}".format(0.0, 0.0),
-        "VIEWCONE 0 0",
-        "SEED 1 0 0",
-        "SEED 2 0 0",
-        "SEED 3 0 0",
-        "SEED 4 0 0",
-        "OBSLEV {:f}".format(1e2*observation_level_asl_m),
-        'FIXCHI {:f}'.format(depth_g_per_cm2),
-        'MAGNET {Bx:3.3e} {Bz:3.3e}'.format(
-            Bx=earth_magnetic_field_x_muT,
-            Bz=earth_magnetic_field_z_muT),
-        'ELMFLG T T',
-        'MAXPRT 1',
-        'PAROUT F F',
-        'TELESCOPE 0 0 0 {:f}'.format(1e2*telescope_sphere_radius),
-        'ATMOSPHERE {:d} T'.format(atmosphere_id),
-        'CWAVLG 250 700',
-        'CSCAT 1 0 0',
-        'CERQEF F T F',
-        'CERSIZ 1.',
-        'CERFIL F',
-        'TSTART T',
-        'EXIT',
-    ])
+    ori_steering_card = "\n".join(
+        [
+            "RUNNR 1",
+            "EVTNR 1",
+            "NSHOW {:d}".format(num_shower),
+            "PRMPAR {:d}".format(particle_id),
+            "ESLOPE 0",
+            "ERANGE {:f} {:f}".format(energy, energy),
+            "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
+            "PHIP {:f} {:f}".format(0.0, 0.0),
+            "VIEWCONE 0 0",
+            "SEED 1 0 0",
+            "SEED 2 0 0",
+            "SEED 3 0 0",
+            "SEED 4 0 0",
+            "OBSLEV {:f}".format(1e2 * observation_level_asl_m),
+            "FIXCHI {:f}".format(depth_g_per_cm2),
+            "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
+                Bx=earth_magnetic_field_x_muT, Bz=earth_magnetic_field_z_muT
+            ),
+            "ELMFLG T T",
+            "MAXPRT 1",
+            "PAROUT F F",
+            "TELESCOPE 0 0 0 {:f}".format(1e2 * telescope_sphere_radius),
+            "ATMOSPHERE {:d} T".format(atmosphere_id),
+            "CWAVLG 250 700",
+            "CSCAT 1 0 0",
+            "CERQEF F T F",
+            "CERSIZ 1.",
+            "CERFIL F",
+            "TSTART T",
+            "EXIT",
+        ]
+    )
 
     tmp_prefix = "test_low_energy_electron_"
     with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
@@ -123,26 +125,32 @@ def test_low_energy_electron(
         ori_run_eventio_path = op.join(tmp_dir, "original_run.eventio")
         ori_run_path = op.join(tmp_dir, "original_run.simpleio")
         if not op.exists(ori_run_path):
-            ori_card_path = op.join(
-                tmp_dir,
-                "original_steering_card.txt")
+            ori_card_path = op.join(tmp_dir, "original_steering_card.txt")
             with open(ori_card_path, "wt") as f:
                 f.write(ori_steering_card)
             cw.corsika(
                 steering_card=cw.read_steering_card(ori_card_path),
                 output_path=ori_run_eventio_path,
                 save_stdout=True,
-                corsika_path=corsika_path)
-            subprocess.call([
-                merlict_eventio_converter,
-                "-i", ori_run_eventio_path,
-                "-o", ori_run_path])
-        with open(ori_run_eventio_path+".stdout", "rt") as f:
+                corsika_path=corsika_path,
+            )
+            subprocess.call(
+                [
+                    merlict_eventio_converter,
+                    "-i",
+                    ori_run_eventio_path,
+                    "-o",
+                    ori_run_path,
+                ]
+            )
+        with open(ori_run_eventio_path + ".stdout", "rt") as f:
             ori_stdout = f.read()
         ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
-            stdout=ori_stdout)
+            stdout=ori_stdout
+        )
         ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
-            stdout=ori_stdout)
+            stdout=ori_stdout
+        )
 
         # RUN MODIFIED CORSIKA
         # --------------------
@@ -155,7 +163,8 @@ def test_low_energy_electron(
                 "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
                 "atmosphere_id": atmosphere_id,
             },
-            "primaries": []}
+            "primaries": [],
+        }
 
         for idx in range(num_shower):
             prm = {
@@ -164,7 +173,8 @@ def test_low_energy_electron(
                 "zenith_rad": np.deg2rad(zenith_deg),
                 "azimuth_rad": 0.0,
                 "depth_g_per_cm2": depth_g_per_cm2,
-                "random_seed": ori_events_seeds[idx]}
+                "random_seed": ori_events_seeds[idx],
+            }
             mod_steering_dict["primaries"].append(prm)
 
         run_path = op.join(tmp_dir, "run.tar")
@@ -172,8 +182,9 @@ def test_low_energy_electron(
             corsika_path=corsika_primary_path,
             steering_dict=mod_steering_dict,
             output_path=run_path,
-            stdout_postfix=".stdout")
-        with open(run_path+".stdout", "rt") as f:
+            stdout_postfix=".stdout",
+        )
+        with open(run_path + ".stdout", "rt") as f:
             stdout = f.read()
         assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
 

@@ -12,7 +12,7 @@ def corsika_primary_path(pytestconfig):
 
 
 def test_same_random_seed_yields_same_event(corsika_primary_path):
-    assert(os.path.exists(corsika_primary_path))
+    assert os.path.exists(corsika_primary_path)
     steering_dict = {
         "run": {
             "run_id": 1,
@@ -39,7 +39,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 "depth_g_per_cm2": 34.0,
                 "random_seed": cpw.simple_seed(18),
             },
-        ]
+        ],
     }
     steering_dict["primaries"].append(steering_dict["primaries"][0].copy())
 
@@ -48,8 +48,9 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=steering_dict,
-            output_path=run_path)
-        assert(os.path.exists(run_path))
+            output_path=run_path,
+        )
+        assert os.path.exists(run_path)
         run = cpw.Tario(run_path)
         first_evth, first_bunches = next(run)
         second_evth, second_bunches = next(run)
@@ -57,9 +58,9 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
         with pytest.raises(StopIteration):
             next(run)
 
-        assert(first_evth[0] == third_evth[0])
-        assert(first_evth[1] == 1)  # event-number
-        assert(third_evth[1] == 3)  # event-number
+        assert first_evth[0] == third_evth[0]
+        assert first_evth[1] == 1  # event-number
+        assert third_evth[1] == 3  # event-number
         np.testing.assert_array_equal(first_evth[2:], third_evth[2:])
         np.testing.assert_array_equal(first_bunches, third_bunches)
 

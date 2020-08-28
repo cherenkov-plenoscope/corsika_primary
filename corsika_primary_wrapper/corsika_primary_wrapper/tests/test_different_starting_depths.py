@@ -17,7 +17,7 @@ def non_temporary_path(pytestconfig):
 
 
 def test_different_starting_depths(corsika_primary_path, non_temporary_path):
-    assert(os.path.exists(corsika_primary_path))
+    assert os.path.exists(corsika_primary_path)
 
     NUM_DEPTHS = 10
     NUM_EVENTS_PER_DEPTH = 100
@@ -27,12 +27,12 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
         "run": {
             "run_id": 1,
             "event_id_of_first_event": 1,
-            "observation_level_asl_m": 0.,
+            "observation_level_asl_m": 0.0,
             "earth_magnetic_field_x_muT": 12.5,
             "earth_magnetic_field_z_muT": -25.9,
             "atmosphere_id": 10,
         },
-        "primaries": []
+        "primaries": [],
     }
 
     seed = 0
@@ -64,7 +64,8 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
             cpw.corsika_primary(
                 corsika_path=corsika_primary_path,
                 steering_dict=steering_dict,
-                output_path=run_path)
+                output_path=run_path,
+            )
         run = cpw.Tario(run_path)
 
         for depth in depths:
@@ -80,25 +81,27 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
                     _std_r.append(
                         np.hypot(
                             np.std(bunches[:, cpw.IX]),
-                            np.std(bunches[:, cpw.IY])))
+                            np.std(bunches[:, cpw.IY]),
+                        )
+                    )
             num_bunches.append(np.mean(_num_bunches))
             num_photons.append(np.mean(_num_photons))
             std_r.append(np.mean(_std_r))
 
     print("num   depth   num.ph.   std.x.y.")
     for ii in range(depths.shape[0]):
-        print("{: 3d} {: 3.1f} {: 6.1f} {: 6.1f}".format(
-            ii,
-            depths[ii],
-            num_photons[ii],
-            1e-2*std_r[ii]))
+        print(
+            "{: 3d} {: 3.1f} {: 6.1f} {: 6.1f}".format(
+                ii, depths[ii], num_photons[ii], 1e-2 * std_r[ii]
+            )
+        )
 
     # max photons is somewhere in the middle:
     # Too high -> photons are absorbed before reaching ground.
     # Too low -> shower reaches obs. level before photons can be emitted.
     depth_with_max_ph = np.argmax(num_photons)
     assert depth_with_max_ph != 0
-    assert depth_with_max_ph != NUM_DEPTHS-1
+    assert depth_with_max_ph != NUM_DEPTHS - 1
 
     # The spread of the light-pool should be smaller for starting points deeper
     # in the atmosphere.

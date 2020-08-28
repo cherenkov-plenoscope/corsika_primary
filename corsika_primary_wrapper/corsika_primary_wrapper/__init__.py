@@ -10,16 +10,17 @@ from . import random_distributions
 
 
 CM2M = 1e-2
-M2CM = 1./CM2M
+M2CM = 1.0 / CM2M
 MAX_ZENITH_DEG = 70.0
 
 
 def simple_seed(seed):
     return [
         {"SEED": seed, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed+1, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed+2, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed+3, "CALLS": 0, "BILLIONS": 0}]
+        {"SEED": seed + 1, "CALLS": 0, "BILLIONS": 0},
+        {"SEED": seed + 2, "CALLS": 0, "BILLIONS": 0},
+        {"SEED": seed + 3, "CALLS": 0, "BILLIONS": 0},
+    ]
 
 
 EXAMPLE_STEERING_DICT = {
@@ -59,8 +60,10 @@ EXAMPLE_STEERING_DICT = {
     ],
 }
 
-NUM_BYTES_PER_PRIMARY = 5*8 + 12*4
-NUM_BYTES_PER_BUNCH = len(["x", "y", "cx", "cy", "t", "zem", "wvl", "size"])*4
+NUM_BYTES_PER_PRIMARY = 5 * 8 + 12 * 4
+NUM_BYTES_PER_BUNCH = (
+    len(["x", "y", "cx", "cy", "t", "zem", "wvl", "size"]) * 4
+)
 IX = 0
 IY = 1
 ICX = 2
@@ -75,13 +78,11 @@ PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primary_bytes.5xf8_12xi4"
 
 
 def _overwrite_steering_card(
-    steering_card,
-    output_path,
-    num_shower,
+    steering_card, output_path, num_shower,
 ):
     lines = []
     for line in steering_card.splitlines():
-        key = line.split(' ')[0]
+        key = line.split(" ")[0]
         if key not in ["EXIT", "TELFIL", "NSHOW"]:
             lines.append(line)
     lines.append("NSHOW {:d}".format(num_shower))
@@ -93,14 +94,14 @@ def _overwrite_steering_card(
 def _primaries_to_bytes(primaries):
     with io.BytesIO() as f:
         for prm in primaries:
-            f.write(np.float64(prm['particle_id']).tobytes())
-            f.write(np.float64(prm['energy_GeV']).tobytes())
-            f.write(np.float64(prm['zenith_rad']).tobytes())
-            f.write(np.float64(prm['azimuth_rad']).tobytes())
-            f.write(np.float64(prm['depth_g_per_cm2']).tobytes())
+            f.write(np.float64(prm["particle_id"]).tobytes())
+            f.write(np.float64(prm["energy_GeV"]).tobytes())
+            f.write(np.float64(prm["zenith_rad"]).tobytes())
+            f.write(np.float64(prm["azimuth_rad"]).tobytes())
+            f.write(np.float64(prm["depth_g_per_cm2"]).tobytes())
             for nseq in range(4):
                 for key in ["SEED", "CALLS", "BILLIONS"]:
-                    f.write(np.int32(prm['random_seed'][nseq][key]).tobytes())
+                    f.write(np.int32(prm["random_seed"][nseq][key]).tobytes())
         f.seek(0)
         return f.read()
 
@@ -110,28 +111,33 @@ def _dict_to_card_and_bytes(steering_dict):
     primary_binary = _primaries_to_bytes(steering_dict["primaries"])
     _energies = [prm["energy_GeV"] for prm in steering_dict["primaries"]]
 
-    corsika_card = '\n'.join([
-        'RUNNR {:d}'.format(run["run_id"]),
-        'EVTNR {:d}'.format(run["event_id_of_first_event"]),
-        'PRMPAR 1',
-        'ERANGE {e_min:E} {e_max:E}'.format(
-            e_min=np.min(_energies)*(1.0 - ENERGY_LIMIT_OVERHEAD),
-            e_max=np.max(_energies)*(1.0 + ENERGY_LIMIT_OVERHEAD)),
-        'OBSLEV {:E}'.format(M2CM*run["observation_level_asl_m"]),
-        'MAGNET {x:E} {z:E}'.format(
-            x=run["earth_magnetic_field_x_muT"],
-            z=run["earth_magnetic_field_z_muT"]),
-        'MAXPRT 1',
-        'PAROUT F F',
-        'ATMOSPHERE {:d} T'.format(run["atmosphere_id"]),
-        'CWAVLG 250 700',
-        'CERQEF F T F',
-        'CERSIZ 1.',
-        'CERFIL F',
-        'TSTART T',
-        'NSHOW {:d}'.format(len(steering_dict["primaries"])),
-        'TELFIL run.tar',
-        'EXIT'])
+    corsika_card = "\n".join(
+        [
+            "RUNNR {:d}".format(run["run_id"]),
+            "EVTNR {:d}".format(run["event_id_of_first_event"]),
+            "PRMPAR 1",
+            "ERANGE {e_min:E} {e_max:E}".format(
+                e_min=np.min(_energies) * (1.0 - ENERGY_LIMIT_OVERHEAD),
+                e_max=np.max(_energies) * (1.0 + ENERGY_LIMIT_OVERHEAD),
+            ),
+            "OBSLEV {:E}".format(M2CM * run["observation_level_asl_m"]),
+            "MAGNET {x:E} {z:E}".format(
+                x=run["earth_magnetic_field_x_muT"],
+                z=run["earth_magnetic_field_z_muT"],
+            ),
+            "MAXPRT 1",
+            "PAROUT F F",
+            "ATMOSPHERE {:d} T".format(run["atmosphere_id"]),
+            "CWAVLG 250 700",
+            "CERQEF F T F",
+            "CERSIZ 1.",
+            "CERFIL F",
+            "TSTART T",
+            "NSHOW {:d}".format(len(steering_dict["primaries"])),
+            "TELFIL run.tar",
+            "EXIT",
+        ]
+    )
     return corsika_card, primary_binary
 
 
@@ -163,7 +169,8 @@ def corsika_primary(
         output_path=output_path,
         stdout_postfix=stdout_postfix,
         stderr_postfix=stderr_postfix,
-        tmp_dir_prefix=tmp_dir_prefix)
+        tmp_dir_prefix=tmp_dir_prefix,
+    )
 
 
 def explicit_corsika_primary(
@@ -197,40 +204,42 @@ def explicit_corsika_primary(
 
     out_dirname = op.dirname(output_path)
     out_basename = op.basename(output_path)
-    o_path = op.join(out_dirname, out_basename+stdout_postfix)
-    e_path = op.join(out_dirname, out_basename+stderr_postfix)
+    o_path = op.join(out_dirname, out_basename + stdout_postfix)
+    e_path = op.join(out_dirname, out_basename + stderr_postfix)
     corsika_run_dir = op.dirname(corsika_path)
-    num_primaries = len(primary_bytes)//NUM_BYTES_PER_PRIMARY
+    num_primaries = len(primary_bytes) // NUM_BYTES_PER_PRIMARY
 
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
-        tmp_corsika_run_dir = op.join(tmp_dir, 'run')
+        tmp_corsika_run_dir = op.join(tmp_dir, "run")
         shutil.copytree(corsika_run_dir, tmp_corsika_run_dir, symlinks=False)
         tmp_corsika_path = op.join(
-            tmp_corsika_run_dir,
-            op.basename(corsika_path))
+            tmp_corsika_run_dir, op.basename(corsika_path)
+        )
 
         primary_path = op.join(
-            tmp_corsika_run_dir,
-            PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR)
+            tmp_corsika_run_dir, PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+        )
         with open(primary_path, "wb") as f:
             f.write(primary_bytes)
 
         steering_card = _overwrite_steering_card(
             steering_card=steering_card,
             output_path=output_path,
-            num_shower=num_primaries)
+            num_shower=num_primaries,
+        )
 
         steering_card_pipe, pwrite = os.pipe()
         os.write(pwrite, str.encode(steering_card))
         os.close(pwrite)
 
-        with open(o_path, 'w') as stdout, open(e_path, 'w') as stderr:
+        with open(o_path, "w") as stdout, open(e_path, "w") as stderr:
             rc = subprocess.call(
                 tmp_corsika_path,
                 stdin=steering_card_pipe,
                 stdout=stdout,
                 stderr=stderr,
-                cwd=tmp_corsika_run_dir)
+                cwd=tmp_corsika_run_dir,
+            )
 
         if op.isfile(output_path):
             os.chmod(output_path, 0o664)
@@ -238,8 +247,8 @@ def explicit_corsika_primary(
     return rc
 
 
-RUNH_MARKER_FLOAT32 = struct.unpack('f', "RUNH".encode())[0]
-EVTH_MARKER_FLOAT32 = struct.unpack('f', "EVTH".encode())[0]
+RUNH_MARKER_FLOAT32 = struct.unpack("f", "RUNH".encode())[0]
+EVTH_MARKER_FLOAT32 = struct.unpack("f", "EVTH".encode())[0]
 
 TARIO_RUNH_FILENAME = "runh.float32"
 TARIO_EVTH_FILENAME = "{:09d}.evth.float32"
@@ -249,7 +258,7 @@ TARIO_BUNCHES_FILENAME = "{:09d}.cherenkov_bunches.Nx8_float32"
 class Tario:
     def __init__(self, path):
         self.path = path
-        self.tar = tarfile.open(path, 'r|*')
+        self.tar = tarfile.open(path, "r|*")
 
         runh_tar = self.tar.next()
         runh_bin = self.tar.extractfile(runh_tar).read()
@@ -261,18 +270,18 @@ class Tario:
         evth_tar = self.tar.next()
         if evth_tar is None:
             raise StopIteration
-        evth_number = int(evth_tar.name[0: 9])
+        evth_number = int(evth_tar.name[0:9])
         evth_bin = self.tar.extractfile(evth_tar).read()
         evth = np.frombuffer(evth_bin, dtype=np.float32)
         assert evth[0] == EVTH_MARKER_FLOAT32
         assert int(np.round(evth[1])) == evth_number
 
         bunches_tar = self.tar.next()
-        bunches_number = int(bunches_tar.name[0: 9])
+        bunches_number = int(bunches_tar.name[0:9])
         assert evth_number == bunches_number
         bunches_bin = self.tar.extractfile(bunches_tar).read()
         bunches = np.frombuffer(bunches_bin, dtype=np.float32)
-        num_bunches = bunches.shape[0]//(8)
+        num_bunches = bunches.shape[0] // (8)
 
         self.num_events_read += 1
         return (evth, np.reshape(bunches, newshape=(num_bunches, 8)))
@@ -285,9 +294,8 @@ class Tario:
 
     def __repr__(self):
         out = "{:s}(path='{:s}', read={:d})".format(
-            self.__class__.__name__,
-            self.path,
-            self.num_events_read)
+            self.__class__.__name__, self.path, self.num_events_read
+        )
         return out
 
 
@@ -305,10 +313,11 @@ def stdout_ends_with_end_of_run_marker(stdout):
 
     second_last_line = lines[-2]
     MARKER = (
-        " " +
-        "==========" +
-        " END OF RUN " +
-        "================================================")
+        " "
+        + "=========="
+        + " END OF RUN "
+        + "================================================"
+    )
     if MARKER in second_last_line:
         return True
     else:
@@ -322,9 +331,9 @@ def _parse_random_seeds_from_corsika_stdout(stdout):
     idx = 0
     while idx < len(lines):
         if MARKER in lines[idx]:
-            _seeds = [None]*NUM_RANDOM_SEQUENCES
-            _calls = [None]*NUM_RANDOM_SEQUENCES
-            _billions = [None]*NUM_RANDOM_SEQUENCES
+            _seeds = [None] * NUM_RANDOM_SEQUENCES
+            _calls = [None] * NUM_RANDOM_SEQUENCES
+            _billions = [None] * NUM_RANDOM_SEQUENCES
             event_number = int(lines[idx][49:57])
             assert len(events) + 1 == event_number
 
@@ -344,7 +353,7 @@ def _parse_random_seeds_from_corsika_stdout(stdout):
                     {
                         "SEED": _seeds[seq],
                         "CALLS": _calls[seq],
-                        "BILLIONS": _billions[seq]
+                        "BILLIONS": _billions[seq],
                     }
                 )
             events.append(state)
@@ -359,9 +368,9 @@ def _parse_num_bunches_from_corsika_stdout(stdout):
     for ll in range(len(lines)):
         pos = lines[ll].find(" Total number of photons in shower:")
         if pos == 0:
-            work_line = lines[ll][len(marker):-1]
+            work_line = lines[ll][len(marker) : -1]
             pos_2nd_in = work_line.find("in")
-            work_line = work_line[pos_2nd_in + 2: -len("bunch") - 1]
+            work_line = work_line[pos_2nd_in + 2 : -len("bunch") - 1]
             nums.append(int(float(work_line)))
     return nums
 
@@ -381,12 +390,13 @@ class OpenNonBlockReadOnly:
 
 
 class CorsikaPrimary:
-    def __init__(self,
+    def __init__(
+        self,
         corsika_path,
         steering_dict,
         stdout_path,
         stderr_path,
-        tmp_dir_prefix="corsika_primary_"
+        tmp_dir_prefix="corsika_primary_",
     ):
         self.corsika_path = corsika_path
         self.corsika_run_dir = os.path.dirname(self.corsika_path)
@@ -394,7 +404,9 @@ class CorsikaPrimary:
         self.steering_dict = steering_dict
         self.num_primaries = len(self.steering_dict["primaries"])
 
-        self.tmp_dir_handle = tempfile.TemporaryDirectory(prefix=tmp_dir_prefix)
+        self.tmp_dir_handle = tempfile.TemporaryDirectory(
+            prefix=tmp_dir_prefix
+        )
         self.tmp_dir = self.tmp_dir_handle.name
 
         self.stdout_path = stdout_path
@@ -402,15 +414,12 @@ class CorsikaPrimary:
         self.fifo_path = os.path.join(self.tmp_dir, "fifo.tar")
         os.mkfifo(self.fifo_path)
 
-        self.tmp_corsika_run_dir = os.path.join(self.tmp_dir, 'run')
+        self.tmp_corsika_run_dir = os.path.join(self.tmp_dir, "run")
         shutil.copytree(
-            self.corsika_run_dir,
-            self.tmp_corsika_run_dir,
-            symlinks=False
+            self.corsika_run_dir, self.tmp_corsika_run_dir, symlinks=False
         )
         self.tmp_corsika_path = os.path.join(
-            self.tmp_corsika_run_dir,
-            os.path.basename(self.corsika_path)
+            self.tmp_corsika_run_dir, os.path.basename(self.corsika_path)
         )
 
         self.steering_card, self.primary_bytes = _dict_to_card_and_bytes(
@@ -418,8 +427,7 @@ class CorsikaPrimary:
         )
 
         self.primary_path = os.path.join(
-            self.tmp_corsika_run_dir,
-            PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+            self.tmp_corsika_run_dir, PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
         )
         with open(self.primary_path, "wb") as f:
             f.write(self.primary_bytes)
@@ -427,26 +435,25 @@ class CorsikaPrimary:
         self.steering_card = _overwrite_steering_card(
             steering_card=self.steering_card,
             output_path=self.fifo_path,
-            num_shower=self.num_primaries
+            num_shower=self.num_primaries,
         )
         self.steering_card += "\n"
 
-        self.stdout = open(self.stdout_path, 'w')
-        self.stderr = open(self.stderr_path, 'w')
+        self.stdout = open(self.stdout_path, "w")
+        self.stderr = open(self.stderr_path, "w")
 
         self.corsika_process = subprocess.Popen(
             self.tmp_corsika_path,
             stdout=self.stdout,
             stderr=self.stderr,
             stdin=subprocess.PIPE,
-            cwd=self.tmp_corsika_run_dir
+            cwd=self.tmp_corsika_run_dir,
         )
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
         self.tario_reader = Tario(path=self.fifo_path)
         self.runh = self.tario_reader.runh
-
 
     def _close(self):
         self.tario_reader.__exit__()
@@ -461,7 +468,6 @@ class CorsikaPrimary:
         self.tmp_dir_handle.cleanup()
         self.corsika_process.returncode
 
-
     def __next__(self):
         try:
             return self.tario_reader.__next__()
@@ -469,16 +475,12 @@ class CorsikaPrimary:
             self._close()
             raise
 
-
     def __iter__(self):
         return self
 
-
     def __repr__(self):
         out = "{:s}(path='{:s}', tmp_dir='{:s}')".format(
-            self.__class__.__name__,
-            self.corsika_path,
-            self.tmp_dir
+            self.__class__.__name__, self.corsika_path, self.tmp_dir
         )
         return out
 
@@ -488,75 +490,75 @@ class CorsikaPrimary:
 
 # RUNHEADER
 # ---------
-I_RUNH_NUM_EVENTS = 93-1
+I_RUNH_NUM_EVENTS = 93 - 1
 
 # EVENTHEADER
 # -----------
-I_EVTH_MARKER = 1-1
-I_EVTH_EVENT_NUMBER = 2-1
-I_EVTH_PARTICLE_ID = 3-1
-I_EVTH_TOTAL_ENERGY_GEV = 4-1
-I_EVTH_STARTING_DEPTH_G_PER_CM2 = 5-1
-I_EVTH_NUMBER_OF_FIRST_TARGET_IF_FIXED = 6-1
-I_EVTH_Z_FIRST_INTERACTION_CM = 7-1
-I_EVTH_PX_MOMENTUM_GEV_PER_C = 8-1
-I_EVTH_PY_MOMENTUM_GEV_PER_C = 9-1
-I_EVTH_PZ_MOMENTUM_GEV_PER_C = 10-1
-I_EVTH_ZENITH_RAD = 11-1
-I_EVTH_AZIMUTH_RAD = 12-1
+I_EVTH_MARKER = 1 - 1
+I_EVTH_EVENT_NUMBER = 2 - 1
+I_EVTH_PARTICLE_ID = 3 - 1
+I_EVTH_TOTAL_ENERGY_GEV = 4 - 1
+I_EVTH_STARTING_DEPTH_G_PER_CM2 = 5 - 1
+I_EVTH_NUMBER_OF_FIRST_TARGET_IF_FIXED = 6 - 1
+I_EVTH_Z_FIRST_INTERACTION_CM = 7 - 1
+I_EVTH_PX_MOMENTUM_GEV_PER_C = 8 - 1
+I_EVTH_PY_MOMENTUM_GEV_PER_C = 9 - 1
+I_EVTH_PZ_MOMENTUM_GEV_PER_C = 10 - 1
+I_EVTH_ZENITH_RAD = 11 - 1
+I_EVTH_AZIMUTH_RAD = 12 - 1
 
-I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES = 13-1
+I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES = 13 - 1
 
 
 def I_EVTH_RANDOM_SEED(sequence):
     assert sequence >= 1
     assert sequence <= 10
-    return (11+3*sequence)-1
+    return (11 + 3 * sequence) - 1
 
 
 def I_EVTH_RANDOM_SEED_CALLS(sequence):
     assert sequence >= 1
     assert sequence <= 10
-    return (21+3*sequence)-1
+    return (21 + 3 * sequence) - 1
 
 
 def I_EVTH_RANDOM_SEED_BILLIONS(sequence):
     assert sequence >= 1
     assert sequence <= 10
-    return (31+3*sequence)-1
+    return (31 + 3 * sequence) - 1
 
 
-I_EVTH_RUN_NUMBER = 44-1
-I_EVTH_DATE_OF_BEGIN_RUN = 45-1
-I_EVTH_VERSION_OF_PROGRAM = 46-1
+I_EVTH_RUN_NUMBER = 44 - 1
+I_EVTH_DATE_OF_BEGIN_RUN = 45 - 1
+I_EVTH_VERSION_OF_PROGRAM = 46 - 1
 
-I_EVTH_NUM_OBSERVATION_LEVELS = 47-1
+I_EVTH_NUM_OBSERVATION_LEVELS = 47 - 1
 
 
 def I_EVTH_HEIGHT_OBSERVATION_LEVEL(level):
     assert level >= 1
     assert level <= 10
-    return (47+level)-1
+    return (47 + level) - 1
 
 
-I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 71-1
-I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 72-1
+I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 71 - 1
+I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 72 - 1
 
-I_EVTH_ANGLE_X_MAGNETIG_NORTH_RAD = 93-1
+I_EVTH_ANGLE_X_MAGNETIG_NORTH_RAD = 93 - 1
 
-I_EVTH_NUM_REUSES_OF_CHERENKOV_EVENT = 98-1
+I_EVTH_NUM_REUSES_OF_CHERENKOV_EVENT = 98 - 1
 
 
 def I_EVTH_X_CORE_CM(reuse):
     assert reuse >= 1
     assert reuse <= 20
-    return (98+reuse)-1
+    return (98 + reuse) - 1
 
 
 def I_EVTH_Y_CORE_CM(reuse):
     assert reuse >= 1
     assert reuse <= 20
-    return (118+reuse)-1
+    return (118 + reuse) - 1
 
 
-I_EVTH_STARTING_HEIGHT_CM = 158-1
+I_EVTH_STARTING_HEIGHT_CM = 158 - 1
