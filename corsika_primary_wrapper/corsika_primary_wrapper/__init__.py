@@ -375,20 +375,6 @@ def _parse_num_bunches_from_corsika_stdout(stdout):
     return nums
 
 
-class OpenNonBlockReadOnly:
-    def __init__(self, path):
-        self.f = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
-
-    def read(self, size):
-        return os.read(self.f, size)
-
-    def close(self):
-        os.close(self.f)
-
-    def __exit__(self):
-        self.close()
-
-
 class CorsikaPrimary:
     def __init__(
         self,
@@ -457,16 +443,12 @@ class CorsikaPrimary:
 
     def _close(self):
         self.tario_reader.__exit__()
-
         self.stdout.close()
         self.stderr.close()
-
         with open(self.stdout_path, "rt") as f:
             stdout_txt = f.read()
         self.exit_ok = stdout_ends_with_end_of_run_marker(stdout_txt)
-
         self.tmp_dir_handle.cleanup()
-        self.corsika_process.returncode
 
     def __next__(self):
         try:
