@@ -12,7 +12,7 @@ def corsika_primary_path(pytestconfig):
 
 
 def test_same_random_seed_yields_same_event(corsika_primary_path):
-    assert(os.path.exists(corsika_primary_path))
+    assert os.path.exists(corsika_primary_path)
 
     for particle_id in [1, 3, 14]:
         steering_dict = {
@@ -24,7 +24,8 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 "earth_magnetic_field_z_muT": -25.9,
                 "atmosphere_id": 10,
             },
-            "primaries": []}
+            "primaries": [],
+        }
 
         same_primary = {
             "particle_id": particle_id,
@@ -44,14 +45,15 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             cpw.corsika_primary(
                 corsika_path=corsika_primary_path,
                 steering_dict=steering_dict,
-                output_path=run_path)
+                output_path=run_path,
+            )
             run = cpw.Tario(run_path)
             first_event = next(run)
             first_evth, first_bunches = first_event
             for event_idx, event in enumerate(run):
                 evth, bunches = event
-                assert(first_evth[0] == evth[0])
-                assert(first_evth[1] != evth[1])  # event-number
+                assert first_evth[0] == evth[0]
+                assert first_evth[1] != evth[1]  # event-number
                 np.testing.assert_array_equal(first_evth[2:], evth[2:])
                 np.testing.assert_array_equal(first_bunches, bunches)
-            assert(event_idx+2 == num_primaries)
+            assert event_idx + 2 == num_primaries

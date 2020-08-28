@@ -4,7 +4,8 @@ import pkg_resources
 
 
 resource_dir = pkg_resources.resource_filename(
-    'corsika_primary_wrapper', os.path.join('tests', 'resources'))
+    "corsika_primary_wrapper", os.path.join("tests", "resources")
+)
 
 
 def test_parsing_random_state_gamma():
