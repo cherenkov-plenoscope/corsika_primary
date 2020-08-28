@@ -302,6 +302,9 @@ def stdout_ends_with_end_of_run_marker(stdout):
     whether CORSIKA has finished.
     """
     lines = stdout.split("\n")
+    if len(lines) < 2:
+        return False
+
     second_last_line = lines[-2]
     MARKER = (
         " " +

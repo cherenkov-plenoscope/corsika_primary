@@ -12,3 +12,17 @@ def test_parsing_random_state_gamma():
     with open(path, "rt") as f:
         stdout = f.read()
     assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
+
+
+def test_empty_stdout():
+    stdout = ""
+    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+
+    stdout = "one"
+    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+
+    stdout = "one\ntwo"
+    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+
+    stdout = "one\ntwo\nthree"
+    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
