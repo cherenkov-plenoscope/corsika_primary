@@ -7,6 +7,7 @@ import io
 import tarfile
 import struct
 from . import random_distributions
+from . import random_seed
 
 
 CM2M = 1e-2
