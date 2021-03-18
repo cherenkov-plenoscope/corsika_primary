@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def draw_power_law(lower_limit, upper_limit, power_slope, num_samples):
+def draw_power_law(prng, lower_limit, upper_limit, power_slope, num_samples):
     # Adopted from CORSIKA
-    rd = np.random.uniform(size=num_samples)
+    rd = prng.uniform(size=num_samples)
     if power_slope != -1.0:
         ll = lower_limit ** (power_slope + 1.0)
         ul = upper_limit ** (power_slope + 1.0)
@@ -15,15 +15,16 @@ def draw_power_law(lower_limit, upper_limit, power_slope, num_samples):
 
 
 def draw_zenith_distance(
-    min_zenith_distance, max_zenith_distance, num_samples=1
+    prng, min_zenith_distance, max_zenith_distance, num_samples=1
 ):
     v_min = (np.cos(min_zenith_distance) + 1) / 2
     v_max = (np.cos(max_zenith_distance) + 1) / 2
-    v = np.random.uniform(low=v_min, high=v_max, size=num_samples)
+    v = prng.uniform(low=v_min, high=v_max, size=num_samples)
     return np.arccos(2 * v - 1)
 
 
 def draw_azimuth_zenith_in_viewcone(
+    prng,
     azimuth_rad,
     zenith_rad,
     min_scatter_opening_angle_rad,
@@ -38,7 +39,7 @@ def draw_azimuth_zenith_in_viewcone(
     zenith_too_large = True
     iteration = 0
     while zenith_too_large:
-        rd1, rd2 = np.random.uniform(size=2)
+        rd1, rd2 = prng.uniform(size=2)
         ct1 = np.cos(min_scatter_opening_angle_rad)
         ct2 = np.cos(max_scatter_opening_angle_rad)
         ctt = rd2 * (ct2 - ct1) + ct1
@@ -69,8 +70,8 @@ def draw_azimuth_zenith_in_viewcone(
     return az, zd
 
 
-def draw_x_y_in_disc(radius):
-    rho = np.sqrt(np.random.uniform(low=0.0, high=1.0)) * radius
+def draw_x_y_in_disc(prng, radius):
+    rho = np.sqrt(prng.uniform(low=0.0, high=1.0)) * radius
     phi = np.random.uniform(low=0.0, high=2.0 * np.pi)
     x = rho * np.cos(phi)
     y = rho * np.sin(phi)
