@@ -53,10 +53,11 @@ def test_seed_limit_airshower_id():
 
 
 def test_seed_combinations():
-    np.random.seed(0)
-    run_ids = np.random.uniform(0, crss.NUM_RUN_IDS - 1, size=300).astype("i4")
-    airshower_ids = np.random.uniform(
-        0, crss.NUM_AIRSHOWER_IDS_IN_RUN - 1, size=300
+    prng = np.random.Generator(np.random.MT19937(seed=0))
+
+    run_ids = prng.uniform(0, crss.NUM_RUN_IDS - 1, size=300).astype("i4")
+    airshower_ids = prng.uniform(
+        low=0, high=crss.NUM_AIRSHOWER_IDS_IN_RUN - 1, size=300
     ).astype("i4")
 
     for run_id in run_ids:
@@ -64,7 +65,6 @@ def test_seed_combinations():
             seed = crss.random_seed_based_on(
                 run_id=run_id, airshower_id=airshower_id
             )
-            np.random.seed(seed)
             assert crss.run_id_from_seed(seed=seed) == run_id
             assert crss.airshower_id_from_seed(seed=seed) == airshower_id
 
@@ -76,10 +76,12 @@ def test_seed_num_digits():
 
 
 def test_template_string():
-    np.random.seed(0)
-    run_ids = np.random.uniform(0, crss.NUM_RUN_IDS - 1, size=30).astype("i4")
-    airshower_ids = np.random.uniform(
-        0, crss.NUM_AIRSHOWER_IDS_IN_RUN - 1, size=30
+    prng = np.random.Generator(np.random.MT19937(seed=0))
+
+    run_ids = prng.uniform(
+        low=0, high=crss.NUM_RUN_IDS - 1, size=30).astype("i4")
+    airshower_ids = prng.uniform(
+        low=0, high=crss.NUM_AIRSHOWER_IDS_IN_RUN - 1, size=30
     ).astype("i4")
 
     for run_id in run_ids:

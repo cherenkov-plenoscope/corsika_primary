@@ -28,8 +28,6 @@ def test_runtime_differences(
     assert os.path.exists(corsika_primary_path)
     assert os.path.exists(corsika_path)
 
-    np.random.seed(0)
-
     num_shower = 7
     particle_id = 3
     energy_GeV = 500

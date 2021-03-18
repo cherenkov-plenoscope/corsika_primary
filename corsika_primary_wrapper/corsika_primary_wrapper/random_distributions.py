@@ -72,7 +72,7 @@ def draw_azimuth_zenith_in_viewcone(
 
 def draw_x_y_in_disc(prng, radius):
     rho = np.sqrt(prng.uniform(low=0.0, high=1.0)) * radius
-    phi = np.random.uniform(low=0.0, high=2.0 * np.pi)
+    phi = prng.uniform(low=0.0, high=2.0 * np.pi)
     x = rho * np.cos(phi)
     y = rho * np.sin(phi)
     return x, y

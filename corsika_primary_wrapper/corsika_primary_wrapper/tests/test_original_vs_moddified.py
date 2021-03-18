@@ -116,8 +116,6 @@ def test_original_vs_moddified(
     assert os.path.exists(corsika_path)
     assert os.path.exists(merlict_eventio_converter)
 
-    np.random.seed(0)
-
     num_shower = 7
 
     chi_g_per_cm2 = 0.0

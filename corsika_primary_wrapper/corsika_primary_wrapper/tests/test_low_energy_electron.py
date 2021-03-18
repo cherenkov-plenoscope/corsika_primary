@@ -63,7 +63,6 @@ def test_low_energy_electron(
 
     """
     assert os.path.exists(corsika_primary_path)
-    np.random.seed(0)
 
     num_shower = 10
 
