@@ -9,6 +9,7 @@ import struct
 from . import random_distributions
 from . import random_seed
 from . import collect_version_information
+from . import steering_io
 
 
 CM2M = 1e-2
