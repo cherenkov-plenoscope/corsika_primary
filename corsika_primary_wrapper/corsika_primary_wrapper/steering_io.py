@@ -13,6 +13,7 @@ Unlike with json exports in plain text, here the binary primary_bytes are
 stored explicitly.
 """
 
+
 def write_explicit_steerings(explicit_steerings, path):
     with tarfile.open(path + ".tmp", "w") as tarfout:
         for key in explicit_steerings:
@@ -41,17 +42,15 @@ def read_explicit_steerings(path):
             key_ste = int(os.path.dirname(tarinfo.name))
             basename = os.path.basename(tarinfo.name)
             assert basename == "steering_card.txt"
-            steering_card =_tar_read_steering_card(
-                tarfin=tarfin,
-                tarinfo=tarinfo
+            steering_card = _tar_read_steering_card(
+                tarfin=tarfin, tarinfo=tarinfo
             )
             tarinfo = tarfin.next()
             key_prm = int(os.path.dirname(tarinfo.name))
             basename = os.path.basename(tarinfo.name)
             assert basename == "primary_bytes.bin"
             primary_bytes = _tar_read_primary_bytes(
-                tarfin=tarfin,
-                tarinfo=tarinfo
+                tarfin=tarfin, tarinfo=tarinfo
             )
             assert key_ste == key_prm
 
@@ -79,12 +78,12 @@ def _tar_write_steering_card(tarfout, path, steering_card):
         payload=str.encode(steering_card, encoding="ascii"),
     )
 
+
 def _tar_write_primary_bytes(tarfout, path, primary_bytes):
     _tar_write(
-        tarfout=tarfout,
-        path=path,
-        payload=primary_bytes,
+        tarfout=tarfout, path=path, payload=primary_bytes,
     )
+
 
 def _tar_read_steering_card(tarfin, tarinfo):
     b = tarfin.extractfile(tarinfo).read()
@@ -93,4 +92,3 @@ def _tar_read_steering_card(tarfin, tarinfo):
 
 def _tar_read_primary_bytes(tarfin, tarinfo):
     return tarfin.extractfile(tarinfo).read()
-
