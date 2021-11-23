@@ -109,6 +109,35 @@ def _primaries_to_bytes(primaries):
         return f.read()
 
 
+def _primaries_slice(primary_bytes, i):
+    bstart = i * NUM_BYTES_PER_PRIMARY
+    bstop = (i + 1) * NUM_BYTES_PER_PRIMARY
+    return primary_bytes[bstart: bstop]
+
+
+def _primaries_to_dict(primary_bytes):
+    primaries = []
+    num_primaries = len(primary_bytes) // NUM_BYTES_PER_PRIMARY
+    for i in range(num_primaries):
+        prm_bytes = _primaries_slice(primary_bytes=primary_bytes, i=i)
+
+        prm = {}
+        with io.BytesIO(prm_bytes) as f:
+            prm["particle_id"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
+            prm["energy_GeV"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
+            prm["zenith_rad"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
+            prm["azimuth_rad"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
+            prm["depth_g_per_cm2"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
+            prm["random_seed"] = []
+            for nseq in range(4):
+                seq = {}
+                for key in ["SEED", "CALLS", "BILLIONS"]:
+                    seq[key] = np.frombuffer(f.read(4), dtype=np.int32)[0]
+                prm["random_seed"].append(seq)
+        primaries.append(prm)
+    return primaries
+
+
 def _dict_to_card_and_bytes(steering_dict):
     run = steering_dict["run"]
     primary_binary = _primaries_to_bytes(steering_dict["primaries"])
