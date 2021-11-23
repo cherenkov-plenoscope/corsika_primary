@@ -16,16 +16,17 @@ stored explicitly.
 
 def write_explicit_steerings(explicit_steerings, path):
     with tarfile.open(path + ".tmp", "w") as tarfout:
-        for key in explicit_steerings:
-            expl = explicit_steerings[key]
+        for run_id in explicit_steerings:
+            expl = explicit_steerings[run_id]
+            assert run_id == _get_run_id(steering_card=expl["steering_card"])
             _tar_write(
                 tarfout=tarfout,
-                path="{:06d}/steering_card.txt".format(key),
+                path="{:06d}/steering_card.txt".format(run_id),
                 payload=str.encode(expl["steering_card"], encoding="ascii"),
             )
             _tar_write(
                 tarfout=tarfout,
-                path="{:06d}/primary_bytes.bin".format(key),
+                path="{:06d}/primary_bytes.bin".format(run_id),
                 payload=expl["primary_bytes"],
             )
     shutil.move(path + ".tmp", path)
@@ -39,22 +40,24 @@ def read_explicit_steerings(path):
             if tarinfo is None:
                 break
 
-            key_ste = int(os.path.dirname(tarinfo.name))
+            run_id_ste = int(os.path.dirname(tarinfo.name))
             basename = os.path.basename(tarinfo.name)
             assert basename == "steering_card.txt"
             steering_card = _tar_read_steering_card(
                 tarfin=tarfin, tarinfo=tarinfo
             )
+            assert run_id_ste == _get_run_id(steering_card=steering_card)
+
             tarinfo = tarfin.next()
-            key_prm = int(os.path.dirname(tarinfo.name))
+            run_id_prm = int(os.path.dirname(tarinfo.name))
             basename = os.path.basename(tarinfo.name)
             assert basename == "primary_bytes.bin"
             primary_bytes = _tar_read_primary_bytes(
                 tarfin=tarfin, tarinfo=tarinfo
             )
-            assert key_ste == key_prm
+            assert run_id_ste == run_id_prm
 
-            out[key_ste] = {
+            out[run_id_ste] = {
                 "steering_card": steering_card,
                 "primary_bytes": primary_bytes,
             }
@@ -92,3 +95,13 @@ def _tar_read_steering_card(tarfin, tarinfo):
 
 def _tar_read_primary_bytes(tarfin, tarinfo):
     return tarfin.extractfile(tarinfo).read()
+
+
+def _get_run_id(steering_card):
+    for line in str.splitlines(steering_card):
+        if "RUNNR" in line:
+            tmp = str.replace(line, "RUNNR", "")
+            tmp = str.strip(tmp)
+            return int(tmp)
+    raise ValueError("No 'RUNNR' in steering_card.")
+
