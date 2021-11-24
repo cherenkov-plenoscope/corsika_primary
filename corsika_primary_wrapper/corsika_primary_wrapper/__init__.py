@@ -240,6 +240,7 @@ def explicit_corsika_primary(
     e_path = op.join(out_dirname, out_basename + stderr_postfix)
     corsika_run_dir = op.dirname(corsika_path)
     num_primaries = len(primary_bytes) // NUM_BYTES_PER_PRIMARY
+    assert (len(primary_bytes) % NUM_BYTES_PER_PRIMARY) == 0
 
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
         tmp_corsika_run_dir = op.join(tmp_dir, "run")
