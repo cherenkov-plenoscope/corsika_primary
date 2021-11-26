@@ -60,10 +60,54 @@ def make_explicit_steering(
     return steering_dict
 
 
-def make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
+def hash_cherenkov_pools(
+    corsika_primary_path,
+    steering_card,
+    primary_bytes,
+    tmp_key,
+    tmp_dir,
+):
+    os.makedirs(tmp_dir, exist_ok=True)
+
+    path = os.path.join(tmp_dir, tmp_key)
+    hashes_path = path + ".hashes.csv"
+
+    if not os.path.exists(hashes_path):
+        run = cpw.CorsikaPrimary(
+            corsika_path=corsika_primary_path,
+            steering_card=steering_card,
+            primary_bytes=primary_bytes,
+            stdout_path=path + ".o",
+            stderr_path=path + ".e",
+            tmp_dir_prefix="corsika_primary_",
+        )
+
+        hashes_csv = ""
+        for event in run:
+            evth, bunches = event
+            event_id = int(evth[cpw.I_EVTH_EVENT_NUMBER])
+            h = hashlib.md5(bunches.tobytes()).hexdigest()
+            _csv_line = "{:06d},{:s}".format(event_id, h)
+            print(_csv_line)
+            hashes_csv += _csv_line + "\n"
+
+        with open(hashes_path, "wt") as f:
+            f.write(hashes_csv)
+
+    with open(hashes_path, "rt") as f:
+        hashes = {}
+        for line in str.splitlines(f.read()):
+            event_id_str, h_str = str.split(line, ",")
+            hashes[int(event_id_str)] = h_str
+
+    return hashes
+
+
+
+def make_run_and_cherry_pick_event_ids_to_reproduce(
     corsika_primary_path,
     explicit_steerings,
-    event_idx_to_reproduce,
+    event_ids_to_reproduce,
     tmp_dir,
 ):
     assert os.path.exists(corsika_primary_path)
@@ -73,70 +117,29 @@ def make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
 
     os.makedirs(tmp_dir, exist_ok=True)
 
-    complete_path = os.path.join(tmp_dir, "complete")
-    complete_hashes_path = complete_path + ".hashes.csv"
+    complete_hashes = hash_cherenkov_pools(
+        corsika_primary_path=corsika_primary_path,
+        steering_card=explicit_steerings[run_id]["steering_card"],
+        primary_bytes=explicit_steerings[run_id]["primary_bytes"],
+        tmp_key="complete",
+        tmp_dir=tmp_dir,
+    )
 
-    if not os.path.exists(complete_hashes_path):
-        print("Create Cherenkov-pools and estimate their md5-hashes.")
-
-        run = cpw.CorsikaPrimary(
-            corsika_path=corsika_primary_path,
-            steering_card=explicit_steerings[run_id]["steering_card"],
-            primary_bytes=explicit_steerings[run_id]["primary_bytes"],
-            stdout_path=complete_path + ".o",
-            stderr_path=complete_path + ".e",
-            tmp_dir_prefix="corsika_primary_",
-        )
-
-        complete_hashes_csv = ""
-        for event_idx, event in enumerate(run):
-            evth, bunches = event
-            h = hashlib.md5(bunches.tobytes()).hexdigest()
-            _csv_line = "{:06d},{:s}\n".format(event_idx, h)
-            print(_csv_line)
-            complete_hashes_csv += _csv_line
-
-        with open(complete_hashes_path, "wt") as f:
-            f.write(complete_hashes_csv)
-
-    with open(complete_hashes_path, "rt") as f:
-        complete_hashes = {}
-        for line in str.splitlines(f.read()):
-            idx_str, h_str = str.split(line, ",")
-            complete_hashes[int(idx_str)] = h_str
-
-
-    print("Reproduce single Cherenkov-pools and estimate their md5-hashes.")
     part_hashes = {}
-    for event_idx in event_idx_to_reproduce:
+    for event_ids in event_ids_to_reproduce:
+
         primary_bytes_for_idx = cpw._primaries_slice(
             primary_bytes=explicit_steerings[run_id]["primary_bytes"],
-            i=event_idx
+            i=(event_ids - 1)
         )
-        part_idx_path = os.path.join(tmp_dir, "part_{:06d}".format(event_idx))
-        part_idx_hash_path = part_idx_path + ".hash.csv"
-
-        if not os.path.exists(part_idx_hash_path):
-            print("Create new: ", event_idx)
-
-            part_run = cpw.CorsikaPrimary(
-                corsika_path=corsika_primary_path,
-                steering_card=explicit_steerings[run_id]["steering_card"],
-                primary_bytes=primary_bytes_for_idx,
-                stdout_path=part_idx_path + ".o",
-                stderr_path=part_idx_path + ".e",
-                tmp_dir_prefix="corsika_primary_",
-            )
-
-            evth, bunches = next(part_run)
-            h = hashlib.md5(bunches.tobytes()).hexdigest()
-            with open(part_idx_hash_path, "wt") as f:
-                f.write("{:06d},{:s}\n".format(event_idx, h))
-
-        with open(part_idx_hash_path, "rt") as f:
-            for line in str.splitlines(f.read()):
-                idx_str, h_str = str.split(line, ",")
-                part_hashes[int(idx_str)] = h_str
+        part_hash = hash_cherenkov_pools(
+            corsika_primary_path=corsika_primary_path,
+            steering_card=explicit_steerings[run_id]["steering_card"],
+            primary_bytes=primary_bytes_for_idx,
+            tmp_key="part_{:06d}".format(event_ids),
+            tmp_dir=tmp_dir,
+        )
+        part_hashes[event_ids] = part_hash[1]
 
     return complete_hashes, part_hashes
 
@@ -145,15 +148,15 @@ def all_cherenkov_pool_hashes_are_equal(
     original_hashes, reproduced_hashes, original_steering_dict
 ):
     all_identical = True
-    for event_idx in reproduced_hashes:
-        original = original_hashes[event_idx]
-        reproduced = reproduced_hashes[event_idx]
+    for event_id in reproduced_hashes:
+        original = original_hashes[event_id]
+        reproduced = reproduced_hashes[event_id]
         if reproduced != original:
-            print("event_idx {: 6d} --- BAD ---".format(event_idx))
+            print("event_id {: 6d} --- BAD ---".format(event_id))
             print("pool-md5-hash original  : ", original)
             print("pool-md5-hash reproduced: ", reproduced)
             print("steering: ")
-            pprint.pprint(original_steering_dict["primaries"][event_idx])
+            pprint.pprint(original_steering_dict["primaries"][event_id])
             all_identical = False
     return all_identical
 
@@ -168,7 +171,7 @@ def test_few_events_different_particles_reproduce_one(
     prng = np.random.Generator(np.random.PCG64(42))
 
     NUM_PRIMARIES = 5
-    EVENT_NUMBER = 3  # [1, 2, >3<, 4, 5]
+    # [1, 2, 3, >4<, 5]
 
     particles = {
         "gamma": {"particle_id": 1, "energy_GeV": 1.0},
@@ -192,12 +195,12 @@ def test_few_events_different_particles_reproduce_one(
         (
             original_hashes,
             reproduced_hashes,
-        ) = make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
+        ) = make_run_and_cherry_pick_event_ids_to_reproduce(
             corsika_primary_path=corsika_primary_path,
             explicit_steerings=cpw.steering_dict_to_explicit_steerings(
                 steering_dict=steering_dict
             ),
-            event_idx_to_reproduce=[3],
+            event_ids_to_reproduce=[4],
             tmp_dir=os.path.join(
                 tmp_dir, "few_events_different_particles_reproduce_one", pkey,
             ),
@@ -233,7 +236,7 @@ def test_many_helium_events_and_reproduce_all(
     particle_id = 402
     energy_GeV = 16.0
     num_events = int(800 / energy_GeV)
-    event_idx_to_reproduce = np.arange(num_events).tolist()
+    event_ids_to_reproduce = np.arange(1, num_events + 1).tolist()
 
     steering_dict = make_explicit_steering(
         particle_id=particle_id,
@@ -246,12 +249,12 @@ def test_many_helium_events_and_reproduce_all(
     (
         original_hashes,
         reproduced_hashes,
-    ) = make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
+    ) = make_run_and_cherry_pick_event_ids_to_reproduce(
         corsika_primary_path=corsika_primary_path,
         explicit_steerings=cpw.steering_dict_to_explicit_steerings(
             steering_dict=steering_dict
         ),
-        event_idx_to_reproduce=event_idx_to_reproduce,
+        event_ids_to_reproduce=event_ids_to_reproduce,
         tmp_dir=os.path.join(tmp_dir, "many_helium_events_and_reproduce_all"),
     )
 
