@@ -14,7 +14,7 @@
 >         PRMPAR(5) = HEIGH( THICK0 )
 >         NSEQ = 4
 >         DO  MYL = 1, NSEQ
->           CALL RMMAQD( ISEED(1:3, MYL), MYL, 'S' )
+>           CALL RMMAQD( ISEED(1, MYL), MYL, 'S' )
 >         ENDDO
 >         IF ( FPRINT  .OR.  DEBUG  .OR.  MOD(ISHW-1,IPROUT) .EQ. 0 ) THEN
 >           WRITE(MONIOU,*) '-----------------------------------'
