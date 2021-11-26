@@ -173,6 +173,18 @@ def _dict_to_card_and_bytes(steering_dict):
     return corsika_card, primary_binary
 
 
+def steering_dict_to_explicit_steerings(steering_dict):
+    steering_card, primary_bytes = _dict_to_card_and_bytes(
+        steering_dict=steering_dict
+    )
+    return {
+        steering_dict["run"]["run_id"]: {
+            "steering_card": steering_card,
+            "primary_bytes": primary_bytes,
+        }
+    }
+
+
 def corsika_primary(
     corsika_path,
     steering_dict,
@@ -412,37 +424,38 @@ class CorsikaPrimary:
     def __init__(
         self,
         corsika_path,
-        steering_dict,
         stdout_path,
         stderr_path,
+        steering_card,
+        primary_bytes,
         tmp_dir_prefix="corsika_primary_",
     ):
-        self.corsika_path = corsika_path
-        self.corsika_run_dir = os.path.dirname(self.corsika_path)
+        self.corsika_path = str(corsika_path)
+        self.stdout_path = str(stdout_path)
+        self.stderr_path = str(stderr_path)
+        self.steering_card = str(steering_card)
+        self.primary_bytes = bytes(primary_bytes)
 
-        self.steering_dict = steering_dict
-        self.num_primaries = len(self.steering_dict["primaries"])
+        self.num_primaries = len(self.primary_bytes) // NUM_BYTES_PER_PRIMARY
+        assert (len(self.primary_bytes) % NUM_BYTES_PER_PRIMARY) == 0
+        assert self.num_primaries > 0
 
         self.tmp_dir_handle = tempfile.TemporaryDirectory(
             prefix=tmp_dir_prefix
         )
         self.tmp_dir = self.tmp_dir_handle.name
 
-        self.stdout_path = stdout_path
-        self.stderr_path = stderr_path
         self.fifo_path = os.path.join(self.tmp_dir, "fifo.tar")
         os.mkfifo(self.fifo_path)
 
         self.tmp_corsika_run_dir = os.path.join(self.tmp_dir, "run")
+        self.corsika_run_dir = os.path.dirname(self.corsika_path)
+
         shutil.copytree(
             self.corsika_run_dir, self.tmp_corsika_run_dir, symlinks=False
         )
         self.tmp_corsika_path = os.path.join(
             self.tmp_corsika_run_dir, os.path.basename(self.corsika_path)
-        )
-
-        self.steering_card, self.primary_bytes = _dict_to_card_and_bytes(
-            self.steering_dict
         )
 
         self.primary_path = os.path.join(

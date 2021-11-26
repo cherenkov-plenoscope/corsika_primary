@@ -4,7 +4,6 @@ import tempfile
 import corsika_primary_wrapper as cpw
 import numpy as np
 import hashlib
-import json
 import pprint
 
 
@@ -61,90 +60,85 @@ def make_explicit_steering(
     return steering_dict
 
 
-def make_run_of_events_and_cherry_pick_events_to_be_reproduced(
-    corsika_primary_path, steering_dict, events_to_be_reproduced, tmp_dir,
+def make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
+    corsika_primary_path,
+    explicit_steerings,
+    event_idx_to_reproduce,
+    tmp_dir,
 ):
+    assert os.path.exists(corsika_primary_path)
+    run_ids = list(explicit_steerings.keys())
+    assert len(run_ids) == 1
+    run_id = run_ids[0]
+
     os.makedirs(tmp_dir, exist_ok=True)
 
-    run_path = os.path.join(tmp_dir, "complete_run.tar")
-    pool_hashes_path = run_path + ".hashes.json"
+    complete_path = os.path.join(tmp_dir, "complete")
+    complete_hashes_path = complete_path + ".hashes.csv"
 
-    if not os.path.exists(pool_hashes_path):
+    if not os.path.exists(complete_hashes_path):
         print("Create Cherenkov-pools and estimate their md5-hashes.")
 
         run = cpw.CorsikaPrimary(
             corsika_path=corsika_primary_path,
-            steering_dict=steering_dict,
-            stdout_path=run_path + ".o",
-            stderr_path=run_path + ".e",
+            steering_card=explicit_steerings[run_id]["steering_card"],
+            primary_bytes=explicit_steerings[run_id]["primary_bytes"],
+            stdout_path=complete_path + ".o",
+            stderr_path=complete_path + ".e",
             tmp_dir_prefix="corsika_primary_",
         )
 
-        cpw.steering_io.write_explicit_steerings(
-            explicit_steerings={
-                steering_dict["run"]["run_id"]: {
-                    "steering_card": str(run.steering_card),
-                    "primary_bytes": bytes(run.primary_bytes),
-                }
-            },
-            path=run_path + ".steering.tar",
-        )
-
-        continous_pool_hashes = {}
+        complete_hashes_csv = ""
         for event_idx, event in enumerate(run):
             evth, bunches = event
             h = hashlib.md5(bunches.tobytes()).hexdigest()
-            print("Cherenkov_pool_hash", h)
-            continous_pool_hashes[event_idx] = h
+            _csv_line = "{:06d},{:s}\n".format(event_idx, h)
+            print(_csv_line)
+            complete_hashes_csv += _csv_line
 
-        with open(pool_hashes_path, "wt") as f:
-            f.write(json.dumps(continous_pool_hashes, indent=4))
+        with open(complete_hashes_path, "wt") as f:
+            f.write(complete_hashes_csv)
 
-    with open(pool_hashes_path, "rt") as f:
-        _tmp = json.loads(f.read())
-        continous_pool_hashes = {}
-        for key in _tmp:
-            continous_pool_hashes[int(key)] = _tmp[key]
+    with open(complete_hashes_path, "rt") as f:
+        complete_hashes = {}
+        for line in str.splitlines(f.read()):
+            idx_str, h_str = str.split(line, ",")
+            complete_hashes[int(idx_str)] = h_str
 
-    explicit_steering = cpw.steering_io.read_explicit_steerings(
-        path=run_path + ".steering.tar",
-    )[steering_dict["run"]["run_id"]]
 
-    reproduced_pool_hashes_path = os.path.join(
-        tmp_dir, "reproduced_pool_hashes.json"
-    )
-    reproduced_pool_hashes = {}
     print("Reproduce single Cherenkov-pools and estimate their md5-hashes.")
-
-    for event_idx in events_to_be_reproduced:
-        steering_card = str(explicit_steering["steering_card"])
-        primary_bytes = cpw._primaries_slice(
-            primary_bytes=explicit_steering["primary_bytes"], i=event_idx
+    part_hashes = {}
+    for event_idx in event_idx_to_reproduce:
+        primary_bytes_for_idx = cpw._primaries_slice(
+            primary_bytes=explicit_steerings[run_id]["primary_bytes"],
+            i=event_idx
         )
-        part_path = os.path.join(
-            tmp_dir, "part_run_{:06d}.tar".format(event_idx)
-        )
+        part_idx_path = os.path.join(tmp_dir, "part_{:06d}".format(event_idx))
+        part_idx_hash_path = part_idx_path + ".hash.csv"
 
-        if not os.path.exists(part_path):
-            print("Create new: ", part_path)
-            cpw.explicit_corsika_primary(
+        if not os.path.exists(part_idx_hash_path):
+            print("Create new: ", event_idx)
+
+            part_run = cpw.CorsikaPrimary(
                 corsika_path=corsika_primary_path,
-                steering_card=steering_card,
-                primary_bytes=primary_bytes,
-                output_path=part_path,
-                stdout_postfix=".o",
-                stderr_postfix=".e",
+                steering_card=explicit_steerings[run_id]["steering_card"],
+                primary_bytes=primary_bytes_for_idx,
+                stdout_path=part_idx_path + ".o",
+                stderr_path=part_idx_path + ".e",
                 tmp_dir_prefix="corsika_primary_",
             )
-        part_run = cpw.Tario(path=part_path)
-        evth, bunches = next(part_run)
-        h = hashlib.md5(bunches.tobytes()).hexdigest()
-        reproduced_pool_hashes[event_idx] = h
 
-    with open(reproduced_pool_hashes_path, "wt") as f:
-        f.write(json.dumps(reproduced_pool_hashes, indent=4))
+            evth, bunches = next(part_run)
+            h = hashlib.md5(bunches.tobytes()).hexdigest()
+            with open(part_idx_hash_path, "wt") as f:
+                f.write("{:06d},{:s}\n".format(event_idx, h))
 
-    return continous_pool_hashes, reproduced_pool_hashes
+        with open(part_idx_hash_path, "rt") as f:
+            for line in str.splitlines(f.read()):
+                idx_str, h_str = str.split(line, ",")
+                part_hashes[int(idx_str)] = h_str
+
+    return complete_hashes, part_hashes
 
 
 def all_cherenkov_pool_hashes_are_equal(
@@ -187,7 +181,7 @@ def test_few_events_different_particles_reproduce_one(
 
         print(pkey, particles[pkey])
 
-        complete_steering = make_explicit_steering(
+        steering_dict = make_explicit_steering(
             particle_id=particles[pkey]["particle_id"],
             run_id=6085,
             num_primaries=NUM_PRIMARIES,
@@ -198,10 +192,12 @@ def test_few_events_different_particles_reproduce_one(
         (
             original_hashes,
             reproduced_hashes,
-        ) = make_run_of_events_and_cherry_pick_events_to_be_reproduced(
+        ) = make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
             corsika_primary_path=corsika_primary_path,
-            steering_dict=complete_steering,
-            events_to_be_reproduced=[3],
+            explicit_steerings=cpw.steering_dict_to_explicit_steerings(
+                steering_dict=steering_dict
+            ),
+            event_idx_to_reproduce=[3],
             tmp_dir=os.path.join(
                 tmp_dir, "few_events_different_particles_reproduce_one", pkey,
             ),
@@ -210,7 +206,7 @@ def test_few_events_different_particles_reproduce_one(
         particles[pkey]["reproduction"] = all_cherenkov_pool_hashes_are_equal(
             original_hashes=original_hashes,
             reproduced_hashes=reproduced_hashes,
-            original_steering_dict=complete_steering,
+            original_steering_dict=steering_dict,
         )
 
     all_particles_can_be_reproduced = True
@@ -237,9 +233,9 @@ def test_many_helium_events_and_reproduce_all(
     particle_id = 402
     energy_GeV = 16.0
     num_events = int(800 / energy_GeV)
-    events_to_be_reproduced = np.arange(num_events).tolist()
+    event_idx_to_reproduce = np.arange(num_events).tolist()
 
-    original_steering_dict = make_explicit_steering(
+    steering_dict = make_explicit_steering(
         particle_id=particle_id,
         run_id=8189,
         num_primaries=num_events,
@@ -250,16 +246,18 @@ def test_many_helium_events_and_reproduce_all(
     (
         original_hashes,
         reproduced_hashes,
-    ) = make_run_of_events_and_cherry_pick_events_to_be_reproduced(
+    ) = make_run_of_events_and_cherry_pick_event_idx_to_reproduce(
         corsika_primary_path=corsika_primary_path,
-        steering_dict=original_steering_dict,
-        events_to_be_reproduced=events_to_be_reproduced,
+        explicit_steerings=cpw.steering_dict_to_explicit_steerings(
+            steering_dict=steering_dict
+        ),
+        event_idx_to_reproduce=event_idx_to_reproduce,
         tmp_dir=os.path.join(tmp_dir, "many_helium_events_and_reproduce_all"),
     )
 
     assert all_cherenkov_pool_hashes_are_equal(
         original_hashes=original_hashes,
         reproduced_hashes=reproduced_hashes,
-        original_steering_dict=original_steering_dict,
+        original_steering_dict=steering_dict,
     )
     tmp_dir_handle.cleanup()
