@@ -177,18 +177,17 @@ def main():
             compilefile_path = join(
                 resource_path, "corsikacompilefile_modified.f"
             )
-            if not os.path.exists(compilefile_path):
-                patch(
-                    original_path=join(
-                        install_path,
-                        "original",
-                        "corsika-75600",
-                        "src",
-                        "corsikacompilefile.f",
-                    ),
-                    diff_path=join(resource_path, "corsikacompilefile.f.diff"),
-                    out_path=compilefile_path,
-                )
+            patch(
+                original_path=join(
+                    install_path,
+                    "original",
+                    "corsika-75600",
+                    "src",
+                    "corsikacompilefile.f",
+                ),
+                diff_path=join(resource_path, "corsikacompilefile.f.diff"),
+                out_path=compilefile_path,
+            )
             install(
                 corsika_tar_path=corsika_tar_path,
                 install_path=join(install_path, "modified"),
