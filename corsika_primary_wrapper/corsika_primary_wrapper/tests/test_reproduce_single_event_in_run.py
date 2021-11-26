@@ -88,7 +88,6 @@ def hash_cherenkov_pools(
             event_id = int(evth[cpw.I_EVTH_EVENT_NUMBER])
             h = hashlib.md5(bunches.tobytes()).hexdigest()
             _csv_line = "{:06d},{:s}".format(event_id, h)
-            print(_csv_line)
             hashes_csv += _csv_line + "\n"
 
         with open(hashes_path, "wt") as f:
@@ -161,6 +160,14 @@ def all_cherenkov_pool_hashes_are_equal(
     return all_identical
 
 
+PARTICLES = {
+    "gamma": {"particle_id": 1, "energy_GeV": 1.0},
+    "electron": {"particle_id": 3, "energy_GeV": 1.0},
+    "proton": {"particle_id": 14, "energy_GeV": 7},
+    "helium": {"particle_id": 402, "energy_GeV": 12},
+}
+
+
 def test_few_events_different_particles_reproduce_one(
     corsika_primary_path, non_temporary_path
 ):
@@ -170,25 +177,15 @@ def test_few_events_different_particles_reproduce_one(
     assert os.path.exists(corsika_primary_path)
     prng = np.random.Generator(np.random.PCG64(42))
 
-    NUM_PRIMARIES = 5
-    # [1, 2, 3, >4<, 5]
+    num_primaries = 15
 
-    particles = {
-        "gamma": {"particle_id": 1, "energy_GeV": 1.0},
-        "electron": {"particle_id": 3, "energy_GeV": 1.0},
-        "proton": {"particle_id": 14, "energy_GeV": 7},
-        "helium": {"particle_id": 402, "energy_GeV": 12},
-    }
-
-    for pkey in particles:
-
-        print(pkey, particles[pkey])
-
+    reproduction = {}
+    for pkey in PARTICLES:
         steering_dict = make_explicit_steering(
-            particle_id=particles[pkey]["particle_id"],
+            particle_id=PARTICLES[pkey]["particle_id"],
             run_id=6085,
-            num_primaries=NUM_PRIMARIES,
-            energy_GeV=particles[pkey]["energy_GeV"],
+            num_primaries=num_primaries,
+            energy_GeV=PARTICLES[pkey]["energy_GeV"],
             prng=prng,
         )
 
@@ -200,67 +197,97 @@ def test_few_events_different_particles_reproduce_one(
             explicit_steerings=cpw.steering_dict_to_explicit_steerings(
                 steering_dict=steering_dict
             ),
-            event_ids_to_reproduce=[4],
+            event_ids_to_reproduce=[4,7,13],
             tmp_dir=os.path.join(
                 tmp_dir, "few_events_different_particles_reproduce_one", pkey,
             ),
         )
 
-        particles[pkey]["reproduction"] = all_cherenkov_pool_hashes_are_equal(
+        reproduction[pkey] = all_cherenkov_pool_hashes_are_equal(
             original_hashes=original_hashes,
             reproduced_hashes=reproduced_hashes,
             original_steering_dict=steering_dict,
         )
 
     all_particles_can_be_reproduced = True
-    for pkey in particles:
-        if particles[pkey]["reproduction"] == False:
+    for pkey in PARTICLES:
+        if reproduction[pkey] == False:
             all_particles_can_be_reproduced = False
 
     assert all_particles_can_be_reproduced
     tmp_dir_handle.cleanup()
 
 
-def test_many_helium_events_and_reproduce_all(
+def test_reproduce_full_run(
     corsika_primary_path, non_temporary_path
 ):
     """
     Motivation: In the magnetic deflection estimate I found some events ~50%
     which could not be reproduced i.e. did not yield the same Cherenkov-pool.
+    Here we test if it yields at lest the same result when it is called
+    multiple times with same input.
     """
+
     tmp_dir_handle = tempfile.TemporaryDirectory(prefix="corsika_primary_")
     tmp_dir = non_temporary_path if non_temporary_path else tmp_dir_handle.name
 
     prng = np.random.Generator(np.random.PCG64(42))
+    num_iterations = 5
 
-    particle_id = 402
-    energy_GeV = 16.0
-    num_events = int(800 / energy_GeV)
-    event_ids_to_reproduce = np.arange(1, num_events + 1).tolist()
+    multiplicity = {}
+    for pkey in PARTICLES:
+        num_events = int(500 / PARTICLES[pkey]["energy_GeV"])
 
-    steering_dict = make_explicit_steering(
-        particle_id=particle_id,
-        run_id=8189,
-        num_primaries=num_events,
-        energy_GeV=energy_GeV,
-        prng=prng,
-    )
+        steering_dict = make_explicit_steering(
+            particle_id=PARTICLES[pkey]["particle_id"],
+            run_id=8189,
+            num_primaries=num_events,
+            energy_GeV=PARTICLES[pkey]["energy_GeV"],
+            prng=prng,
+        )
 
-    (
-        original_hashes,
-        reproduced_hashes,
-    ) = make_run_and_cherry_pick_event_ids_to_reproduce(
-        corsika_primary_path=corsika_primary_path,
-        explicit_steerings=cpw.steering_dict_to_explicit_steerings(
+        steering_card, primary_bytes = cpw._dict_to_card_and_bytes(
             steering_dict=steering_dict
-        ),
-        event_ids_to_reproduce=event_ids_to_reproduce,
-        tmp_dir=os.path.join(tmp_dir, "many_helium_events_and_reproduce_all"),
-    )
+        )
 
-    assert all_cherenkov_pool_hashes_are_equal(
-        original_hashes=original_hashes,
-        reproduced_hashes=reproduced_hashes,
-        original_steering_dict=steering_dict,
-    )
+        M = []
+        for i in range(num_iterations):
+            hashes = hash_cherenkov_pools(
+                corsika_primary_path=corsika_primary_path,
+                steering_card=steering_card,
+                primary_bytes=primary_bytes,
+                tmp_key="{:06d}".format(i),
+                tmp_dir=os.path.join(
+                    tmp_dir,
+                    "test_reproduce_full_run",
+                    pkey,
+                ),
+            )
+            M.append(hashes)
+
+        multiplicity[pkey] = {}
+        for event_id in np.arange(1, num_events + 1):
+            list_of_hashes_in_iterations = [
+                M[i][event_id] for i in range(num_iterations)
+            ]
+            multiplicity[pkey][event_id] = len(set(
+                list_of_hashes_in_iterations
+            ))
+
+    all_iterations_yield_same_cherenkov_pool = True
+    for pkey in PARTICLES:
+        for event_id in multiplicity[pkey]:
+            num_different_cherenkov_pools = multiplicity[pkey][event_id]
+            if num_different_cherenkov_pools > 1:
+                all_iterations_yield_same_cherenkov_pool = False
+                print(
+                    pkey,
+                    "event_id",
+                    event_id,
+                    "num_different_cherenkov_pools",
+                    num_different_cherenkov_pools
+                )
+
+    assert all_iterations_yield_same_cherenkov_pool
+
     tmp_dir_handle.cleanup()
