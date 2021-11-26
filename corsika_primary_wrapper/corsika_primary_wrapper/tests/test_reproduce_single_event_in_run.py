@@ -236,7 +236,7 @@ def test_many_helium_events_and_reproduce_all(
 
     particle_id = 402
     energy_GeV = 16.0
-    num_events = int(8000 / energy_GeV)
+    num_events = int(800 / energy_GeV)
     events_to_be_reproduced = np.arange(num_events).tolist()
 
     original_steering_dict = make_explicit_steering(
