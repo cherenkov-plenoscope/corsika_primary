@@ -10,6 +10,7 @@ from . import random_distributions
 from . import random_seed
 from . import collect_version_information
 from . import steering_io
+from . import steering
 
 
 CM2M = 1e-2
@@ -17,53 +18,6 @@ M2CM = 1.0 / CM2M
 MAX_ZENITH_DEG = 70.0
 
 
-def simple_seed(seed):
-    return [
-        {"SEED": seed, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed + 1, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed + 2, "CALLS": 0, "BILLIONS": 0},
-        {"SEED": seed + 3, "CALLS": 0, "BILLIONS": 0},
-    ]
-
-
-EXAMPLE_STEERING_DICT = {
-    "run": {
-        "run_id": 1,
-        "event_id_of_first_event": 1,
-        "observation_level_asl_m": 2300,
-        "earth_magnetic_field_x_muT": 12.5,
-        "earth_magnetic_field_z_muT": -25.9,
-        "atmosphere_id": 10,
-    },
-    "primaries": [
-        {
-            "particle_id": 1,
-            "energy_GeV": 1.32,
-            "zenith_rad": 0.0,
-            "azimuth_rad": 0.0,
-            "depth_g_per_cm2": 0.0,
-            "random_seed": simple_seed(0),
-        },
-        {
-            "particle_id": 1,
-            "energy_GeV": 1.52,
-            "zenith_rad": 0.1,
-            "azimuth_rad": 0.2,
-            "depth_g_per_cm2": 3.6,
-            "random_seed": simple_seed(1),
-        },
-        {
-            "particle_id": 1,
-            "energy_GeV": 11.4,
-            "zenith_rad": 0.1,
-            "azimuth_rad": 0.25,
-            "depth_g_per_cm2": 102.2,
-            "random_seed": simple_seed(2),
-        },
-    ],
-}
-
-NUM_BYTES_PER_PRIMARY = 5 * 8 + 12 * 4
 NUM_BYTES_PER_BUNCH = (
     len(["x", "y", "cx", "cy", "t", "zem", "wvl", "size"]) * 4
 )
@@ -75,114 +29,6 @@ ITIME = 4
 IZEM = 5
 IBSIZE = 6
 IWVL = 7
-
-ENERGY_LIMIT_OVERHEAD = 0.01
-PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primary_bytes.5xf8_12xi4"
-
-
-def _overwrite_steering_card(
-    steering_card, output_path, num_shower,
-):
-    lines = []
-    for line in steering_card.splitlines():
-        key = line.split(" ")[0]
-        if key not in ["EXIT", "TELFIL", "NSHOW"]:
-            lines.append(line)
-    lines.append("NSHOW {:d}".format(num_shower))
-    lines.append("TELFIL {:s}".format(output_path))
-    lines.append("EXIT")
-    return "\n".join(lines)
-
-
-def _primaries_to_bytes(primaries):
-    with io.BytesIO() as f:
-        for prm in primaries:
-            f.write(np.float64(prm["particle_id"]).tobytes())
-            f.write(np.float64(prm["energy_GeV"]).tobytes())
-            f.write(np.float64(prm["zenith_rad"]).tobytes())
-            f.write(np.float64(prm["azimuth_rad"]).tobytes())
-            f.write(np.float64(prm["depth_g_per_cm2"]).tobytes())
-            for nseq in range(4):
-                for key in ["SEED", "CALLS", "BILLIONS"]:
-                    f.write(np.int32(prm["random_seed"][nseq][key]).tobytes())
-        f.seek(0)
-        return f.read()
-
-
-def _primaries_slice(primary_bytes, i):
-    bstart = i * NUM_BYTES_PER_PRIMARY
-    bstop = (i + 1) * NUM_BYTES_PER_PRIMARY
-    return primary_bytes[bstart: bstop]
-
-
-def _primaries_to_dict(primary_bytes):
-    primaries = []
-    num_primaries = len(primary_bytes) // NUM_BYTES_PER_PRIMARY
-    for i in range(num_primaries):
-        prm_bytes = _primaries_slice(primary_bytes=primary_bytes, i=i)
-
-        prm = {}
-        with io.BytesIO(prm_bytes) as f:
-            prm["particle_id"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
-            prm["energy_GeV"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
-            prm["zenith_rad"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
-            prm["azimuth_rad"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
-            prm["depth_g_per_cm2"] = np.frombuffer(f.read(8), dtype=np.float64)[0]
-            prm["random_seed"] = []
-            for nseq in range(4):
-                seq = {}
-                for key in ["SEED", "CALLS", "BILLIONS"]:
-                    seq[key] = np.frombuffer(f.read(4), dtype=np.int32)[0]
-                prm["random_seed"].append(seq)
-        primaries.append(prm)
-    return primaries
-
-
-def _dict_to_card_and_bytes(steering_dict):
-    run = steering_dict["run"]
-    primary_binary = _primaries_to_bytes(steering_dict["primaries"])
-    _energies = [prm["energy_GeV"] for prm in steering_dict["primaries"]]
-
-    corsika_card = "\n".join(
-        [
-            "RUNNR {:d}".format(run["run_id"]),
-            "EVTNR {:d}".format(run["event_id_of_first_event"]),
-            "PRMPAR 1",
-            "ERANGE {e_min:E} {e_max:E}".format(
-                e_min=np.min(_energies) * (1.0 - ENERGY_LIMIT_OVERHEAD),
-                e_max=np.max(_energies) * (1.0 + ENERGY_LIMIT_OVERHEAD),
-            ),
-            "OBSLEV {:E}".format(M2CM * run["observation_level_asl_m"]),
-            "MAGNET {x:E} {z:E}".format(
-                x=run["earth_magnetic_field_x_muT"],
-                z=run["earth_magnetic_field_z_muT"],
-            ),
-            "MAXPRT 1",
-            "PAROUT F F",
-            "ATMOSPHERE {:d} T".format(run["atmosphere_id"]),
-            "CWAVLG 250 700",
-            "CERQEF F T F",
-            "CERSIZ 1.",
-            "CERFIL F",
-            "TSTART T",
-            "NSHOW {:d}".format(len(steering_dict["primaries"])),
-            "TELFIL run.tar",
-            "EXIT",
-        ]
-    )
-    return corsika_card, primary_binary
-
-
-def steering_dict_to_explicit_steerings(steering_dict):
-    steering_card, primary_bytes = _dict_to_card_and_bytes(
-        steering_dict=steering_dict
-    )
-    return {
-        steering_dict["run"]["run_id"]: {
-            "steering_card": steering_card,
-            "primary_bytes": primary_bytes,
-        }
-    }
 
 
 def corsika_primary(

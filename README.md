@@ -152,6 +152,7 @@ EXAMPLE_STEERING_DICT = {
         "earth_magnetic_field_x_muT": 12.5,
         "earth_magnetic_field_z_muT": -25.9,
         "atmosphere_id": 10,
+        "energy_range_GeV": [1.0, 2.0],
     },
     "primaries": [
         {

@@ -4,9 +4,13 @@ import os
 with open("README.md", "r") as f:
     long_description = f.read()
 
+version = {}
+with open(os.path.join("corsika_primary_wrapper/version.py")) as f:
+    exec(f.read(), version)
+
 setuptools.setup(
     name="corsika_primary_wrapper",
-    version="0.1.0",
+    version=version["__version__"],
     description="Call the modified CORSIKA-primary in a thread safe way.",
     long_description=long_description,
     long_description_content_type="text/markdown",
