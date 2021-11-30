@@ -219,6 +219,32 @@ def primary_bytes_to_dict(primary_bytes):
     return prm
 
 
+def primary_dicts_to_bytes(primary_dicts):
+    """
+    primary_dicts : list of primary dicts.
+    """
+    with io.BytesIO() as f:
+        for primary_dict in primary_dicts:
+            f.write(primary_dict_to_bytes(primary_dict))
+        f.seek(0)
+        return f.read()
+
+
+def primary_bytes_to_dicts(primary_bytes):
+    """
+    primary_bytes : multiple primary dicts.
+    """
+    assert len(primary_bytes) % NUM_BYTES_PRIMARY_STEERING == 0
+    num_primaries = len(primary_bytes) // NUM_BYTES_PRIMARY_STEERING
+    primary_dicts = []
+    with io.BytesIO(primary_bytes) as f:
+        for idx in range(num_primaries):
+            prm_bytes = f.read(NUM_BYTES_PRIMARY_STEERING)
+            prm_dict = primary_bytes_to_dict(prm_bytes)
+            primary_dicts.append(prm_dict)
+    return primary_dicts
+
+
 def run_dict_to_bytes(run_dict):
     rd = run_dict
     assert_dtypes_run_dict(rd)

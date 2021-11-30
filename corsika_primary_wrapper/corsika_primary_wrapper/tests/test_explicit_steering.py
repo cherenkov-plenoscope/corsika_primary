@@ -3,29 +3,52 @@ import numpy as np
 import tempfile
 import os
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
+
+
+def make_dummy_run_steering(run_id, prng):
+    run = {
+        "run_id": i8(run_id),
+        "event_id_of_first_event": i8(prng.uniform(100)),
+        "observation_level_asl_m": f8(prng.uniform(5000)),
+        "earth_magnetic_field_x_muT": f8(prng.uniform(25)),
+        "earth_magnetic_field_z_muT": f8(prng.uniform(25)),
+        "atmosphere_id": i8(prng.uniform(10)),
+        "energy_range": {
+            "start_GeV": f8(prng.uniform(low=1, high=2)),
+            "stop_GeV": f8(prng.uniform(low=10, high=20))
+        },
+    }
+    return run
+
 
 def make_dummy_primaries(num, prng):
     primaries = []
     for i in range(num):
         prm = {}
-        prm["particle_id"] = int(prng.uniform(100))
-        prm["energy_GeV"] = 1 + prng.uniform(5)
-        prm["zenith_rad"] = prng.uniform(1)
-        prm["azimuth_rad"] = prng.uniform(2) - 1
-        prm["depth_g_per_cm2"] = 0.0
+        prm["particle_id"] = i8(prng.uniform(100))
+        prm["energy_GeV"] = f8(1 + prng.uniform(5))
+        prm["zenith_rad"] = f8(prng.uniform(1))
+        prm["azimuth_rad"] = f8(prng.uniform(2) - 1)
+        prm["depth_g_per_cm2"] = f8(0.0)
         prm["random_seed"] = []
         for j in range(4):
             seeds = {
-                "SEED": int(prng.uniform(100)),
-                "CALLS": int(prng.uniform(100)),
-                "BILLIONS": int(prng.uniform(100)),
+                "SEED": i4(prng.uniform(100)),
+                "CALLS": i4(prng.uniform(100)),
+                "BILLIONS": i4(prng.uniform(100)),
             }
             prm["random_seed"].append(seeds)
+        cpw.steering.assert_dtypes_primary_dict(prm)
         primaries.append(prm)
     return primaries
 
 
 def primary_is_equal(a, b):
+    cpw.steering.assert_dtypes_primary_dict(a)
+    cpw.steering.assert_dtypes_primary_dict(b)
     if a["particle_id"] != b["particle_id"]:
         return False
     if a["energy_GeV"] != b["energy_GeV"]:
@@ -43,15 +66,12 @@ def primary_is_equal(a, b):
     return True
 
 
-STEERING_CARD_TEMPLATE = "SOMETHING JADADA\nRUNNR {:d}\nFOO BAR\nEXIT\n"
-
-
 def test_primaries_dict_to_bytes_to_dict():
     prng = np.random.Generator(np.random.PCG64(42))
     NUM = 1337
     primaries_orig = make_dummy_primaries(num=NUM, prng=prng)
-    primary_bytes = cpw._primaries_to_bytes(primaries=primaries_orig)
-    primaries_back = cpw._primaries_to_dict(primary_bytes=primary_bytes)
+    primary_bytes = cpw.steering.primary_dicts_to_bytes(primary_dicts=primaries_orig)
+    primaries_back = cpw.steering.primary_bytes_to_dicts(primary_bytes=primary_bytes)
     for i in range(NUM):
         orig = primaries_orig[i]
         back = primaries_back[i]
@@ -62,10 +82,10 @@ def test_primary_bytes_extract_slice():
     prng = np.random.Generator(np.random.PCG64(402))
     NUM = 1337
     primaries_orig = make_dummy_primaries(num=NUM, prng=prng)
-    primary_bytes = cpw._primaries_to_bytes(primaries=primaries_orig)
+    primary_bytes = cpw.steering.primary_dicts_to_bytes(primary_dicts=primaries_orig)
     for i in range(NUM):
-        prm_pytes = cpw._primaries_slice(primary_bytes=primary_bytes, i=i)
-        prm_back = cpw._primaries_to_dict(primary_bytes=prm_pytes)
+        prm_pytes = cpw.steering.primary_bytes_by_idx(primary_bytes=primary_bytes, idx=i)
+        prm_back = cpw.steering.primary_bytes_to_dicts(primary_bytes=prm_pytes)
         orig = primaries_orig[i]
         back = prm_back[0]
         assert primary_is_equal(orig, back)
@@ -79,23 +99,16 @@ def test_io():
     orig = {}
     for rr in range(NUM_RUNS):
         run_id = rr + 1
-        primaries = make_dummy_primaries(num=NUM_EVENTS, prng=prng)
-        explicit_steering = {}
-        explicit_steering["steering_card"] = STEERING_CARD_TEMPLATE.format(
-            run_id
-        )
-        explicit_steering["primary_bytes"] = cpw._primaries_to_bytes(
-            primaries=primaries
-        )
-        orig[run_id] = explicit_steering
+        orig[run_id] = {
+            "run": make_dummy_run_steering(run_id=run_id, prng=prng),
+            "primaries": make_dummy_primaries(num=NUM_EVENTS, prng=prng),
+        }
 
     with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
         path = os.path.join(tmp_dir, "steering.tar")
-        cpw.steering_io.write_explicit_steerings(
-            explicit_steerings=orig, path=path
-        )
-        back = cpw.steering_io.read_explicit_steerings(path=path)
+        cpw.steering.write_steerings(runs=orig, path=path)
+        back = cpw.steering.read_steerings(path=path)
 
     for run_id in orig:
-        assert orig[run_id]["steering_card"] == back[run_id]["steering_card"]
-        assert orig[run_id]["primary_bytes"] == back[run_id]["primary_bytes"]
+        assert orig[run_id]["run"] == back[run_id]["run"]
+        assert orig[run_id]["primaries"] == back[run_id]["primaries"]
