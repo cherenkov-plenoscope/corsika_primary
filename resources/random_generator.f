@@ -90,17 +90,17 @@ C-----------------------------------------------------------------------
       IF     ( INDEX(CCHOPT,'S') .NE. 0 ) THEN
         IF ( ISEQ .GT. 0  .AND.  ISEQ .LE. KSEQ ) JSEQ = ISEQ
         IF ( INDEX(CCHOPT,'V') .NE. 0 ) THEN
-          READ(IORNDM,'(3Z8)') IJKL(JSEQ),NTOT(JSEQ),NTOT2(JSEQ)
-          READ(IORNDM,'(2Z8,Z16)') I97(JSEQ),J97(JSEQ),C(JSEQ)
-          READ(IORNDM,'(24(4Z16,/),Z16)') U
-          IJ = IJKL(JSEQ)/30082
-          KL = IJKL(JSEQ) - 30082 * IJ
-          I  = MOD(IJ/177, 177) + 2
-          J  = MOD(IJ, 177)     + 2
-          K  = MOD(KL/169, 178) + 1
-          L  = MOD(KL, 169)
-          CD =  7654321.D0 * TWOM24
-          CM = 16777213.D0 * TWOM24
+C          READ(IORNDM,'(3Z8)') IJKL(JSEQ),NTOT(JSEQ),NTOT2(JSEQ)
+C          READ(IORNDM,'(2Z8,Z16)') I97(JSEQ),J97(JSEQ),C(JSEQ)
+C          READ(IORNDM,'(24(4Z16,/),Z16)') U
+C          IJ = IJKL(JSEQ)/30082
+C          KL = IJKL(JSEQ) - 30082 * IJ
+C          I  = MOD(IJ/177, 177) + 2
+C          J  = MOD(IJ, 177)     + 2
+C          K  = MOD(KL/169, 178) + 1
+C          L  = MOD(KL, 169)
+C          CD =  7654321.D0 * TWOM24
+C          CM = 16777213.D0 * TWOM24
         ELSE
           IJKL(JSEQ)  = ISEED(1)
           NTOT(JSEQ)  = ISEED(2)
