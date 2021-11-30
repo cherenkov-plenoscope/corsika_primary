@@ -86,13 +86,6 @@ C-----------------------------------------------------------------------
       ENDIF
 
       CCHOPT = CHOPT
-      IF ( CCHOPT .EQ. ' ' ) THEN
-        ISEED(1) = 54217137
-        ISEED(2) = 0
-        ISEED(3) = 0
-        CCHOPT   = 'S'
-        JSEQ     = 1
-      ENDIF
 
       IF     ( INDEX(CCHOPT,'S') .NE. 0 ) THEN
         IF ( ISEQ .GT. 0  .AND.  ISEQ .LE. KSEQ ) JSEQ = ISEQ
