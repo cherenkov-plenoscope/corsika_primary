@@ -6,6 +6,9 @@ import corsika_primary_wrapper as cpw
 import corsika_wrapper as cw
 import numpy as np
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -113,23 +116,27 @@ def test_runtime_differences(
         # --------------------
         mod_steering_dict = {
             "run": {
-                "run_id": 1,
-                "event_id_of_first_event": 1,
-                "observation_level_asl_m": obs_level_asl_m,
-                "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
-                "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
-                "atmosphere_id": atmosphere_id,
+                "run_id": i8(1),
+                "event_id_of_first_event": i8(1),
+                "observation_level_asl_m": f8(obs_level_asl_m),
+                "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
+                "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
+                "atmosphere_id": i8(atmosphere_id),
+                "energy_range": {
+                    "start_GeV": f8(energy_GeV * 0.9),
+                    "stop_GeV": f8(energy_GeV * 1.1),
+                }
             },
             "primaries": [],
         }
 
         for idx_primary in range(num_shower):
             prm = {
-                "particle_id": particle_id,
-                "energy_GeV": energy_GeV,
-                "azimuth_rad": np.deg2rad(azimuth_deg),
-                "zenith_rad": np.deg2rad(zenith_deg),
-                "depth_g_per_cm2": starting_depth_g_per_cm2,
+                "particle_id": f8(particle_id),
+                "energy_GeV": f8(energy_GeV),
+                "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
+                "zenith_rad": f8(np.deg2rad(zenith_deg)),
+                "depth_g_per_cm2": f8(starting_depth_g_per_cm2),
                 "random_seed": ori_events_seeds[idx_primary],
             }
             mod_steering_dict["primaries"].append(prm)

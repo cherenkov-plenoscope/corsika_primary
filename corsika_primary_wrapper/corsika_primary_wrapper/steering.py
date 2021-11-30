@@ -52,7 +52,7 @@ EXAMPLE = {
     },
     "primaries": [
         {
-            "particle_id": i8(1),
+            "particle_id": f8(1),
             "energy_GeV": f8(1.32),
             "zenith_rad": f8(0.0),
             "azimuth_rad": f8(0.0),
@@ -60,7 +60,7 @@ EXAMPLE = {
             "random_seed": make_simple_seed(0),
         },
         {
-            "particle_id": i8(1),
+            "particle_id": f8(1),
             "energy_GeV": f8(1.52),
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.2),
@@ -68,7 +68,7 @@ EXAMPLE = {
             "random_seed": make_simple_seed(1),
         },
         {
-            "particle_id": i8(1),
+            "particle_id": f8(1),
             "energy_GeV": f8(11.4),
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.25),
@@ -79,7 +79,7 @@ EXAMPLE = {
 }
 
 
-def assert_values(steering_dict, energy_overhead=1.01):
+def assert_values(steering_dict):
     run = steering_dict["run"]
     primaries = steering_dict["primaries"]
     int32_limit = 2 ** 31
@@ -89,11 +89,9 @@ def assert_values(steering_dict, energy_overhead=1.01):
     assert run["energy_range"]["stop_GeV"] > 0
     assert run["energy_range"]["start_GeV"] < run["energy_range"]["stop_GeV"]
 
-    assert energy_overhead >= 1.0
-    eoh = energy_overhead
     for p in primaries:
-        assert run["energy_range"]["start_GeV"] < p["energy_GeV"] / eoh
-        assert run["energy_range"]["stop_GeV"] > p["energy_GeV"] * eoh
+        assert p["energy_GeV"] > run["energy_range"]["start_GeV"]
+        assert p["energy_GeV"] < run["energy_range"]["stop_GeV"]
 
         for sequence in p["random_seed"]:
             assert sequence["SEED"] < int32_limit
@@ -160,6 +158,7 @@ def make_run_card_str(steering_dict, output_path):
             "EXIT",
         ]
     )
+    card += "\n"  # newline so that CORSIKA knows when stdin is over.
     return card
 
 

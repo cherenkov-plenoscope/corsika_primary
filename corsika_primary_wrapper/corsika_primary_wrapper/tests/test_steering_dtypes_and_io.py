@@ -28,7 +28,7 @@ def make_dummy_primaries(num, prng):
     primaries = []
     for i in range(num):
         prm = {}
-        prm["particle_id"] = i8(prng.uniform(100))
+        prm["particle_id"] = f8(prng.uniform(100))
         prm["energy_GeV"] = f8(1 + prng.uniform(5))
         prm["zenith_rad"] = f8(prng.uniform(1))
         prm["azimuth_rad"] = f8(prng.uniform(2) - 1)

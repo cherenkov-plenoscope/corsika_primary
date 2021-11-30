@@ -5,6 +5,9 @@ import corsika_primary_wrapper as cpw
 import corsika_wrapper as cw
 import numpy as np
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -25,12 +28,13 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
     depths = np.linspace(0.0, 950.0, NUM_DEPTHS)
     steering_dict = {
         "run": {
-            "run_id": 1,
-            "event_id_of_first_event": 1,
-            "observation_level_asl_m": 0.0,
-            "earth_magnetic_field_x_muT": 12.5,
-            "earth_magnetic_field_z_muT": -25.9,
-            "atmosphere_id": 10,
+            "run_id": i8(1),
+            "event_id_of_first_event": i8(1),
+            "observation_level_asl_m": f8(0.0),
+            "earth_magnetic_field_x_muT": f8(12.5),
+            "earth_magnetic_field_z_muT": f8(-25.9),
+            "atmosphere_id": i8(10),
+            "energy_range": {"start_GeV": f8(0.5), "stop_GeV": f8(2.0)},
         },
         "primaries": [],
     }
@@ -39,12 +43,12 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
     for depth in depths:
         for rep in range(NUM_EVENTS_PER_DEPTH):
             prm = {
-                "particle_id": 1,
-                "energy_GeV": 1,
-                "zenith_rad": 0.0,
-                "azimuth_rad": 0.0,
-                "depth_g_per_cm2": depth,
-                "random_seed": cpw.simple_seed(seed),
+                "particle_id": f8(1),
+                "energy_GeV": f8(1),
+                "zenith_rad": f8(0.0),
+                "azimuth_rad": f8(0.0),
+                "depth_g_per_cm2": f8(depth),
+                "random_seed": cpw.steering.make_simple_seed(seed),
             }
             steering_dict["primaries"].append(prm)
             seed += 1

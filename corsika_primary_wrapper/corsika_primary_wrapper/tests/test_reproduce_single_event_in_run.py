@@ -5,7 +5,11 @@ import corsika_primary_wrapper as cpw
 import numpy as np
 import hashlib
 import pprint
+import copy
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -17,7 +21,7 @@ def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
 
 
-def make_explicit_steering(
+def make_random_steering_dict(
     run_id, particle_id, num_primaries, energy_GeV, prng
 ):
     seed_maker_and_checker = cpw.random_seed.CorsikaRandomSeed(
@@ -26,12 +30,16 @@ def make_explicit_steering(
 
     steering_dict = {
         "run": {
-            "run_id": run_id,
-            "event_id_of_first_event": 1,
-            "observation_level_asl_m": 2300,
-            "earth_magnetic_field_x_muT": 12.5,
-            "earth_magnetic_field_z_muT": -25.9,
-            "atmosphere_id": 10,
+            "run_id": i8(run_id),
+            "event_id_of_first_event": i8(1),
+            "observation_level_asl_m": f8(2300),
+            "earth_magnetic_field_x_muT": f8(12.5),
+            "earth_magnetic_field_z_muT": f8(-25.9),
+            "atmosphere_id": i8(10),
+            "energy_range": {
+                "start_GeV": f8(energy_GeV * 0.99),
+                "stop_GeV": f8(energy_GeV * 1.01),
+            },
         },
         "primaries": [],
     }
@@ -45,12 +53,12 @@ def make_explicit_steering(
             max_iterations=1000,
         )
         prm = {
-            "particle_id": particle_id,
-            "energy_GeV": energy_GeV,
-            "zenith_rad": zd,
-            "azimuth_rad": az,
-            "depth_g_per_cm2": 0.0,
-            "random_seed": cpw.simple_seed(
+            "particle_id": f8(particle_id),
+            "energy_GeV": f8(energy_GeV),
+            "zenith_rad": f8(zd),
+            "azimuth_rad": f8(az),
+            "depth_g_per_cm2": f8(0.0),
+            "random_seed": cpw.steering.make_simple_seed(
                 seed=seed_maker_and_checker.random_seed_based_on(
                     run_id=run_id, airshower_id=airshower_id,
                 ),
@@ -62,8 +70,7 @@ def make_explicit_steering(
 
 def hash_cherenkov_pools(
     corsika_primary_path,
-    steering_card,
-    primary_bytes,
+    steering_dict,
     tmp_key,
     tmp_dir,
 ):
@@ -75,8 +82,7 @@ def hash_cherenkov_pools(
     if not os.path.exists(hashes_path):
         run = cpw.CorsikaPrimary(
             corsika_path=corsika_primary_path,
-            steering_card=steering_card,
-            primary_bytes=primary_bytes,
+            steering_dict=steering_dict,
             stdout_path=path + ".o",
             stderr_path=path + ".e",
             tmp_dir_prefix="corsika_primary_",
@@ -102,43 +108,39 @@ def hash_cherenkov_pools(
     return hashes
 
 
-
 def make_run_and_cherry_pick_event_ids_to_reproduce(
     corsika_primary_path,
-    explicit_steerings,
+    steering_dict,
     event_ids_to_reproduce,
     tmp_dir,
 ):
-    assert os.path.exists(corsika_primary_path)
-    run_ids = list(explicit_steerings.keys())
-    assert len(run_ids) == 1
-    run_id = run_ids[0]
-
     os.makedirs(tmp_dir, exist_ok=True)
 
     complete_hashes = hash_cherenkov_pools(
         corsika_primary_path=corsika_primary_path,
-        steering_card=explicit_steerings[run_id]["steering_card"],
-        primary_bytes=explicit_steerings[run_id]["primary_bytes"],
+        steering_dict=steering_dict,
         tmp_key="complete",
         tmp_dir=tmp_dir,
     )
 
     part_hashes = {}
-    for event_ids in event_ids_to_reproduce:
+    for event_id in event_ids_to_reproduce:
+        event_idx = event_id - steering_dict["run"]["event_id_of_first_event"]
 
-        primary_bytes_for_idx = cpw._primaries_slice(
-            primary_bytes=explicit_steerings[run_id]["primary_bytes"],
-            i=(event_ids - 1)
+        part_steering_dict = {}
+        part_steering_dict["run"] = copy.deepcopy(steering_dict["run"])
+        part_steering_dict["primaries"] = []
+        part_steering_dict["primaries"].append(
+            copy.deepcopy(steering_dict["primaries"][event_idx])
         )
+
         part_hash = hash_cherenkov_pools(
             corsika_primary_path=corsika_primary_path,
-            steering_card=explicit_steerings[run_id]["steering_card"],
-            primary_bytes=primary_bytes_for_idx,
-            tmp_key="part_{:06d}".format(event_ids),
+            steering_dict=part_steering_dict,
+            tmp_key="part_{:06d}".format(event_id),
             tmp_dir=tmp_dir,
         )
-        part_hashes[event_ids] = part_hash[1]
+        part_hashes[event_id] = part_hash[1]
 
     return complete_hashes, part_hashes
 
@@ -181,7 +183,7 @@ def test_few_events_different_particles_reproduce_one(
 
     reproduction = {}
     for pkey in PARTICLES:
-        steering_dict = make_explicit_steering(
+        steering_dict = make_random_steering_dict(
             particle_id=PARTICLES[pkey]["particle_id"],
             run_id=6085,
             num_primaries=num_primaries,
@@ -194,9 +196,7 @@ def test_few_events_different_particles_reproduce_one(
             reproduced_hashes,
         ) = make_run_and_cherry_pick_event_ids_to_reproduce(
             corsika_primary_path=corsika_primary_path,
-            explicit_steerings=cpw.steering_dict_to_explicit_steerings(
-                steering_dict=steering_dict
-            ),
+            steering_dict=steering_dict,
             event_ids_to_reproduce=[4,7,13],
             tmp_dir=os.path.join(
                 tmp_dir, "few_events_different_particles_reproduce_one", pkey,
@@ -238,7 +238,7 @@ def test_reproduce_full_run(
     for pkey in PARTICLES:
         num_events = int(500 / PARTICLES[pkey]["energy_GeV"])
 
-        steering_dict = make_explicit_steering(
+        steering_dict = make_random_steering_dict(
             particle_id=PARTICLES[pkey]["particle_id"],
             run_id=8189,
             num_primaries=num_events,
@@ -246,16 +246,11 @@ def test_reproduce_full_run(
             prng=prng,
         )
 
-        steering_card, primary_bytes = cpw._dict_to_card_and_bytes(
-            steering_dict=steering_dict
-        )
-
         M = []
         for i in range(num_iterations):
             hashes = hash_cherenkov_pools(
                 corsika_primary_path=corsika_primary_path,
-                steering_card=steering_card,
-                primary_bytes=primary_bytes,
+                steering_dict=steering_dict,
                 tmp_key="{:06d}".format(i),
                 tmp_dir=os.path.join(
                     tmp_dir,

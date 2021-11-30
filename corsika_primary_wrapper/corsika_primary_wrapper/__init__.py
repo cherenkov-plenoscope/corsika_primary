@@ -6,6 +6,7 @@ import shutil
 import io
 import tarfile
 import struct
+import copy
 from . import random_distributions
 from . import random_seed
 from . import collect_version_information
@@ -34,70 +35,52 @@ def corsika_primary(
     corsika_path,
     steering_dict,
     output_path,
-    stdout_postfix=".stdout",
-    stderr_postfix=".stderr",
+    stdout_path=None,
+    stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
 ):
     """
-    Call CORSIKA-primary mod
+    Call CORSIKA-primary and write Cherenkov-photons to output_path.
+
+    This call is threadsafe, all execution takes place in a temproary copy
+    of CORSIKA's run-directory.
 
     Parameters
     ----------
-        corsika_path    Path to corsika's executable in its 'run' directory.
-
-        steering_dict   Dictionary describing the environment, and all primary
-                        particles explicitly.
-
-        output_path     Path to output tape-archive with Cherenkov-photons.
-    """
-    steering_card, primary_bytes = _dict_to_card_and_bytes(steering_dict)
-    return explicit_corsika_primary(
-        corsika_path=corsika_path,
-        steering_card=steering_card,
-        primary_bytes=primary_bytes,
-        output_path=output_path,
-        stdout_postfix=stdout_postfix,
-        stderr_postfix=stderr_postfix,
-        tmp_dir_prefix=tmp_dir_prefix,
-    )
-
-
-def explicit_corsika_primary(
-    corsika_path,
-    steering_card,
-    primary_bytes,
-    output_path,
-    stdout_postfix=".stdout",
-    stderr_postfix=".stderr",
-    tmp_dir_prefix="corsika_primary_",
-):
-    """
-    Call CORSIKA-primary mod
-
-    Parameters
-    ----------
-        corsika_path    Path to corsika's executable in its 'run' directory.
-
-        steering_card   String of lines seperated by newline.
-                        Steers all constant properties of a run.
-
-        primary_bytes   Bytes [5 x float64, 12 x int32] for each
-                        primary particle. The number of primaries will
-                        overwrite NSHOW in steering_card.
-
-        output_path     Path to output tape-archive with Cherenkov-photons.
+        corsika_path : str
+            Path to corsika's executable in its 'run' directory.
+        steering_dict : dict
+            The steering for the run and for each primary particle.
+        output_path : str
+            Path to tape-archive with Cherenkov-photons.
+        stdout_path : str
+            Path to write CORSIKA's std-out to.
+            If None: output_path + 'stdout'
+        stderr_path : str
+            Path to write CORSIKA's std-error to.
+            If None: output_path + 'stderr'
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
+    steering_dict = copy.deepcopy(steering_dict)
     output_path = op.abspath(output_path)
+    stdout_path = stdout_path if stdout_path else output_path + ".stdout"
+    stderr_path = stderr_path if stderr_path else output_path + ".stderr"
+    stdout_path = op.abspath(stdout_path)
+    stderr_path = op.abspath(stderr_path)
 
-    out_dirname = op.dirname(output_path)
-    out_basename = op.basename(output_path)
-    o_path = op.join(out_dirname, out_basename + stdout_postfix)
-    e_path = op.join(out_dirname, out_basename + stderr_postfix)
+    steering.assert_values(steering_dict=steering_dict)
+
+    steering_card = steering.make_run_card_str(
+        steering_dict=steering_dict,
+        output_path=output_path,
+    )
+    primary_bytes = steering.primary_dicts_to_bytes(
+        primary_dicts=steering_dict["primaries"]
+    )
+
     corsika_run_dir = op.dirname(corsika_path)
-    num_primaries = len(primary_bytes) // NUM_BYTES_PER_PRIMARY
-    assert (len(primary_bytes) % NUM_BYTES_PER_PRIMARY) == 0
+
 
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
         tmp_corsika_run_dir = op.join(tmp_dir, "run")
@@ -105,24 +88,17 @@ def explicit_corsika_primary(
         tmp_corsika_path = op.join(
             tmp_corsika_run_dir, op.basename(corsika_path)
         )
-
         primary_path = op.join(
-            tmp_corsika_run_dir, PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+            tmp_corsika_run_dir, steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
         )
         with open(primary_path, "wb") as f:
             f.write(primary_bytes)
-
-        steering_card = _overwrite_steering_card(
-            steering_card=steering_card,
-            output_path=output_path,
-            num_shower=num_primaries,
-        )
 
         steering_card_pipe, pwrite = os.pipe()
         os.write(pwrite, str.encode(steering_card))
         os.close(pwrite)
 
-        with open(o_path, "w") as stdout, open(e_path, "w") as stderr:
+        with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
             rc = subprocess.call(
                 tmp_corsika_path,
                 stdin=steering_card_pipe,
@@ -133,6 +109,10 @@ def explicit_corsika_primary(
 
         if op.isfile(output_path):
             os.chmod(output_path, 0o664)
+
+    with open(stdout_path, "rt") as f:
+        stdout_txt = f.read()
+    assert stdout_ends_with_end_of_run_marker(stdout_txt)
 
     return rc
 
@@ -241,9 +221,9 @@ def _parse_random_seeds_from_corsika_stdout(stdout):
             for seq in np.arange(0, NUM_RANDOM_SEQUENCES):
                 state.append(
                     {
-                        "SEED": _seeds[seq],
-                        "CALLS": _calls[seq],
-                        "BILLIONS": _billions[seq],
+                        "SEED": np.int32(_seeds[seq]),
+                        "CALLS": np.int32(_calls[seq]),
+                        "BILLIONS": np.int32(_billions[seq]),
                     }
                 )
             events.append(state)
@@ -269,52 +249,69 @@ class CorsikaPrimary:
     def __init__(
         self,
         corsika_path,
+        steering_dict,
         stdout_path,
         stderr_path,
-        steering_card,
-        primary_bytes,
         tmp_dir_prefix="corsika_primary_",
     ):
-        self.corsika_path = str(corsika_path)
-        self.stdout_path = str(stdout_path)
-        self.stderr_path = str(stderr_path)
-        self.steering_card = str(steering_card)
-        self.primary_bytes = bytes(primary_bytes)
+        """
+        Inits a run-handle which can return the next event on demand.
+        No output is written.
 
-        self.num_primaries = len(self.primary_bytes) // NUM_BYTES_PER_PRIMARY
-        assert (len(self.primary_bytes) % NUM_BYTES_PER_PRIMARY) == 0
-        assert self.num_primaries > 0
+        Parameters
+        ----------
+        corsika_path : str
+            Path to corsika's executable in its 'run' directory.
+        steering_dict : dict
+            The steering for the run and for each primary particle.
+        stdout_path : str
+            Path to write CORSIKA's std-out to.
+        stderr_path : str,
+            Path to write CORSIKA's std-error to.
+        """
+        op = os.path
+
+        self.corsika_path = op.abspath(corsika_path)
+        self.steering_dict = copy.deepcopy(steering_dict)
+        self.stdout_path = op.abspath(stdout_path)
+        self.stderr_path = op.abspath(stderr_path)
+        self.tmp_dir_prefix = str(tmp_dir_prefix)
+
+        steering.assert_values(steering_dict=self.steering_dict)
 
         self.tmp_dir_handle = tempfile.TemporaryDirectory(
-            prefix=tmp_dir_prefix
+            prefix=self.tmp_dir_prefix
         )
         self.tmp_dir = self.tmp_dir_handle.name
 
-        self.fifo_path = os.path.join(self.tmp_dir, "fifo.tar")
+        self.fifo_path = op.join(self.tmp_dir, "fifo.tar")
         os.mkfifo(self.fifo_path)
 
-        self.tmp_corsika_run_dir = os.path.join(self.tmp_dir, "run")
-        self.corsika_run_dir = os.path.dirname(self.corsika_path)
+        self.tmp_corsika_run_dir = op.join(self.tmp_dir, "run")
+        self.corsika_run_dir = op.dirname(self.corsika_path)
 
         shutil.copytree(
             self.corsika_run_dir, self.tmp_corsika_run_dir, symlinks=False
         )
-        self.tmp_corsika_path = os.path.join(
-            self.tmp_corsika_run_dir, os.path.basename(self.corsika_path)
+        self.tmp_corsika_path = op.join(
+            self.tmp_corsika_run_dir, op.basename(self.corsika_path)
         )
 
-        self.primary_path = os.path.join(
-            self.tmp_corsika_run_dir, PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+        self.steering_card = steering.make_run_card_str(
+            steering_dict=self.steering_dict,
+            output_path=self.fifo_path,
+        )
+        assert self.steering_card[-1] == "\n", "Need newline to mark ending."
+
+        self.primary_bytes = steering.primary_dicts_to_bytes(
+            primary_dicts=self.steering_dict["primaries"],
+        )
+
+        self.primary_path = op.join(
+            self.tmp_corsika_run_dir, steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
         )
         with open(self.primary_path, "wb") as f:
             f.write(self.primary_bytes)
-
-        self.steering_card = _overwrite_steering_card(
-            steering_card=self.steering_card,
-            output_path=self.fifo_path,
-            num_shower=self.num_primaries,
-        )
-        self.steering_card += "\n"
 
         self.stdout = open(self.stdout_path, "w")
         self.stderr = open(self.stderr_path, "w")

@@ -5,6 +5,9 @@ import corsika_primary_wrapper as cpw
 import corsika_wrapper as cw
 import numpy as np
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -15,29 +18,30 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
     assert os.path.exists(corsika_primary_path)
     steering_dict = {
         "run": {
-            "run_id": 1,
-            "event_id_of_first_event": 1,
-            "observation_level_asl_m": 2300,
-            "earth_magnetic_field_x_muT": 12.5,
-            "earth_magnetic_field_z_muT": -25.9,
-            "atmosphere_id": 10,
+            "run_id": i8(1),
+            "event_id_of_first_event": i8(1),
+            "observation_level_asl_m": f8(2300),
+            "earth_magnetic_field_x_muT": f8(12.5),
+            "earth_magnetic_field_z_muT": f8(-25.9),
+            "atmosphere_id": i8(10),
+            "energy_range": {"start_GeV": f8(1.0), "stop_GeV": f8(5.0)},
         },
         "primaries": [
             {
-                "particle_id": 1,
-                "energy_GeV": 1.337,
-                "zenith_rad": 0.0,
-                "azimuth_rad": 0.0,
-                "depth_g_per_cm2": 1.0,
-                "random_seed": cpw.simple_seed(42),
+                "particle_id": f8(1),
+                "energy_GeV": f8(1.337),
+                "zenith_rad": f8(0.0),
+                "azimuth_rad": f8(0.0),
+                "depth_g_per_cm2": f8(1.0),
+                "random_seed": cpw.steering.make_simple_seed(42),
             },
             {
-                "particle_id": 3,
-                "energy_GeV": 4.32,
-                "zenith_rad": 0.2,
-                "azimuth_rad": 0.3,
-                "depth_g_per_cm2": 34.0,
-                "random_seed": cpw.simple_seed(18),
+                "particle_id": f8(3),
+                "energy_GeV": f8(4.32),
+                "zenith_rad": f8(0.2),
+                "azimuth_rad": f8(0.3),
+                "depth_g_per_cm2": f8(34.0),
+                "random_seed": cpw.steering.make_simple_seed(18),
             },
         ],
     }

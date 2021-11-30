@@ -5,6 +5,9 @@ import corsika_primary_wrapper as cpw
 import corsika_wrapper as cw
 import numpy as np
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -22,21 +25,22 @@ def test_no_obvious_32bit_limitations(
     assert os.path.exists(corsika_primary_path)
     steering_dict = {
         "run": {
-            "run_id": 1,
-            "event_id_of_first_event": 1,
-            "observation_level_asl_m": 2300,
-            "earth_magnetic_field_x_muT": 12.5,
-            "earth_magnetic_field_z_muT": -25.9,
-            "atmosphere_id": 10,
+            "run_id": i8(1),
+            "event_id_of_first_event": i8(1),
+            "observation_level_asl_m": f8(2300),
+            "earth_magnetic_field_x_muT": f8(12.5),
+            "earth_magnetic_field_z_muT": f8(-25.9),
+            "atmosphere_id": i8(10),
+            "energy_range": {"start_GeV": f8(3.2e3), "stop_GeV": f8(3.4e3)},
         },
         "primaries": [
             {
-                "particle_id": 3,
-                "energy_GeV": 3.3e3,
-                "zenith_rad": 0.0,
-                "azimuth_rad": 0.0,
-                "depth_g_per_cm2": 0.0,
-                "random_seed": cpw.simple_seed(0),
+                "particle_id": f8(3),
+                "energy_GeV": f8(3.3e3),
+                "zenith_rad": f8(0.0),
+                "azimuth_rad": f8(0.0),
+                "depth_g_per_cm2": f8(0.0),
+                "random_seed": cpw.steering.make_simple_seed(0),
             }
         ],
     }

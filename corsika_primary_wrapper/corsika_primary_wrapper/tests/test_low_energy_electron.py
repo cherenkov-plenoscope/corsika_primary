@@ -7,6 +7,9 @@ import numpy as np
 from os import path as op
 import subprocess
 
+i4 = np.int32
+i8 = np.int64
+f8 = np.float64
 
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
@@ -155,23 +158,24 @@ def test_low_energy_electron(
         # --------------------
         mod_steering_dict = {
             "run": {
-                "run_id": 1,
-                "event_id_of_first_event": 1,
-                "observation_level_asl_m": observation_level_asl_m,
-                "earth_magnetic_field_x_muT": earth_magnetic_field_x_muT,
-                "earth_magnetic_field_z_muT": earth_magnetic_field_z_muT,
-                "atmosphere_id": atmosphere_id,
+                "run_id": i8(1),
+                "event_id_of_first_event": i8(1),
+                "observation_level_asl_m": f8(observation_level_asl_m),
+                "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
+                "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
+                "atmosphere_id": i8(atmosphere_id),
+                "energy_range": {"start_GeV": f8(0.2), "stop_GeV": f8(1.0)},
             },
             "primaries": [],
         }
 
         for idx in range(num_shower):
             prm = {
-                "particle_id": particle_id,
-                "energy_GeV": energy,
-                "zenith_rad": np.deg2rad(zenith_deg),
-                "azimuth_rad": 0.0,
-                "depth_g_per_cm2": depth_g_per_cm2,
+                "particle_id": f8(particle_id),
+                "energy_GeV": f8(energy),
+                "zenith_rad": f8(np.deg2rad(zenith_deg)),
+                "azimuth_rad": f8(0.0),
+                "depth_g_per_cm2": f8(depth_g_per_cm2),
                 "random_seed": ori_events_seeds[idx],
             }
             mod_steering_dict["primaries"].append(prm)
@@ -181,7 +185,7 @@ def test_low_energy_electron(
             corsika_path=corsika_primary_path,
             steering_dict=mod_steering_dict,
             output_path=run_path,
-            stdout_postfix=".stdout",
+            stdout_path=run_path + ".stdout",
         )
         with open(run_path + ".stdout", "rt") as f:
             stdout = f.read()
