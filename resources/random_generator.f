@@ -1,3 +1,33 @@
+C --------------/CRRANDPA/-----------------------
+C  RD(3000)    = ARRAY (DOUBLE PRECISION) FOR RANDOM NUMBERS
+C  FAC         = VARIABLE OF SUBROUT. RANNOR
+C  U1          = VARIABLE OF SUBROUT. RANNOR
+C  U2          = VARIABLE OF SUBROUT. RANNOR
+C  NSEQ        = # OF RANDOM GENERATOR SEQUENCE
+C  ISEED(.,.)  = RANDOM GENERATOR SEED
+C  KNOR        = FLAG TO STEER GENERATION OF NORMAL DISTRIBUTED RANDOMS
+C
+C --------------/CRRANMA3/-----------------------
+C  KSEQ        = PARAMETER DEFINING MAX. NUMBER OF INDEPENDENT SEQUENCES
+C  CD          = STARTING NUMBER FOR RANDOM GENERATOR
+C  CINT        = STARTING NUMBER FOR RANDOM GENERATOR
+C  CM          = STARTING NUMBER FOR RANDOM GENERATOR
+C  TWOM24      = 2**-24 (MANTISSA SINGLE PRECISION)
+C  TWOM48      = 2**-48 (MANTISSA DOUBLE PRECISION)
+C  MODCNS      = MODULUS (NOTOT * MODCNS = NTOT2) FOR RANDOM GENERATOR
+C
+C --------------/CRRANMA4/-----------------------
+C  C()         = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  U()         = ARRAY(97,KSEQ) FOR RANDOM GENERATOR
+C  IJKL()      = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  I97()       = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  J97()       = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  NTOT()      = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  NTOT2()     = ARRAY(KSEQ) FOR RANDOM GENERATOR
+C  JSEQ        = ACTUAL SEQUENCE NUMBER
+C  UNI         = FINAL RANDOM NUMBER
+C
+
 *-- Author :    D. HECK IK FZK KARLSRUHE   17/03/2003
 C=======================================================================
 
@@ -23,39 +53,6 @@ C-----------------------------------------------------------------------
 
       IMPLICIT NONE
 
-# 1 "corsika.h" 1
-# 3547 "corsika.h"
-# 3563 "corsika.h"
-# 3572 "corsika.h"
-# 3591 "corsika.h"
-# 3600 "corsika.h"
-# 3612 "corsika.h"
-# 3636 "corsika.h"
-# 3686 "corsika.h"
-# 3792 "corsika.h"
-# 3805 "corsika.h"
-# 3836 "corsika.h"
-# 3859 "corsika.h"
-# 3874 "corsika.h"
-# 3891 "corsika.h"
-# 3959 "corsika.h"
-# 3984 "corsika.h"
-# 4026 "corsika.h"
-# 4046 "corsika.h"
-# 4062 "corsika.h"
-# 4098 "corsika.h"
-# 4111 "corsika.h"
-# 4124 "corsika.h"
-# 4140 "corsika.h"
-# 4183 "corsika.h"
-# 4219 "corsika.h"
-# 4266 "corsika.h"
-# 4297 "corsika.h"
-# 4319 "corsika.h"
-# 4328 "corsika.h"
-# 4348 "corsika.h"
-# 4383 "corsika.h"
-
       INTEGER          KSEQ
 
       PARAMETER        (KSEQ = 8)
@@ -68,29 +65,6 @@ C-----------------------------------------------------------------------
       DOUBLE PRECISION C(KSEQ),U(97,KSEQ),UNI
       INTEGER          IJKL(KSEQ),I97(KSEQ),J97(KSEQ),
      *                 NTOT(KSEQ),NTOT2(KSEQ),JSEQ
-
-# 4415 "corsika.h"
-# 4440 "corsika.h"
-# 4664 "corsika.h"
-# 4674 "corsika.h"
-# 4693 "corsika.h"
-# 4727 "corsika.h"
-# 4786 "corsika.h"
-# 4818 "corsika.h"
-# 4870 "corsika.h"
-# 4900 "corsika.h"
-# 4924 "corsika.h"
-# 4948 "corsika.h"
-# 4958 "corsika.h"
-# 4983 "corsika.h"
-# 4998 "corsika.h"
-# 5008 "corsika.h"
-# 5027 "corsika.h"
-# 5071 "corsika.h"
-# 5108 "corsika.h"
-# 5239 "corsika.h"
-# 5249 "corsika.h"
-# 28636 "corsika.F" 2
 
       DOUBLE PRECISION CC,S,T,UU(97)
       INTEGER          ISEED(3),I,IDUM,II,II97,IJ,IJ97,IORNDM,
@@ -228,39 +202,6 @@ C-----------------------------------------------------------------------
 
       IMPLICIT NONE
 
-# 1 "corsika.h" 1
-# 3547 "corsika.h"
-# 3563 "corsika.h"
-# 3572 "corsika.h"
-# 3591 "corsika.h"
-# 3600 "corsika.h"
-# 3612 "corsika.h"
-# 3636 "corsika.h"
-# 3686 "corsika.h"
-# 3792 "corsika.h"
-# 3805 "corsika.h"
-# 3836 "corsika.h"
-# 3859 "corsika.h"
-# 3874 "corsika.h"
-# 3891 "corsika.h"
-# 3959 "corsika.h"
-# 3984 "corsika.h"
-# 4026 "corsika.h"
-# 4046 "corsika.h"
-# 4062 "corsika.h"
-# 4098 "corsika.h"
-# 4111 "corsika.h"
-# 4124 "corsika.h"
-# 4140 "corsika.h"
-# 4183 "corsika.h"
-# 4219 "corsika.h"
-# 4266 "corsika.h"
-# 4297 "corsika.h"
-# 4319 "corsika.h"
-# 4328 "corsika.h"
-# 4348 "corsika.h"
-# 4383 "corsika.h"
-
       INTEGER          KSEQ
 
       PARAMETER        (KSEQ = 8)
@@ -273,29 +214,6 @@ C-----------------------------------------------------------------------
       DOUBLE PRECISION C(KSEQ),U(97,KSEQ),UNI
       INTEGER          IJKL(KSEQ),I97(KSEQ),J97(KSEQ),
      *                 NTOT(KSEQ),NTOT2(KSEQ),JSEQ
-
-# 4415 "corsika.h"
-# 4440 "corsika.h"
-# 4664 "corsika.h"
-# 4674 "corsika.h"
-# 4693 "corsika.h"
-# 4727 "corsika.h"
-# 4786 "corsika.h"
-# 4818 "corsika.h"
-# 4870 "corsika.h"
-# 4900 "corsika.h"
-# 4924 "corsika.h"
-# 4948 "corsika.h"
-# 4958 "corsika.h"
-# 4983 "corsika.h"
-# 4998 "corsika.h"
-# 5008 "corsika.h"
-# 5027 "corsika.h"
-# 5071 "corsika.h"
-# 5108 "corsika.h"
-# 5239 "corsika.h"
-# 5249 "corsika.h"
-# 28775 "corsika.F" 2
 
       DOUBLE PRECISION RVEC(*)
       INTEGER          ISEQ,IVEC,LENV
@@ -326,6 +244,127 @@ C  AN EXACT ZERO HERE IS VERY UNLIKELY, BUT LET''S BE SAFE.
         NTOT2(JSEQ) = NTOT2(JSEQ) + 1
         NTOT(JSEQ)  = NTOT(JSEQ) - MODCNS
       ENDIF
+
+      RETURN
+      END
+
+
+      DOUBLE PRECISION FUNCTION RANNOR( A,B )
+
+C-----------------------------------------------------------------------
+C  RAN(DOM NUMBER) NOR(MALLY DISTRIBUTED)
+C
+C  GENERATES NORMAL DISTRIBUTED RANDOM NUMBER
+C  DELIVERS 2 UNCORRELATED RANDOM NUMBERS,
+C  THEREFORE RANDOM CALLS ARE ONLY NECESSARY EVERY SECOND TIME.
+C  REFERENCE : NUMERICAL RECIPES, W.H. PRESS ET AL.,
+C              CAMBRIDGE UNIVERSITY PRESS, 1992  ISBN 0 521 43064 X
+C  THIS FUNCTION IS CALLED FROM HDPM, LEADDF, PARRAP, QGSTOR,
+C  UPDATE, AND VAPOR.
+C  ARGUMENTS:
+C   A      = MEAN VALUE
+C   B      = STANDARD DEVIATION
+C-----------------------------------------------------------------------
+
+      IMPLICIT NONE
+
+      COMMON /CRCONSTA/PI,PI2,OB3,TB3,ENEPER,SQRT3
+      DOUBLE PRECISION PI,PI2,OB3,TB3,ENEPER,SQRT3
+
+      COMMON /CRRANDPA/RD,FAC,U1,U2,NSEQ,ISEED,KNOR
+      DOUBLE PRECISION RD(3000),FAC,U1,U2
+
+      INTEGER          ISEED(3,10),NSEQ
+
+      LOGICAL          KNOR
+
+      COMMON /CRRUNPAR/FIXHEI,THICK0,HILOECM,HILOELB,SIG1I,TARG1I,
+     *                 STEPFC,RCUT,RCUT2,
+     *                 NRRUN,NSHOW,MPATAP,MONIIN,
+     *                 MONIOU,MDEBUG,NUCNUC,MTABOUT,MLONGOUT,
+     *                 ISEED1I,
+     *                 IUDEBUG,IUDEBG0,
+     *                 MCETAP,NOCERB,
+     *                 MCERABS,MCERQEF,MCERMIR,
+     *                 LSTCK,
+     *                 LSTCK1,LSTCK2,
+     *                 ISHOWNO,ISHW,NOPART,NRECS,NBLKS,MAXPRT,NDEBDL,
+     *                 N1STTR,MDBASE,
+     *                 DEBDEL,DEBUG,FDECAY,FEGS,FIRSTI,FIXINC,FIXTAR,
+     *                 FIX1I,FMUADD,FNKG,FPRINT,FDBASE,FPAROUT,FTABOUT,
+     *                 FLONGOUT,GHEISH,GHESIG,GHEISDB,USELOW,TMARGIN
+
+     *                 ,FOUTFILE,IFINAM
+
+     *                 ,FURQMD,FURQSG
+
+      COMMON /CRRUNPAC/DATDIR,DSN,DSNTAB,DSNLONG,HOST,USER
+
+     *                 ,LSTDSN
+
+     *                 ,FILOUT
+
+      DOUBLE PRECISION FIXHEI,THICK0,HILOECM,HILOELB,SIG1I,TARG1I,
+     *                 STEPFC,RCUT,RCUT2
+
+      INTEGER          NRRUN,NSHOW,MPATAP,MONIIN,MONIOU,MDEBUG,NUCNUC,
+     *                 ISHOWNO,ISHW,NOPART,NRECS,NBLKS,MAXPRT,NDEBDL,
+     *                 N1STTR,MDBASE,MTABOUT,MLONGOUT,ISEED1I(3)
+
+      INTEGER          IUDEBUG,IUDEBG0
+
+
+      INTEGER          MCETAP,NOCERB
+
+      INTEGER          MCERABS,MCERQEF,MCERMIR
+
+      INTEGER          LSTCK
+
+     *                ,LSTCK1,LSTCK2
+
+      CHARACTER*132    FILOUT
+
+      CHARACTER*255    DSN,DSNTAB,DSNLONG
+      CHARACTER*132    DATDIR
+      CHARACTER*60     HOST,USER
+
+      CHARACTER*9      LSTDSN
+
+      LOGICAL          DEBDEL,DEBUG,FDECAY,FEGS,FIRSTI,FIXINC,FIXTAR,
+     *                 FIX1I,FMUADD,FNKG,FPRINT,FDBASE,FPAROUT,FTABOUT,
+     *                 FLONGOUT,GHEISH,GHESIG,GHEISDB,USELOW,TMARGIN
+
+      LOGICAL          FOUTFILE
+      INTEGER          IFINAM
+
+      LOGICAL          FURQMD,FURQSG
+
+      DOUBLE PRECISION A,B,RR
+      INTEGER LLSEQ
+      SAVE
+C-----------------------------------------------------------------------
+
+      LLSEQ = 1
+C      IF ( DEBUG ) WRITE(MDEBUG,100) SNGL(A),SNGL(B)
+C100   FORMAT(' RANNOR: A,B=',1P,2E10.3)
+ctp      write(mdebug,*)'knor,u1,u2,fac,llseq',knor,u1,u2,fac,llseq
+      IF ( KNOR ) THEN
+  1     CONTINUE
+        CALL RMMARD( RD,2,LLSEQ )
+        U1 = 2.D0*RD(1) - 1.D0
+        U2 = 2.D0*RD(2) - 1.D0
+        RR = U1**2 + U2**2
+        IF ( RR .GE. 1.D0  .OR.  RR .EQ. 0.D0 ) GOTO 1
+        FAC = SQRT( (-2.D0) * LOG( RR ) / RR )
+
+        RANNOR = FAC * U1 * B + A
+        KNOR   = .FALSE.
+      ELSE
+        RANNOR = FAC * U2 * B + A
+        KNOR   = .TRUE.
+      ENDIF
+C      IF ( DEBUG ) WRITE(MDEBUG,101) RANNOR
+C101   FORMAT('+',34X,' RANNOR =',1P,E12.5)
 
       RETURN
       END
