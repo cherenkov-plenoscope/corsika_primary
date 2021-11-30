@@ -23,369 +23,40 @@ C-----------------------------------------------------------------------
 
       IMPLICIT NONE
 
-
-
 # 1 "corsika.h" 1
 # 3547 "corsika.h"
-
-
-
-
-
-
-
-
 # 3563 "corsika.h"
-
 # 3572 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 3591 "corsika.h"
-
 # 3600 "corsika.h"
-
 # 3612 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3636 "corsika.h"
-
 # 3686 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3792 "corsika.h"
-
 # 3805 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3836 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3859 "corsika.h"
-
 # 3874 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 3891 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3959 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3984 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4026 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4046 "corsika.h"
-
 # 4062 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4098 "corsika.h"
-
 # 4111 "corsika.h"
-
 # 4124 "corsika.h"
-
 # 4140 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4183 "corsika.h"
-
-
-
-
-
-
-
-
 # 4219 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4266 "corsika.h"
-
 # 4297 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4319 "corsika.h"
-
 # 4328 "corsika.h"
-
 # 4348 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4383 "corsika.h"
 
-
-
       INTEGER          KSEQ
-
-
 
       PARAMETER        (KSEQ = 8)
 
@@ -393,339 +64,32 @@ C-----------------------------------------------------------------------
       DOUBLE PRECISION CD,CINT,CM,TWOM24,TWOM48
       INTEGER          MODCNS
 
-
-
-
-
       COMMON /CRRANMA4/C,U,IJKL,I97,J97,NTOT,NTOT2,JSEQ
       DOUBLE PRECISION C(KSEQ),U(97,KSEQ),UNI
       INTEGER          IJKL(KSEQ),I97(KSEQ),J97(KSEQ),
      *                 NTOT(KSEQ),NTOT2(KSEQ),JSEQ
 
-
-
 # 4415 "corsika.h"
-
-
-
-
-
-
-
-
 # 4440 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4664 "corsika.h"
-
 # 4674 "corsika.h"
-
-
-
-
-
-
-
-
 # 4693 "corsika.h"
-
 # 4727 "corsika.h"
-
 # 4786 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4818 "corsika.h"
-
 # 4870 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4900 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4924 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
 # 4948 "corsika.h"
-
 # 4958 "corsika.h"
-
 # 4983 "corsika.h"
-
 # 4998 "corsika.h"
-
 # 5008 "corsika.h"
-
-     
 # 5027 "corsika.h"
-
-     
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 5071 "corsika.h"
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 5108 "corsika.h"
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
 # 5239 "corsika.h"
-
 # 5249 "corsika.h"
-
-
-
-
-
-
-
-
-
-     
 # 28636 "corsika.F" 2
 
       DOUBLE PRECISION CC,S,T,UU(97)
@@ -864,369 +228,40 @@ C-----------------------------------------------------------------------
 
       IMPLICIT NONE
 
-
-
 # 1 "corsika.h" 1
 # 3547 "corsika.h"
-
-
-
-
-
-
-
-
 # 3563 "corsika.h"
-
 # 3572 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 3591 "corsika.h"
-
 # 3600 "corsika.h"
-
 # 3612 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3636 "corsika.h"
-
 # 3686 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3792 "corsika.h"
-
 # 3805 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3836 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3859 "corsika.h"
-
 # 3874 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 3891 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3959 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 3984 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4026 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4046 "corsika.h"
-
 # 4062 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4098 "corsika.h"
-
 # 4111 "corsika.h"
-
 # 4124 "corsika.h"
-
 # 4140 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4183 "corsika.h"
-
-
-
-
-
-
-
-
 # 4219 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4266 "corsika.h"
-
 # 4297 "corsika.h"
-
-
-
-
-
-
-
-
-
 # 4319 "corsika.h"
-
 # 4328 "corsika.h"
-
 # 4348 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4383 "corsika.h"
 
-
-
       INTEGER          KSEQ
-
-
 
       PARAMETER        (KSEQ = 8)
 
@@ -1234,339 +269,32 @@ C-----------------------------------------------------------------------
       DOUBLE PRECISION CD,CINT,CM,TWOM24,TWOM48
       INTEGER          MODCNS
 
-
-
-
-
       COMMON /CRRANMA4/C,U,IJKL,I97,J97,NTOT,NTOT2,JSEQ
       DOUBLE PRECISION C(KSEQ),U(97,KSEQ),UNI
       INTEGER          IJKL(KSEQ),I97(KSEQ),J97(KSEQ),
      *                 NTOT(KSEQ),NTOT2(KSEQ),JSEQ
 
-
-
 # 4415 "corsika.h"
-
-
-
-
-
-
-
-
 # 4440 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4664 "corsika.h"
-
 # 4674 "corsika.h"
-
-
-
-
-
-
-
-
 # 4693 "corsika.h"
-
 # 4727 "corsika.h"
-
 # 4786 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4818 "corsika.h"
-
 # 4870 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4900 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 4924 "corsika.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
 # 4948 "corsika.h"
-
 # 4958 "corsika.h"
-
 # 4983 "corsika.h"
-
 # 4998 "corsika.h"
-
 # 5008 "corsika.h"
-
-     
 # 5027 "corsika.h"
-
-     
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 5071 "corsika.h"
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 5108 "corsika.h"
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
 # 5239 "corsika.h"
-
 # 5249 "corsika.h"
-
-
-
-
-
-
-
-
-
-     
 # 28775 "corsika.F" 2
 
       DOUBLE PRECISION RVEC(*)
