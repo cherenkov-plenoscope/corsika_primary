@@ -22,11 +22,6 @@ def corsika_path(pytestconfig):
 
 
 @pytest.fixture()
-def merlict_eventio_converter(pytestconfig):
-    return pytestconfig.getoption("merlict_eventio_converter")
-
-
-@pytest.fixture()
 def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
 
@@ -34,7 +29,6 @@ def non_temporary_path(pytestconfig):
 def test_low_energy_electron(
     corsika_primary_path,
     corsika_path,
-    merlict_eventio_converter,
     non_temporary_path,
 ):
     """
@@ -125,8 +119,7 @@ def test_low_energy_electron(
         # --------------------
         # The original CORSIKA will fail to write valid output.
         ori_run_eventio_path = op.join(tmp_dir, "original_run.eventio")
-        ori_run_path = op.join(tmp_dir, "original_run.simpleio")
-        if not op.exists(ori_run_path):
+        if not op.exists(ori_run_eventio_path):
             ori_card_path = op.join(tmp_dir, "original_steering_card.txt")
             with open(ori_card_path, "wt") as f:
                 f.write(ori_steering_card)
@@ -136,15 +129,7 @@ def test_low_energy_electron(
                 save_stdout=True,
                 corsika_path=corsika_path,
             )
-            subprocess.call(
-                [
-                    merlict_eventio_converter,
-                    "-i",
-                    ori_run_eventio_path,
-                    "-o",
-                    ori_run_path,
-                ]
-            )
+
         with open(ori_run_eventio_path + ".stdout", "rt") as f:
             ori_stdout = f.read()
         ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(

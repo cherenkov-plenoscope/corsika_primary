@@ -2,6 +2,7 @@ import pytest
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
+from corsika_primary_wrapper import testing as cpw_testing
 import corsika_wrapper as cw
 import subprocess
 import simpleio
@@ -25,20 +26,6 @@ def merlict_eventio_converter(pytestconfig):
 @pytest.fixture()
 def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
-
-
-def _simpleio_bunches_to_array(bunches):
-    num_bunches = bunches.x.shape[0]
-    b = np.zeros(shape=(num_bunches, 8), dtype=np.float32)
-    b[:, cpw.IX] = bunches.x
-    b[:, cpw.IY] = bunches.y
-    b[:, cpw.ICX] = bunches.cx
-    b[:, cpw.ICY] = bunches.cy
-    b[:, cpw.ITIME] = bunches.arrival_time_since_first_interaction
-    b[:, cpw.IZEM] = bunches.emission_height
-    b[:, cpw.IBSIZE] = bunches.probability_to_reach_observation_level
-    b[:, cpw.IWVL] = np.abs(bunches.wavelength)
-    return b
 
 
 def hash_cherenkov_pools(card, tmp_dir, corsika_path, merlict_eventio_converter):
@@ -78,7 +65,9 @@ def hash_cherenkov_pools(card, tmp_dir, corsika_path, merlict_eventio_converter)
             event = run[event_idx]
             evth = event.header.raw
             event_id = int(evth[cpw.I_EVTH_EVENT_NUMBER])
-            bunches = _simpleio_bunches_to_array(event.cherenkov_photon_bunches)
+            bunches = cpw_testing.simpleio_bunches_to_array(
+                bunches=event.cherenkov_photon_bunches
+            )
             event_seeds[event_id] = cpw.event_seed_from_evth(evth=evth)
             h = hashlib.md5(bunches.tobytes()).hexdigest()
             hashes_csv += "{:06d},{:s}\n".format(event_id, h)
