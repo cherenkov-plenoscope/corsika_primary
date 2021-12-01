@@ -180,6 +180,7 @@ def test_few_events_different_particles_reproduce_one(
     prng = np.random.Generator(np.random.PCG64(42))
 
     num_primaries = 15
+    event_ids_to_reproduce = np.arange(1, num_primaries + 1)
 
     reproduction = {}
     for pkey in PARTICLES:
@@ -197,7 +198,7 @@ def test_few_events_different_particles_reproduce_one(
         ) = make_run_and_cherry_pick_event_ids_to_reproduce(
             corsika_primary_path=corsika_primary_path,
             steering_dict=steering_dict,
-            event_ids_to_reproduce=[4,7,13],
+            event_ids_to_reproduce=event_ids_to_reproduce,
             tmp_dir=os.path.join(
                 tmp_dir, "few_events_different_particles_reproduce_one", pkey,
             ),
