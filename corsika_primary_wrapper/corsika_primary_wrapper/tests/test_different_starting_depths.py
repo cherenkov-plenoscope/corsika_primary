@@ -48,7 +48,7 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
                 "zenith_rad": f8(0.0),
                 "azimuth_rad": f8(0.0),
                 "depth_g_per_cm2": f8(depth),
-                "random_seed": cpw.steering.make_simple_seed(seed),
+                "random_seed": cpw.random_seed.make_simple_seed(seed),
             }
             steering_dict["primaries"].append(prm)
             seed += 1

@@ -24,8 +24,8 @@ def non_temporary_path(pytestconfig):
 def make_random_steering_dict(
     run_id, particle_id, num_primaries, energy_GeV, prng
 ):
-    seed_maker_and_checker = cpw.random_seed.CorsikaRandomSeed(
-        NUM_DIGITS_RUN_ID=4, NUM_DIGITS_AIRSHOWER_ID=5,
+    seed_checker = cpw.random_seed.RunIdEventIdSeedStructure(
+        num_events_in_run=100000,
     )
 
     steering_dict = {
@@ -43,7 +43,7 @@ def make_random_steering_dict(
         },
         "primaries": [],
     }
-    for airshower_id in np.arange(1, num_primaries + 1):
+    for event_id in np.arange(1, num_primaries + 1):
         az, zd = cpw.random_distributions.draw_azimuth_zenith_in_viewcone(
             prng=prng,
             azimuth_rad=np.deg2rad(20.0),
@@ -58,9 +58,9 @@ def make_random_steering_dict(
             "zenith_rad": f8(zd),
             "azimuth_rad": f8(az),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": cpw.steering.make_simple_seed(
-                seed=seed_maker_and_checker.random_seed_based_on(
-                    run_id=run_id, airshower_id=airshower_id,
+            "random_seed": cpw.random_seed.make_simple_seed(
+                seed=seed_checker.seed_based_on(
+                    run_id=run_id, event_id=event_id,
                 ),
             ),
         }

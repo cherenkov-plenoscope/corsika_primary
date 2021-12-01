@@ -1,61 +1,120 @@
 import numpy as np
 
+"""
+CORSIKA 7.56 userguide.pdf, section 4.3, Random Number Generator Initialization
+Limit (to get independent sequences of random numbers) is:
+1 ≤ ISEED(1, k) ≤ 900 000 000
+"""
+MIN_SEED = 1
+MAX_SEED = 900 * 1000 * 1000
 
-class CorsikaRandomSeed:
-    def __init__(self, NUM_DIGITS_RUN_ID=6, NUM_DIGITS_AIRSHOWER_ID=3):
 
-        assert NUM_DIGITS_RUN_ID > 0
-        assert NUM_DIGITS_AIRSHOWER_ID > 0
+def make_simple_seed(seed):
+    """
+    Returns the explicit random-seed for a single event.
+    It steers 4 sequences.
+    This simple seed follows the default seeding used in CORSIKA where each
+    sequence has SEED_OF_LAST_SEQUENCE + 1.
 
-        self.NUM_DIGITS_RUN_ID = NUM_DIGITS_RUN_ID
-        self.NUM_DIGITS_AIRSHOWER_ID = NUM_DIGITS_AIRSHOWER_ID
+    According to the CORSIKA-7.56 userguide, section 4.3, the
 
-        self.NUM_DIGITS_SEED = (
-            self.NUM_DIGITS_RUN_ID + self.NUM_DIGITS_AIRSHOWER_ID
-        )
-        assert self.NUM_DIGITS_SEED <= 9
+    Parameters
+    ----------
+    seed : int
+        The seed for the sequence in the pseudo-random-number-generator.
+        1 <= seed <= 900,000,000
+    """
+    assert seed % 1 == 0, "The seed must be an integer."
+    assert MIN_SEED <= seed
+    assert seed + 3 <= MAX_SEED
+    i4 = np.int32
+    return [
+        {"SEED": i4(seed), "CALLS": i4(0), "BILLIONS": i4(0)},
+        {"SEED": i4(seed + 1), "CALLS": i4(0), "BILLIONS": i4(0)},
+        {"SEED": i4(seed + 2), "CALLS": i4(0), "BILLIONS": i4(0)},
+        {"SEED": i4(seed + 3), "CALLS": i4(0), "BILLIONS": i4(0)},
+    ]
 
-        self.NUM_AIRSHOWER_IDS_IN_RUN = 10 ** self.NUM_DIGITS_AIRSHOWER_ID
-        self.NUM_RUN_IDS = 10 ** self.NUM_DIGITS_RUN_ID
-        self.NUM_SEEDS = self.NUM_AIRSHOWER_IDS_IN_RUN * self.NUM_RUN_IDS
-        assert self.NUM_SEEDS < np.iinfo(np.int32).max
 
+def is_pos_int(val):
+    if val % 1 != 0:
+        return False
+    if val < 1:
+        return False
+    return True
+
+
+class RunIdEventIdSeedStructure:
+    """
+    This couples the (run_id, event_id) to a seed.
+    This way you can test and ensure to have seeds within limits, and not to
+    use a seed multiple times.
+    Every (run_id, event_id) has a unique seed.
+    """
+    def __init__(self, num_events_in_run=1000):
+        """
+        parameters
+        ----------
+        num_events_in_run : int
+            The max. number of events to be produced in a run.
+        """
+        assert is_pos_int(num_events_in_run)
+        assert num_events_in_run < MAX_SEED
+        self.num_events_in_run = num_events_in_run
+        self.NUM_DIGITS_SEED = 9
         self.SEED_TEMPLATE_STR = "{seed:0" + str(self.NUM_DIGITS_SEED) + "d}"
+        self.min_event_id = 1
+        self.max_event_id = self.num_events_in_run
+        self.min_run_id = 1
+        self.max_run_id = (MAX_SEED - self.num_events_in_run) // self.num_events_in_run
 
-    def random_seed_based_on(self, run_id, airshower_id):
-        assert self.is_valid_run_id(run_id)
-        assert self.is_valid_airshower_id(airshower_id)
-        return run_id * self.NUM_AIRSHOWER_IDS_IN_RUN + airshower_id
+    def seed_based_on(self, run_id, event_id):
+        assert self.is_valid_run_id(run_id=run_id)
+        assert self.is_valid_event_id(event_id=event_id)
+        seed = run_id * self.num_events_in_run + event_id
+        assert self.is_valid_seed(seed=seed), "Out of CORSIKA's range."
+        return seed
+
+    def seed_str_based_on(self, run_id, event_id):
+        return self.SEED_TEMPLATE_STR.format(
+            seed=self.seed_based_on(run_id=run_id, event_id=event_id)
+        )
 
     def run_id_from_seed(self, seed):
-        if np.isscalar(seed):
-            assert seed <= self.NUM_SEEDS
-        else:
-            seed = np.array(seed)
-            assert (seed <= self.NUM_SEEDS).all()
-        return seed // self.NUM_AIRSHOWER_IDS_IN_RUN
+        assert is_pos_int(seed)
+        return (seed - 1) // self.num_events_in_run
 
-    def airshower_id_from_seed(self, seed):
-        return (
-            seed - self.run_id_from_seed(seed) * self.NUM_AIRSHOWER_IDS_IN_RUN
-        )
+    def event_id_from_seed(self, seed):
+        assert is_pos_int(seed)
+        return seed - self.run_id_from_seed(seed) * self.num_events_in_run
 
     def is_valid_run_id(self, run_id):
-        if run_id >= 0 and run_id < self.NUM_RUN_IDS:
-            return True
-        else:
+        if not is_pos_int(run_id):
             return False
+        if run_id > self.max_run_id:
+            return False
+        return True
 
-    def is_valid_airshower_id(self, airshower_id):
-        if airshower_id >= 0 and airshower_id < self.NUM_AIRSHOWER_IDS_IN_RUN:
-            return True
-        else:
+    def is_valid_event_id(self, event_id):
+        if not is_pos_int(event_id):
             return False
+        if event_id > self.num_events_in_run:
+            return False
+        return True
+
+    def is_valid_seed(self, seed):
+        if not is_pos_int(seed):
+            return False
+        if seed < MIN_SEED:
+            return False
+        if seed > MAX_SEED:
+            return False
+        return True
+
+    def _max_seed_for_run_id(self, run_id):
+        return (run_id  + 1) * self.num_events_in_run
 
     def __repr__(self):
         out = self.__class__.__name__
-        out += "("
-        out += "num. digits: run-id " + str(self.NUM_DIGITS_RUN_ID) + ", "
-        out += "airshower-id " + str(self.NUM_DIGITS_AIRSHOWER_ID)
-        out += ")"
+        out += "(num_events_in_run={:d})".format(self.num_events_in_run)
         return out

@@ -4,6 +4,7 @@ import shutil
 import tarfile
 import os
 from . import version
+from . import random_seed
 
 i8 = np.int64
 f8 = np.float64
@@ -19,25 +20,6 @@ HEADER += "{:<23}\n".format("VERSION " + version.__version__)
 HEADER = HEADER.encode()
 NUM_BYTES_HEADER = 24 * 3
 assert len(HEADER) == NUM_BYTES_HEADER
-
-
-def make_simple_seed(seed):
-    """
-    Returns the explicit random-seed for a single event.
-    It steers 4 sequences.
-    This simple seed follows the default seeding used in CORSIKA where each
-    sequence has SEED_OF_LAST_SEQUENCE + 1.
-    CORSIKA stores this as int32, so we must respect the limits.
-    """
-    assert seed % 1 == 0, "The seed must be an integer."
-    assert seed < 2 ** 31, "The seed must fit into int32."
-    i4 = np.int32
-    return [
-        {"SEED": i4(seed), "CALLS": i4(0), "BILLIONS": i4(0)},
-        {"SEED": i4(seed + 1), "CALLS": i4(0), "BILLIONS": i4(0)},
-        {"SEED": i4(seed + 2), "CALLS": i4(0), "BILLIONS": i4(0)},
-        {"SEED": i4(seed + 3), "CALLS": i4(0), "BILLIONS": i4(0)},
-    ]
 
 
 EXAMPLE = {
@@ -57,7 +39,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.0),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": make_simple_seed(0),
+            "random_seed": random_seed.make_simple_seed(1),
         },
         {
             "particle_id": f8(1),
@@ -65,7 +47,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.2),
             "depth_g_per_cm2": f8(3.6),
-            "random_seed": make_simple_seed(1),
+            "random_seed": random_seed.make_simple_seed(2),
         },
         {
             "particle_id": f8(1),
@@ -73,7 +55,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.25),
             "depth_g_per_cm2": f8(102.2),
-            "random_seed": make_simple_seed(2),
+            "random_seed": random_seed.make_simple_seed(3),
         },
     ],
 }
