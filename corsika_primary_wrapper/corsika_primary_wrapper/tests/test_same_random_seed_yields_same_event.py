@@ -2,7 +2,6 @@ import pytest
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
-import corsika_wrapper as cw
 import numpy as np
 
 i4 = np.int32

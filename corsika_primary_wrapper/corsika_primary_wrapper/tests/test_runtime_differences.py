@@ -3,7 +3,6 @@ import os
 import tempfile
 import datetime
 import corsika_primary_wrapper as cpw
-import corsika_wrapper as cw
 import numpy as np
 
 i4 = np.int32
@@ -91,14 +90,12 @@ def test_runtime_differences(
         t_start_ori = datetime.datetime.now()
         ori_run_path = os.path.join(tmp_dir, "original_run.eventio")
         if not os.path.exists(ori_run_path):
-            ori_card_path = os.path.join(tmp_dir, "original_steering_card.txt")
-            with open(ori_card_path, "wt") as f:
-                f.write(ori_steering_card)
-            cw.corsika(
-                steering_card=cw.read_steering_card(ori_card_path),
-                output_path=ori_run_path,
-                save_stdout=True,
+            cpw.corsika_vanilla(
                 corsika_path=corsika_path,
+                steering_card=ori_steering_card,
+                output_path=ori_run_path,
+                stdout_path=ori_run_path + ".stdout",
+                stderr_path=ori_run_path + ".stderr",,
             )
         t_end_ori = datetime.datetime.now()
         dt_ori = (t_end_ori - t_start_ori).total_seconds()

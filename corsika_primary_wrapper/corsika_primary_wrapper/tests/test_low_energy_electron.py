@@ -2,7 +2,6 @@ import pytest
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
-import corsika_wrapper as cw
 import numpy as np
 from os import path as op
 import subprocess
@@ -119,14 +118,12 @@ def test_low_energy_electron(
         # The original CORSIKA will fail to write valid output.
         ori_run_eventio_path = op.join(tmp_dir, "original_run.eventio")
         if not op.exists(ori_run_eventio_path):
-            ori_card_path = op.join(tmp_dir, "original_steering_card.txt")
-            with open(ori_card_path, "wt") as f:
-                f.write(ori_steering_card)
-            cw.corsika(
-                steering_card=cw.read_steering_card(ori_card_path),
-                output_path=ori_run_eventio_path,
-                save_stdout=True,
+            cpw.corsika_vanilla(
                 corsika_path=corsika_path,
+                steering_card=ori_steering_card,
+                output_path=ori_run_eventio_path,
+                stdout_path=ori_run_eventio_path + ".stdout",
+                stderr_path=ori_run_eventio_path + ".stderr",,
             )
 
         with open(ori_run_eventio_path + ".stdout", "rt") as f:

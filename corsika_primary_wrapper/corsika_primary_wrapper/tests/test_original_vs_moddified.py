@@ -3,7 +3,6 @@ import os
 import tempfile
 import corsika_primary_wrapper as cpw
 from corsika_primary_wrapper import testing as cpw_testing
-import corsika_wrapper as cw
 import simpleio
 import numpy as np
 import subprocess
@@ -172,16 +171,12 @@ def test_original_vs_moddified(
                 tmp_dir, "original_run_{:d}.simpleio".format(run)
             )
             if not os.path.exists(ori_run_path):
-                ori_card_path = os.path.join(
-                    tmp_dir, "original_steering_card_{:d}.txt".format(run)
-                )
-                with open(ori_card_path, "wt") as f:
-                    f.write(ori_steering_card)
-                cw.corsika(
-                    steering_card=cw.read_steering_card(ori_card_path),
-                    output_path=ori_run_eventio_path,
-                    save_stdout=True,
+                cpw.corsika_vanilla(
                     corsika_path=corsika_path,
+                    steering_card=ori_steering_card,
+                    output_path=ori_run_eventio_path,
+                    stdout_path=ori_run_eventio_path + ".stdout",
+                    stderr_path=ori_run_eventio_path + ".stderr",,
                 )
                 subprocess.call(
                     [

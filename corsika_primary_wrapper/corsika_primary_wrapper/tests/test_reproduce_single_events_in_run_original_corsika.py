@@ -3,7 +3,6 @@ import os
 import tempfile
 import corsika_primary_wrapper as cpw
 from corsika_primary_wrapper import testing as cpw_testing
-import corsika_wrapper as cw
 import subprocess
 import simpleio
 import numpy as np
@@ -39,14 +38,12 @@ def hash_cherenkov_pools(
     card_path = os.path.join(tmp_dir, "steering_card.txt")
 
     if not os.path.exists(run_hashes_path):
-        with open(card_path, "wt") as f:
-            f.write(card)
-
-        cw.corsika(
-            steering_card=cw.read_steering_card(card_path),
-            output_path=run_eventio_path,
-            save_stdout=True,
+        cpw.corsika_vanilla(
             corsika_path=corsika_path,
+            steering_card=card,
+            output_path=run_eventio_path,
+            stdout_path=run_eventio_path + ".stdout",
+            stderr_path=run_eventio_path + ".stderr",,
         )
 
         subprocess.call(

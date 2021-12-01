@@ -118,6 +118,78 @@ def corsika_primary(
     return rc
 
 
+def corsika_vanilla(
+    corsika_path,
+    steering_card,
+    output_path,
+    stdout_path=None,
+    stderr_path=None,
+    tmp_dir_prefix="corsika_primary_",
+):
+    """
+    Call vanilla CORSIKA-7.56 and write Cherenkov-photons to output_path.
+
+    This call is threadsafe, all execution takes place in a temproary copy
+    of CORSIKA's run-directory.
+
+    Parameters
+    ----------
+        corsika_path : str
+            Path to corsika's executable in its 'run' directory.
+        steering_card : str
+            The steering-card for vanilla CORSIKA-7.56.
+        output_path : str
+            Path to eventio-file with Cherenkov-photons.
+        stdout_path : str
+            Path to write CORSIKA's std-out to.
+            If None: output_path + 'stdout'
+        stderr_path : str
+            Path to write CORSIKA's std-error to.
+            If None: output_path + 'stderr'
+    """
+    op = os.path
+    corsika_path = op.abspath(corsika_path)
+    steering_card = str(steering_card)
+    assert steering_card[-1] == "\n", "Newline to end stdin for CORSIKA."
+    output_path = op.abspath(output_path)
+    stdout_path = stdout_path if stdout_path else output_path + ".stdout"
+    stderr_path = stderr_path if stderr_path else output_path + ".stderr"
+    stdout_path = op.abspath(stdout_path)
+    stderr_path = op.abspath(stderr_path)
+
+    corsika_run_dir = op.dirname(corsika_path)
+
+    with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
+        tmp_corsika_run_dir = op.join(tmp_dir, "run")
+        shutil.copytree(corsika_run_dir, tmp_corsika_run_dir, symlinks=False)
+        tmp_corsika_path = op.join(
+            tmp_corsika_run_dir, op.basename(corsika_path)
+        )
+        steering_card_pipe, pwrite = os.pipe()
+        os.write(pwrite, str.encode(steering_card))
+        os.close(pwrite)
+
+        with open(stdout_path, "w") as stdout, open(
+            stderr_path, "w"
+        ) as stderr:
+            rc = subprocess.call(
+                tmp_corsika_path,
+                stdin=steering_card_pipe,
+                stdout=stdout,
+                stderr=stderr,
+                cwd=tmp_corsika_run_dir,
+            )
+
+        if op.isfile(output_path):
+            os.chmod(output_path, 0o664)
+
+    with open(stdout_path, "rt") as f:
+        stdout_txt = f.read()
+    assert stdout_ends_with_end_of_run_marker(stdout_txt)
+
+    return rc
+
+
 RUNH_MARKER_FLOAT32 = struct.unpack("f", "RUNH".encode())[0]
 EVTH_MARKER_FLOAT32 = struct.unpack("f", "EVTH".encode())[0]
 
