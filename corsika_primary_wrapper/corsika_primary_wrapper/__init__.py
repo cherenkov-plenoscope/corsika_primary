@@ -389,13 +389,16 @@ def I_EVTH_RANDOM_SEED(sequence):
 def I_EVTH_RANDOM_SEED_CALLS(sequence):
     assert sequence >= 1
     assert sequence <= 10
-    return (21 + 3 * sequence) - 1
+    return (12 + 3 * sequence) - 1
 
 
-def I_EVTH_RANDOM_SEED_BILLIONS(sequence):
+def I_EVTH_RANDOM_SEED_MILLIONS(sequence):
+    """
+    This is actually 10**6, but the input to corsika is billions 10**9
+    """
     assert sequence >= 1
     assert sequence <= 10
-    return (31 + 3 * sequence) - 1
+    return (13 + 3 * sequence) - 1
 
 
 I_EVTH_RUN_NUMBER = 44 - 1
@@ -432,3 +435,34 @@ def I_EVTH_Y_CORE_CM(reuse):
 
 
 I_EVTH_STARTING_HEIGHT_CM = 158 - 1
+
+def event_seed_from_evth(evth):
+    MILLION = np.int64(1000 * 1000)
+    BILLION = np.int64(1000 * 1000 * 1000)
+
+    def ftoi(val):
+        val_i = np.int64(val)
+        assert val_i == val
+        return val_i
+
+    nseq = ftoi(evth[I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES])
+
+    seeds = []
+    for seq_idx in range(nseq):
+        seq_id = seq_idx + 1
+
+        seed = ftoi(evth[I_EVTH_RANDOM_SEED(sequence=seq_id)])
+        calls = ftoi(evth[I_EVTH_RANDOM_SEED_CALLS(sequence=seq_id)])
+        millions = ftoi(evth[I_EVTH_RANDOM_SEED_MILLIONS(sequence=seq_id)])
+
+        total_calls = millions * MILLION + calls
+        calls_mod_billions = np.mod(total_calls, BILLION)
+        calls_billions = total_calls // BILLION
+
+        seq = {
+            "SEED": int(seed),
+            "CALLS": int(calls_mod_billions),
+            "BILLIONS": int(calls_billions),
+        }
+        seeds.append(seq)
+    return seeds
