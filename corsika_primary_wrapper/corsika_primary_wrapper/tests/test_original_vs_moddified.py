@@ -14,6 +14,7 @@ i4 = np.int32
 i8 = np.int64
 f8 = np.float64
 
+
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
@@ -52,14 +53,16 @@ def evth_is_equal_enough(ori_evth, mod_evth):
             # upper and lower limits. Therefore, a small overhead is added when
             # declaring the energy-limits to CORSIKA in the beginning of a run.
             d = np.abs(
-                ori_evth[ii] * (1.0 - cpw.steering.ENERGY_LIMIT_OVERHEAD) - mod_evth[ii]
+                ori_evth[ii] * (1.0 - cpw.steering.ENERGY_LIMIT_OVERHEAD)
+                - mod_evth[ii]
             )
             if d > 1e-6:
                 equal = False
 
         elif ii == (I_ENERGY_UPPER_LIMIT - 1):
             d = np.abs(
-                ori_evth[ii] * (1.0 + cpw.steering.ENERGY_LIMIT_OVERHEAD) - mod_evth[ii]
+                ori_evth[ii] * (1.0 + cpw.steering.ENERGY_LIMIT_OVERHEAD)
+                - mod_evth[ii]
             )
             if d > 1e-6:
                 equal = False
@@ -206,13 +209,23 @@ def test_original_vs_moddified(
                     "run_id": i8(1),
                     "event_id_of_first_event": i8(1),
                     "observation_level_asl_m": f8(obs_level_m),
-                    "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
-                    "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
+                    "earth_magnetic_field_x_muT": f8(
+                        earth_magnetic_field_x_muT
+                    ),
+                    "earth_magnetic_field_z_muT": f8(
+                        earth_magnetic_field_z_muT
+                    ),
                     "atmosphere_id": i8(atmosphere_id),
                     "energy_range": {
-                        "start_GeV": f8(cfg[particle]["energy"] * (1 - cpw.steering.ENERGY_LIMIT_OVERHEAD)),
-                        "stop_GeV": f8(cfg[particle]["energy"] * (1 + cpw.steering.ENERGY_LIMIT_OVERHEAD)),
-                    }
+                        "start_GeV": f8(
+                            cfg[particle]["energy"]
+                            * (1 - cpw.steering.ENERGY_LIMIT_OVERHEAD)
+                        ),
+                        "stop_GeV": f8(
+                            cfg[particle]["energy"]
+                            * (1 + cpw.steering.ENERGY_LIMIT_OVERHEAD)
+                        ),
+                    },
                 },
                 "primaries": [],
             }

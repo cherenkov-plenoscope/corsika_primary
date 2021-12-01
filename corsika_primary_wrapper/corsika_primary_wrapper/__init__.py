@@ -72,15 +72,13 @@ def corsika_primary(
     steering.assert_values(steering_dict=steering_dict)
 
     steering_card = steering.make_run_card_str(
-        steering_dict=steering_dict,
-        output_path=output_path,
+        steering_dict=steering_dict, output_path=output_path,
     )
     primary_bytes = steering.primary_dicts_to_bytes(
         primary_dicts=steering_dict["primaries"]
     )
 
     corsika_run_dir = op.dirname(corsika_path)
-
 
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
         tmp_corsika_run_dir = op.join(tmp_dir, "run")
@@ -89,7 +87,8 @@ def corsika_primary(
             tmp_corsika_run_dir, op.basename(corsika_path)
         )
         primary_path = op.join(
-            tmp_corsika_run_dir, steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+            tmp_corsika_run_dir,
+            steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR,
         )
         with open(primary_path, "wb") as f:
             f.write(primary_bytes)
@@ -98,7 +97,9 @@ def corsika_primary(
         os.write(pwrite, str.encode(steering_card))
         os.close(pwrite)
 
-        with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
+        with open(stdout_path, "w") as stdout, open(
+            stderr_path, "w"
+        ) as stderr:
             rc = subprocess.call(
                 tmp_corsika_path,
                 stdin=steering_card_pipe,
@@ -298,8 +299,7 @@ class CorsikaPrimary:
         )
 
         self.steering_card = steering.make_run_card_str(
-            steering_dict=self.steering_dict,
-            output_path=self.fifo_path,
+            steering_dict=self.steering_dict, output_path=self.fifo_path,
         )
         assert self.steering_card[-1] == "\n", "Need newline to mark ending."
 
@@ -308,7 +308,8 @@ class CorsikaPrimary:
         )
 
         self.primary_path = op.join(
-            self.tmp_corsika_run_dir, steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR
+            self.tmp_corsika_run_dir,
+            steering.PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR,
         )
         with open(self.primary_path, "wb") as f:
             f.write(self.primary_bytes)
@@ -435,6 +436,7 @@ def I_EVTH_Y_CORE_CM(reuse):
 
 
 I_EVTH_STARTING_HEIGHT_CM = 158 - 1
+
 
 def event_seed_from_evth(evth):
     MILLION = np.int64(1000 * 1000)

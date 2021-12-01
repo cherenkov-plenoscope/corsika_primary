@@ -13,9 +13,9 @@ def strip_coconut_config(coconut_config_header):
             The text of the CORSIKA-coconut config header.
     """
     out = io.StringIO()
-    for line in coconut_config_header.split('\n'):
+    for line in coconut_config_header.split("\n"):
         if len(line) > 0:
-            if line[0] == '#':
+            if line[0] == "#":
                 out.write(str.strip(line) + "\n")
     out.seek(0)
     return out.read()

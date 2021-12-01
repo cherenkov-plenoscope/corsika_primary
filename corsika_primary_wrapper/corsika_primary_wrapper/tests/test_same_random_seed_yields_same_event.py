@@ -9,6 +9,7 @@ i4 = np.int32
 i8 = np.int64
 f8 = np.float64
 
+
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
@@ -30,7 +31,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 "energy_range": {
                     "start_GeV": f8(energy_GeV * 0.9),
                     "stop_GeV": f8(energy_GeV * 1.1),
-                }
+                },
             },
             "primaries": [],
         }

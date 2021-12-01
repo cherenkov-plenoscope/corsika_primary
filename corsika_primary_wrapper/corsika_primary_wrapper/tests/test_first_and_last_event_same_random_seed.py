@@ -9,6 +9,7 @@ i4 = np.int32
 i8 = np.int64
 f8 = np.float64
 
+
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")

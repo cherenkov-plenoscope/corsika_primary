@@ -15,7 +15,6 @@ def simpleio_bunches_to_array(bunches):
     return b
 
 
-
 def tario_bunches_to_array(bunches):
     b = np.zeros(shape=bunches.shape, dtype=np.float32)
     b[:, cpw.IX] = bunches[:, cpw.IX] * 1e-2  # cm -> m

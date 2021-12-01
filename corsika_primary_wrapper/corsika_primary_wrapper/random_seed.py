@@ -51,6 +51,7 @@ class RunIdEventIdSeedStructure:
     use a seed multiple times.
     Every (run_id, event_id) has a unique seed.
     """
+
     def __init__(self, num_events_in_run=1000):
         """
         parameters
@@ -66,7 +67,9 @@ class RunIdEventIdSeedStructure:
         self.min_event_id = 1
         self.max_event_id = self.num_events_in_run
         self.min_run_id = 1
-        self.max_run_id = (MAX_SEED - self.num_events_in_run) // self.num_events_in_run
+        self.max_run_id = (
+            MAX_SEED - self.num_events_in_run
+        ) // self.num_events_in_run
 
     def seed_based_on(self, run_id, event_id):
         assert self.is_valid_run_id(run_id=run_id)
@@ -112,7 +115,7 @@ class RunIdEventIdSeedStructure:
         return True
 
     def _max_seed_for_run_id(self, run_id):
-        return (run_id  + 1) * self.num_events_in_run
+        return (run_id + 1) * self.num_events_in_run
 
     def __repr__(self):
         out = self.__class__.__name__

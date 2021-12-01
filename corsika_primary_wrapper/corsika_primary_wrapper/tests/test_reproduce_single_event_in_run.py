@@ -11,6 +11,7 @@ i4 = np.int32
 i8 = np.int64
 f8 = np.float64
 
+
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
@@ -69,10 +70,7 @@ def make_random_steering_dict(
 
 
 def hash_cherenkov_pools(
-    corsika_primary_path,
-    steering_dict,
-    tmp_key,
-    tmp_dir,
+    corsika_primary_path, steering_dict, tmp_key, tmp_dir,
 ):
     os.makedirs(tmp_dir, exist_ok=True)
 
@@ -109,10 +107,7 @@ def hash_cherenkov_pools(
 
 
 def make_run_and_cherry_pick_event_ids_to_reproduce(
-    corsika_primary_path,
-    steering_dict,
-    event_ids_to_reproduce,
-    tmp_dir,
+    corsika_primary_path, steering_dict, event_ids_to_reproduce, tmp_dir,
 ):
     os.makedirs(tmp_dir, exist_ok=True)
 
@@ -219,9 +214,7 @@ def test_few_events_different_particles_reproduce_one(
     tmp_dir_handle.cleanup()
 
 
-def test_reproduce_full_run(
-    corsika_primary_path, non_temporary_path
-):
+def test_reproduce_full_run(corsika_primary_path, non_temporary_path):
     """
     Motivation: In the magnetic deflection estimate I found some events ~50%
     which could not be reproduced i.e. did not yield the same Cherenkov-pool.
@@ -254,9 +247,7 @@ def test_reproduce_full_run(
                 steering_dict=steering_dict,
                 tmp_key="{:06d}".format(i),
                 tmp_dir=os.path.join(
-                    tmp_dir,
-                    "test_reproduce_full_run",
-                    pkey,
+                    tmp_dir, "test_reproduce_full_run", pkey,
                 ),
             )
             M.append(hashes)
@@ -266,9 +257,9 @@ def test_reproduce_full_run(
             list_of_hashes_in_iterations = [
                 M[i][event_id] for i in range(num_iterations)
             ]
-            multiplicity[pkey][event_id] = len(set(
-                list_of_hashes_in_iterations
-            ))
+            multiplicity[pkey][event_id] = len(
+                set(list_of_hashes_in_iterations)
+            )
 
     all_iterations_yield_same_cherenkov_pool = True
     for pkey in PARTICLES:
@@ -281,7 +272,7 @@ def test_reproduce_full_run(
                     "event_id",
                     event_id,
                     "num_different_cherenkov_pools",
-                    num_different_cherenkov_pools
+                    num_different_cherenkov_pools,
                 )
 
     assert all_iterations_yield_same_cherenkov_pool

@@ -11,6 +11,7 @@ i4 = np.int32
 i8 = np.int64
 f8 = np.float64
 
+
 @pytest.fixture()
 def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
@@ -27,9 +28,7 @@ def non_temporary_path(pytestconfig):
 
 
 def test_low_energy_electron(
-    corsika_primary_path,
-    corsika_path,
-    non_temporary_path,
+    corsika_primary_path, corsika_path, non_temporary_path,
 ):
     """
     I found televt_ not beeing called for some electron (id=3) or

@@ -18,7 +18,7 @@ def make_dummy_run_steering(run_id, prng):
         "atmosphere_id": i8(prng.uniform(10)),
         "energy_range": {
             "start_GeV": f8(prng.uniform(low=1, high=2)),
-            "stop_GeV": f8(prng.uniform(low=10, high=20))
+            "stop_GeV": f8(prng.uniform(low=10, high=20)),
         },
     }
     return run
@@ -70,8 +70,12 @@ def test_primaries_dict_to_bytes_to_dict():
     prng = np.random.Generator(np.random.PCG64(42))
     NUM = 1337
     primaries_orig = make_dummy_primaries(num=NUM, prng=prng)
-    primary_bytes = cpw.steering.primary_dicts_to_bytes(primary_dicts=primaries_orig)
-    primaries_back = cpw.steering.primary_bytes_to_dicts(primary_bytes=primary_bytes)
+    primary_bytes = cpw.steering.primary_dicts_to_bytes(
+        primary_dicts=primaries_orig
+    )
+    primaries_back = cpw.steering.primary_bytes_to_dicts(
+        primary_bytes=primary_bytes
+    )
     for i in range(NUM):
         orig = primaries_orig[i]
         back = primaries_back[i]
@@ -82,9 +86,13 @@ def test_primary_bytes_extract_slice():
     prng = np.random.Generator(np.random.PCG64(402))
     NUM = 1337
     primaries_orig = make_dummy_primaries(num=NUM, prng=prng)
-    primary_bytes = cpw.steering.primary_dicts_to_bytes(primary_dicts=primaries_orig)
+    primary_bytes = cpw.steering.primary_dicts_to_bytes(
+        primary_dicts=primaries_orig
+    )
     for i in range(NUM):
-        prm_pytes = cpw.steering.primary_bytes_by_idx(primary_bytes=primary_bytes, idx=i)
+        prm_pytes = cpw.steering.primary_bytes_by_idx(
+            primary_bytes=primary_bytes, idx=i
+        )
         prm_back = cpw.steering.primary_bytes_to_dicts(primary_bytes=prm_pytes)
         orig = primaries_orig[i]
         back = prm_back[0]

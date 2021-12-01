@@ -248,14 +248,26 @@ def run_bytes_to_dict(run_bytes):
     assert len(run_bytes) == NUM_BYTES_RUN_STEERING
     with io.BytesIO(run_bytes) as f:
         rud["run_id"] = _read(f, RUN["run_id"].dtype.str)
-        rud["event_id_of_first_event"] = _read(f, RUN["event_id_of_first_event"].dtype.str)
-        rud["observation_level_asl_m"] = _read(f, RUN["observation_level_asl_m"].dtype.str)
-        rud["earth_magnetic_field_x_muT"] = _read(f, RUN["earth_magnetic_field_x_muT"].dtype.str)
-        rud["earth_magnetic_field_z_muT"] = _read(f, RUN["earth_magnetic_field_z_muT"].dtype.str)
+        rud["event_id_of_first_event"] = _read(
+            f, RUN["event_id_of_first_event"].dtype.str
+        )
+        rud["observation_level_asl_m"] = _read(
+            f, RUN["observation_level_asl_m"].dtype.str
+        )
+        rud["earth_magnetic_field_x_muT"] = _read(
+            f, RUN["earth_magnetic_field_x_muT"].dtype.str
+        )
+        rud["earth_magnetic_field_z_muT"] = _read(
+            f, RUN["earth_magnetic_field_z_muT"].dtype.str
+        )
         rud["atmosphere_id"] = _read(f, RUN["atmosphere_id"].dtype.str)
         rud["energy_range"] = {}
-        rud["energy_range"]["start_GeV"] = _read(f, RUN["energy_range"]["start_GeV"].dtype.str)
-        rud["energy_range"]["stop_GeV"] = _read(f, RUN["energy_range"]["stop_GeV"].dtype.str)
+        rud["energy_range"]["start_GeV"] = _read(
+            f, RUN["energy_range"]["start_GeV"].dtype.str
+        )
+        rud["energy_range"]["stop_GeV"] = _read(
+            f, RUN["energy_range"]["stop_GeV"].dtype.str
+        )
     assert_dtypes_run_dict(rud)
     return rud
 
@@ -263,7 +275,7 @@ def run_bytes_to_dict(run_bytes):
 def primary_bytes_by_idx(primary_bytes, idx):
     bstart = idx * NUM_BYTES_PRIMARY_STEERING
     bstop = (idx + 1) * NUM_BYTES_PRIMARY_STEERING
-    return primary_bytes[bstart: bstop]
+    return primary_bytes[bstart:bstop]
 
 
 def write_steerings(runs, path):
@@ -298,9 +310,7 @@ def read_steerings(path):
             assert ss == "steering"
             assert bb == "bin"
             num_bytes_primaries = (
-                tarinfo.size
-                - NUM_BYTES_HEADER
-                - NUM_BYTES_RUN_STEERING
+                tarinfo.size - NUM_BYTES_HEADER - NUM_BYTES_RUN_STEERING
             )
             assert num_bytes_primaries >= 0
             assert num_bytes_primaries % NUM_BYTES_PRIMARY_STEERING == 0
@@ -322,8 +332,7 @@ def read_steerings(path):
                     run["primaries"].append(
                         primary_bytes_to_dict(
                             primary_bytes_by_idx(
-                                primary_bytes=primary_bytes,
-                                idx=idx
+                                primary_bytes=primary_bytes, idx=idx
                             )
                         )
                     )

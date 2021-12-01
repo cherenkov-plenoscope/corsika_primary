@@ -28,7 +28,9 @@ def non_temporary_path(pytestconfig):
     return pytestconfig.getoption("non_temporary_path")
 
 
-def hash_cherenkov_pools(card, tmp_dir, corsika_path, merlict_eventio_converter):
+def hash_cherenkov_pools(
+    card, tmp_dir, corsika_path, merlict_eventio_converter
+):
     os.makedirs(tmp_dir, exist_ok=True)
     run_eventio_path = os.path.join(tmp_dir, "eventio")
     run_simpelio_path = os.path.join(tmp_dir, "simpleio")
@@ -93,9 +95,7 @@ def hash_cherenkov_pools(card, tmp_dir, corsika_path, merlict_eventio_converter)
 
 
 def test_reproduce_events_with_original_corsika(
-    corsika_path,
-    merlict_eventio_converter,
-    non_temporary_path,
+    corsika_path, merlict_eventio_converter, non_temporary_path,
 ):
     assert os.path.exists(corsika_path)
     assert os.path.exists(merlict_eventio_converter)
@@ -128,7 +128,6 @@ def test_reproduce_events_with_original_corsika(
         azimuth_deg = 0.0
         telescope_sphere_radius_m = 1e4
         event_ids_to_reproduce = np.arange(1, num_shower + 1)
-
 
         card_template = "\n".join(
             [
@@ -203,21 +202,20 @@ def test_reproduce_events_with_original_corsika(
                 seq1SEED=seed[0]["SEED"],
                 seq1CALLS=seed[0]["CALLS"],
                 seq1BILLIONS=seed[0]["BILLIONS"],
-
                 seq2SEED=seed[1]["SEED"],
                 seq2CALLS=seed[1]["CALLS"],
                 seq2BILLIONS=seed[1]["BILLIONS"],
-
                 seq3SEED=seed[2]["SEED"],
                 seq3CALLS=seed[2]["CALLS"],
                 seq3BILLIONS=seed[2]["BILLIONS"],
-
                 seq4SEED=seed[3]["SEED"],
                 seq4CALLS=seed[3]["CALLS"],
                 seq4BILLIONS=seed[3]["BILLIONS"],
             )
 
-            part_dir = os.path.join(tmp_dir, pkey, "event_alone_{:06d}".format(event_id))
+            part_dir = os.path.join(
+                tmp_dir, pkey, "event_alone_{:06d}".format(event_id)
+            )
             part_hashes, part_seeds = hash_cherenkov_pools(
                 card=part_card,
                 tmp_dir=part_dir,
@@ -226,14 +224,14 @@ def test_reproduce_events_with_original_corsika(
             )
             repr_hashes[event_id] = part_hashes[event_id]
 
-        report += pkey  + "\n"
-        report += "="*len(pkey) + "\n"
+        report += pkey + "\n"
+        report += "=" * len(pkey) + "\n"
         report += "event-num.  reproduction\n"
         report += "------------------------\n"
         for event_id in event_ids_to_reproduce:
             fine = full_hashes[event_id] == repr_hashes[event_id]
             msg = "ok" if fine else "BAD"
-            report += "  {: 3d}      ".format(event_id) + msg  + "\n"
+            report += "  {: 3d}      ".format(event_id) + msg + "\n"
             if not fine:
                 all_events_can_be_reproduced = False
         report += "\n"
