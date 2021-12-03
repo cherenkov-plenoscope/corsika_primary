@@ -19,8 +19,8 @@ def corsika_primary_path(pytestconfig):
 
 
 @pytest.fixture()
-def corsika_path(pytestconfig):
-    return pytestconfig.getoption("corsika_path")
+def corsika_vanilla_path(pytestconfig):
+    return pytestconfig.getoption("corsika_vanilla_path")
 
 
 @pytest.fixture()
@@ -79,7 +79,7 @@ def evth_is_equal_enough(ori_evth, mod_evth):
 
 def test_original_vs_moddified(
     corsika_primary_path,
-    corsika_path,
+    corsika_vanilla_path,
     merlict_eventio_converter,
     debug_dir,
 ):
@@ -96,7 +96,7 @@ def test_original_vs_moddified(
     )
 
     assert os.path.exists(corsika_primary_path)
-    assert os.path.exists(corsika_path)
+    assert os.path.exists(corsika_vanilla_path)
     assert os.path.exists(merlict_eventio_converter)
 
     num_shower = 7
@@ -171,7 +171,7 @@ def test_original_vs_moddified(
         )
         if not os.path.exists(ori_run_path):
             cpw.corsika_vanilla(
-                corsika_path=corsika_path,
+                corsika_path=corsika_vanilla_path,
                 steering_card=ori_steering_card,
                 output_path=ori_run_eventio_path,
                 stdout_path=ori_run_eventio_path + ".stdout",

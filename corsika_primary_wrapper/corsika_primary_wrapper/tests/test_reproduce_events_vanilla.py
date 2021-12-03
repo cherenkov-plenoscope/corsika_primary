@@ -11,8 +11,8 @@ import shutil
 
 
 @pytest.fixture()
-def corsika_path(pytestconfig):
-    return pytestconfig.getoption("corsika_path")
+def corsika_vanilla_path(pytestconfig):
+    return pytestconfig.getoption("corsika_vanilla_path")
 
 
 @pytest.fixture()
@@ -26,7 +26,7 @@ def debug_dir(pytestconfig):
 
 
 def hash_cherenkov_pools(
-    card, tmp_dir, corsika_path, merlict_eventio_converter
+    card, tmp_dir, corsika_vanilla_path, merlict_eventio_converter
 ):
     os.makedirs(tmp_dir, exist_ok=True)
     run_eventio_path = os.path.join(tmp_dir, "eventio")
@@ -37,7 +37,7 @@ def hash_cherenkov_pools(
 
     if not os.path.exists(run_hashes_path):
         cpw.corsika_vanilla(
-            corsika_path=corsika_path,
+            corsika_path=corsika_vanilla_path,
             steering_card=card,
             output_path=run_eventio_path,
             stdout_path=run_eventio_path + ".stdout",
@@ -80,7 +80,7 @@ def hash_cherenkov_pools(
 
 
 def test_reproduce_events_vanilla(
-    corsika_path, merlict_eventio_converter, debug_dir,
+    corsika_vanilla_path, merlict_eventio_converter, debug_dir,
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
@@ -174,7 +174,7 @@ def test_reproduce_events_vanilla(
         full_hashes, full_seeds = hash_cherenkov_pools(
             card=full_card,
             tmp_dir=full_dir,
-            corsika_path=corsika_path,
+            corsika_vanilla_path=corsika_vanilla_path,
             merlict_eventio_converter=merlict_eventio_converter,
         )
 
@@ -204,7 +204,7 @@ def test_reproduce_events_vanilla(
             part_hashes, part_seeds = hash_cherenkov_pools(
                 card=part_card,
                 tmp_dir=part_dir,
-                corsika_path=corsika_path,
+                corsika_vanilla_path=corsika_vanilla_path,
                 merlict_eventio_converter=merlict_eventio_converter,
             )
             repr_hashes[event_id] = part_hashes[event_id]

@@ -47,13 +47,13 @@ def md5sum(path):
     return hash_md5.hexdigest()
 
 
-def diff(original_path, modified_path, out_path):
+def diff(vanilla_path, modified_path, out_path):
     with open(out_path, "w") as stdout:
-        subprocess.call(["diff", original_path, modified_path], stdout=stdout)
+        subprocess.call(["diff", vanilla_path, modified_path], stdout=stdout)
 
 
-def patch(original_path, diff_path, out_path):
-    subprocess.call(["patch", original_path, diff_path, "-o", out_path])
+def patch(vanilla_path, diff_path, out_path):
+    subprocess.call(["patch", vanilla_path, diff_path, "-o", out_path])
 
 
 def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
@@ -165,10 +165,10 @@ def main():
 
         assert CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST == md5sum(corsika_tar_path)
 
-        if not os.path.exists(join(install_path, "original")):
+        if not os.path.exists(join(install_path, "vanilla")):
             install(
                 corsika_tar_path=corsika_tar_path,
-                install_path=join(install_path, "original"),
+                install_path=join(install_path, "vanilla"),
                 resource_path=resource_path,
                 modify=False,
             )
@@ -178,9 +178,9 @@ def main():
                 resource_path, "corsikacompilefile_modified.f"
             )
             patch(
-                original_path=join(
+                vanilla_path=join(
                     install_path,
-                    "original",
+                    "vanilla",
                     "corsika-75600",
                     "src",
                     "corsikacompilefile.f",

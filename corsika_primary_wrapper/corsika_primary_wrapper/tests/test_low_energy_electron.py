@@ -18,8 +18,8 @@ def corsika_primary_path(pytestconfig):
 
 
 @pytest.fixture()
-def corsika_path(pytestconfig):
-    return pytestconfig.getoption("corsika_path")
+def corsika_vanilla_path(pytestconfig):
+    return pytestconfig.getoption("corsika_vanilla_path")
 
 
 @pytest.fixture()
@@ -28,7 +28,7 @@ def debug_dir(pytestconfig):
 
 
 def test_low_energy_electron(
-    corsika_primary_path, corsika_path, debug_dir,
+    corsika_primary_path, corsika_vanilla_path, debug_dir,
 ):
     """
     I found televt_ not beeing called for some electron (id=3) or
@@ -118,7 +118,7 @@ def test_low_energy_electron(
     ori_run_eventio_path = ori_run_path + ".eventio"
     if not op.exists(ori_run_eventio_path):
         cpw.corsika_vanilla(
-            corsika_path=corsika_path,
+            corsika_path=corsika_vanilla_path,
             steering_card=ori_steering_card,
             output_path=ori_run_eventio_path,
             stdout_path=ori_run_eventio_path + ".stdout",

@@ -4,7 +4,7 @@ CORSIKA_PATH = os.path.join(
     ".",
     "build",
     "corsika",
-    "{:s}",
+    "{flavor:s}",
     "corsika-75600",
     "run",
     "corsika75600Linux_QGSII_urqmd",
@@ -13,14 +13,14 @@ CORSIKA_PATH = os.path.join(
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--corsika_path",
+        "--corsika_vanilla_path",
         action="store",
-        default=CORSIKA_PATH.format("original"),
+        default=CORSIKA_PATH.format(flavor="vanilla"),
     )
     parser.addoption(
         "--corsika_primary_path",
         action="store",
-        default=CORSIKA_PATH.format("modified"),
+        default=CORSIKA_PATH.format(flavor="modified"),
     )
     parser.addoption(
         "--merlict_eventio_converter",
