@@ -1,23 +1,10 @@
 import numpy as np
-import simpleio
+import subprocess
+import os
+import glob
 from . import I
 
-
-def simpleio_bunches_to_array(bunches):
-    num_bunches = bunches.x.shape[0]
-    b = np.zeros(shape=(num_bunches, 8), dtype=np.float32)
-    b[:, I.BUNCH.X] = bunches.x
-    b[:, I.BUNCH.Y] = bunches.y
-    b[:, I.BUNCH.CX] = bunches.cx
-    b[:, I.BUNCH.CY] = bunches.cy
-    b[:, I.BUNCH.TIME] = bunches.arrival_time_since_first_interaction
-    b[:, I.BUNCH.ZEM] = bunches.emission_height
-    b[:, I.BUNCH.BSIZE] = bunches.probability_to_reach_observation_level
-    b[:, I.BUNCH.WVL] = np.abs(bunches.wavelength)
-    return b
-
-
-def tario_bunches_to_array(bunches):
+def bunches_SI_units(bunches):
     b = np.zeros(shape=bunches.shape, dtype=np.float32)
     b[:, I.BUNCH.X] = bunches[:, I.BUNCH.X] * 1e-2  # cm -> m
     b[:, I.BUNCH.Y] = bunches[:, I.BUNCH.Y] * 1e-2  # cm -> m
@@ -30,11 +17,71 @@ def tario_bunches_to_array(bunches):
     return b
 
 
-def ttt(simpleio_path):
-    event_seeds = {}
-    pool_hashes = {}
-    run = simpleio.SimpleIoRun(simpleio_path)
-    for event_idx in range(len(run)):
-        event = run[event_idx]
-        evth = event.header.raw
-        bunches = simpleio_bunches_to_array(event.cherenkov_photon_bunches)
+def eventio_to_simpleio(
+    merlict_eventio_converter,
+    eventio_path,
+    simpleio_path
+):
+    rc = subprocess.call(
+        [
+            merlict_eventio_converter,
+            "-i",
+            ori_run_eventio_path,
+            "-o",
+            ori_run_path,
+        ]
+    )
+    assert rc == 0
+
+
+class SimpleIoRun():
+    def __init__(self, path):
+        """
+        Parameters
+        ----------
+        path        The path to the directory representing the run.
+        """
+        self.path = os.path.abspath(path)
+        if not os.path.isdir(self.path):
+            raise NotADirectoryError(self.path)
+
+        with open(os.path.join(path, 'corsika_run_header.bin'), "rb") as f:
+            self.runh = np.frombuffer(f.read(), dtype=np.float32)
+
+        self.event_ids = []
+        for p in glob.glob(os.path.join(path, "*")):
+            if os.path.isdir(p) and os.path.basename(p).isdigit():
+                self.event_ids.append(int(os.path.basename(p)))
+        self.event_ids = np.array(self.event_ids)
+        self.event_ids.sort()
+        self.next_event_id = self.event_ids[0]
+
+    def __next__(self):
+        event_path = os.path.join(self.path, str(self.next_event_id))
+        if not os.path.isdir(event_path):
+            raise StopIteration
+
+        evth_path = os.path.join(event_path, 'corsika_event_header.bin')
+        with open(evth_path, "rb") as f:
+            evth = np.frombuffer(f.read(), dtype=np.float32)
+
+        bunches_path = os.path.join(event_path, 'air_shower_photon_bunches.bin')
+        with open(bunches_path, "rb") as f:
+            bunches = np.frombuffer(f.read(), dtype=np.float32)
+
+        assert bunches.shape[0] % 8 == 0
+        num_bunches = bunches.shape[0] // 8
+        bunches = bunches.reshape((num_bunches, 8))
+
+        self.next_event_id += 1
+        return (evth, bunches)
+
+    def __iter__(self):
+        return self
+
+    def __exit__(self):
+        pass
+
+    def __repr__(self):
+        out = self.__class__.__name__ + '(path={:s})'.format(self.path)
+        return out

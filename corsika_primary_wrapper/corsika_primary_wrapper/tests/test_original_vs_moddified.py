@@ -3,7 +3,6 @@ import os
 import tempfile
 import corsika_primary_wrapper as cpw
 from corsika_primary_wrapper import testing as cpw_testing
-import simpleio
 import numpy as np
 import subprocess
 import pandas as pd
@@ -178,16 +177,11 @@ def test_original_vs_moddified(
                     stdout_path=ori_run_eventio_path + ".stdout",
                     stderr_path=ori_run_eventio_path + ".stderr",
                 )
-                rc = subprocess.call(
-                    [
-                        merlict_eventio_converter,
-                        "-i",
-                        ori_run_eventio_path,
-                        "-o",
-                        ori_run_path,
-                    ]
+                cpw.testing.eventio_to_simpleio(
+                    merlict_eventio_converter=merlict_eventio_converter,
+                    eventio_path=ori_run_eventio_path,
+                    simpleio_path=ori_run_path,
                 )
-                assert rc == 0
 
             with open(ori_run_eventio_path + ".stdout", "rt") as f:
                 ori_stdout = f.read()
@@ -250,16 +244,14 @@ def test_original_vs_moddified(
             # READ ORIGINAL AND MODIFIED RUNS
             # -------------------------------
             mod_run = cpw.tario.Tario(mod_run_path)
-            ori_run = simpleio.SimpleIoRun(ori_run_path)
+            ori_run = cpw_testing.SimpleIoRun(ori_run_path)
 
             for evt_idx in range(num_shower):
-                mod_evth, _mod_bunches = next(mod_run)
-                mod_bunches = cpw_testing.tario_bunches_to_array(_mod_bunches)
-                _ori_event = ori_run[evt_idx]
-                ori_evth = _ori_event.header.raw
-                ori_bunches = cpw_testing.simpleio_bunches_to_array(
-                    _ori_event.cherenkov_photon_bunches
-                )
+                mod_evth, mod_bunches = next(mod_run)
+                ori_evth, ori_bunches = next(ori_run)
+                mod_bunches = cpw.testing.bunches_SI_units(mod_bunches)
+                ori_bunches = cpw.testing.bunches_SI_units(ori_bunches)
+
 
                 evth_compare_path = os.path.join(tmp_dir, "evth_compare.md")
                 with open(evth_compare_path, "at") as fout:

@@ -4,7 +4,6 @@ import tempfile
 import corsika_primary_wrapper as cpw
 from corsika_primary_wrapper import testing as cpw_testing
 import subprocess
-import simpleio
 import numpy as np
 import hashlib
 import json
@@ -45,28 +44,18 @@ def hash_cherenkov_pools(
             stdout_path=run_eventio_path + ".stdout",
             stderr_path=run_eventio_path + ".stderr",
         )
-
-        subprocess.call(
-            [
-                merlict_eventio_converter,
-                "-i",
-                run_eventio_path,
-                "-o",
-                run_simpelio_path,
-            ]
+        cpw.testing.eventio_to_simpleio(
+            merlict_eventio_converter=merlict_eventio_converter,
+            eventio_path=run_eventio_path,
+            simpleio_path=run_simpelio_path,
         )
-
-        run = simpleio.SimpleIoRun(run_simpelio_path)
+        run = cpw_testing.SimpleIoRun(path=run_simpelio_path)
 
         hashes_csv = ""
         event_seeds = {}
-        for event_idx in range(len(run)):
-            event = run[event_idx]
-            evth = event.header.raw
+        for event in run:
+            evth, bunches = event
             event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-            bunches = cpw_testing.simpleio_bunches_to_array(
-                bunches=event.cherenkov_photon_bunches
-            )
             event_seeds[event_id] = cpw.event_seed_from_evth(evth=evth)
             h = hashlib.md5(bunches.tobytes()).hexdigest()
             hashes_csv += "{:06d},{:s}\n".format(event_id, h)
