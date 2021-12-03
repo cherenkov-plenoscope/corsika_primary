@@ -79,7 +79,7 @@ def hash_cherenkov_pools(
     return hashes, event_seeds
 
 
-def test_reproduce_events_with_original_corsika(
+def test_reproduce_events_vanilla(
     corsika_path, merlict_eventio_converter, debug_dir,
 ):
     tmp = cpw.testing.TmpDebugDir(
