@@ -176,9 +176,9 @@ def test_original_vs_moddified(
                     steering_card=ori_steering_card,
                     output_path=ori_run_eventio_path,
                     stdout_path=ori_run_eventio_path + ".stdout",
-                    stderr_path=ori_run_eventio_path + ".stderr",,
+                    stderr_path=ori_run_eventio_path + ".stderr",
                 )
-                subprocess.call(
+                rc = subprocess.call(
                     [
                         merlict_eventio_converter,
                         "-i",
@@ -187,6 +187,7 @@ def test_original_vs_moddified(
                         ori_run_path,
                     ]
                 )
+                assert rc == 0
 
             with open(ori_run_eventio_path + ".stdout", "rt") as f:
                 ori_stdout = f.read()
@@ -248,7 +249,7 @@ def test_original_vs_moddified(
 
             # READ ORIGINAL AND MODIFIED RUNS
             # -------------------------------
-            mod_run = cpw.Tario(mod_run_path)
+            mod_run = cpw.tario.Tario(mod_run_path)
             ori_run = simpleio.SimpleIoRun(ori_run_path)
 
             for evt_idx in range(num_shower):
@@ -301,29 +302,29 @@ def test_original_vs_moddified(
 
                     if ori_bunches.shape[0] == mod_bunches.shape[0]:
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, cpw.ICX],
-                            y=ori_bunches[:, cpw.ICX],
+                            x=mod_bunches[:, cpw.I.BUNCH.CX],
+                            y=ori_bunches[:, cpw.I.BUNCH.CX],
                             decimal=5,
                         )
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, cpw.ICY],
-                            y=ori_bunches[:, cpw.ICY],
+                            x=mod_bunches[:, cpw.I.BUNCH.CY],
+                            y=ori_bunches[:, cpw.I.BUNCH.CY],
                             decimal=5,
                         )
 
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, cpw.IZEM],
-                            y=ori_bunches[:, cpw.IZEM],
+                            x=mod_bunches[:, cpw.I.BUNCH.ZEM],
+                            y=ori_bunches[:, cpw.I.BUNCH.ZEM],
                             decimal=1,
                         )
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, cpw.IBSIZE],
-                            y=ori_bunches[:, cpw.IBSIZE],
+                            x=mod_bunches[:, cpw.I.BUNCH.BSIZE],
+                            y=ori_bunches[:, cpw.I.BUNCH.BSIZE],
                             decimal=6,
                         )
                         np.testing.assert_array_almost_equal(
-                            x=mod_bunches[:, cpw.IWVL],
-                            y=ori_bunches[:, cpw.IWVL],
+                            x=mod_bunches[:, cpw.I.BUNCH.WVL],
+                            y=ori_bunches[:, cpw.I.BUNCH.WVL],
                             decimal=9,
                         )
 
@@ -356,21 +357,21 @@ def test_original_vs_moddified(
                         DET_YO = 0.0
                         DET_ZO = telescope_sphere_radius_m
                         cx2_cy2 = (
-                            mod_bunches[:, cpw.ICX] ** 2
-                            + mod_bunches[:, cpw.ICY] ** 2
+                            mod_bunches[:, cpw.I.BUNCH.CX] ** 2
+                            + mod_bunches[:, cpw.I.BUNCH.CY] ** 2
                         )
-                        mod_sx = mod_bunches[:, cpw.ICX] / np.sqrt(
+                        mod_sx = mod_bunches[:, cpw.I.BUNCH.CX] / np.sqrt(
                             1.0 - cx2_cy2
                         )
-                        mod_sy = mod_bunches[:, cpw.ICY] / np.sqrt(
+                        mod_sy = mod_bunches[:, cpw.I.BUNCH.CY] / np.sqrt(
                             1.0 - cx2_cy2
                         )
 
                         mod_x_wrt_detector_sphere = (
-                            mod_bunches[:, cpw.IX] - mod_sx * DET_ZO - DET_XO
+                            mod_bunches[:, cpw.I.BUNCH.X] - mod_sx * DET_ZO - DET_XO
                         )
                         mod_y_wrt_detector_sphere = (
-                            mod_bunches[:, cpw.IY] - mod_sy * DET_ZO - DET_YO
+                            mod_bunches[:, cpw.I.BUNCH.Y] - mod_sy * DET_ZO - DET_YO
                         )
 
                         # ctime
@@ -382,7 +383,7 @@ def test_original_vs_moddified(
                             / SPPED_OF_LIGHT_M_PER_S
                         )
 
-                        mod_zenith_rad = mod_evth[cpw.I_EVTH_ZENITH_RAD]
+                        mod_zenith_rad = mod_evth[cpw.I.EVTH.ZENITH_RAD]
 
                         mod_toffset = (
                             (HEIGHT_AT_ZERO_GRAMMAGE_M + obs_level_m)
@@ -391,13 +392,13 @@ def test_original_vs_moddified(
                         )
 
                         mod_ctime_wrt_detector_sphere = (
-                            mod_bunches[:, cpw.ITIME] - mod_time_sphere_z
+                            mod_bunches[:, cpw.I.BUNCH.TIME] - mod_time_sphere_z
                         )
                         mod_ctime_wrt_detector_sphere -= mod_toffset
 
                         np.testing.assert_array_almost_equal(
                             x=mod_ctime_wrt_detector_sphere,
-                            y=ori_bunches[:, cpw.ITIME],
+                            y=ori_bunches[:, cpw.I.BUNCH.TIME],
                             decimal=6,
                         )
 
@@ -409,21 +410,21 @@ def test_original_vs_moddified(
                             # deflections in earth's magnetic field.
                             np.testing.assert_array_almost_equal(
                                 x=mod_x_wrt_detector_sphere,
-                                y=ori_bunches[:, cpw.IX],
+                                y=ori_bunches[:, cpw.I.BUNCH.X],
                                 decimal=2,
                             )
                             np.testing.assert_array_almost_equal(
                                 x=mod_y_wrt_detector_sphere,
-                                y=ori_bunches[:, cpw.IY],
+                                y=ori_bunches[:, cpw.I.BUNCH.Y],
                                 decimal=2,
                             )
 
                             assert (
-                                mod_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM]
+                                mod_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM]
                                 < 0.0
                             )
                             assert (
-                                ori_evth[cpw.I_EVTH_Z_FIRST_INTERACTION_CM]
+                                ori_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM]
                                 < 0.0
                             )
                         elif particle == "electron":
@@ -438,8 +439,8 @@ def test_original_vs_moddified(
                                 - np.mean(mod_y_wrt_detector_sphere)
                             )
 
-                            _ori_x = ori_bunches[:, cpw.IX]
-                            _ori_y = ori_bunches[:, cpw.IY]
+                            _ori_x = ori_bunches[:, cpw.I.BUNCH.X]
+                            _ori_y = ori_bunches[:, cpw.I.BUNCH.Y]
                             ori_x_wrt_mean = _ori_x - np.mean(_ori_x)
                             ori_y_wrt_mean = _ori_y - np.mean(_ori_y)
 

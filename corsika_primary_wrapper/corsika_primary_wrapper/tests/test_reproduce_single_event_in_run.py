@@ -89,7 +89,7 @@ def hash_cherenkov_pools(
         hashes_csv = ""
         for event in run:
             evth, bunches = event
-            event_id = int(evth[cpw.I_EVTH_EVENT_NUMBER])
+            event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
             h = hashlib.md5(bunches.tobytes()).hexdigest()
             _csv_line = "{:06d},{:s}".format(event_id, h)
             hashes_csv += _csv_line + "\n"

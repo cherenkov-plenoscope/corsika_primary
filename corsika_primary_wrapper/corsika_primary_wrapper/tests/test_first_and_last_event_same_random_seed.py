@@ -55,7 +55,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             output_path=run_path,
         )
         assert os.path.exists(run_path)
-        run = cpw.Tario(run_path)
+        run = cpw.tario.Tario(run_path)
         first_evth, first_bunches = next(run)
         second_evth, second_bunches = next(run)
         third_evth, third_bunches = next(run)

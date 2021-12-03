@@ -55,7 +55,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
                 steering_dict=steering_dict,
                 output_path=run_path,
             )
-            run = cpw.Tario(run_path)
+            run = cpw.tario.sTario(run_path)
             first_event = next(run)
             first_evth, first_bunches = first_event
             for event_idx, event in enumerate(run):

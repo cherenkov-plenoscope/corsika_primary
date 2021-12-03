@@ -144,6 +144,17 @@ def make_run_card_str(steering_dict, output_path):
     return card
 
 
+def overwrite_telfil_in_card_str(card_str, telfil):
+    out = io.StringIO()
+    for line in str.splitlines(card_str):
+        if not "EXIT" in line and not "TELFIL" in line:
+            out.write(line + "\n")
+    out.write("TELFIL {:s}\n".format(telfil))
+    out.write("EXIT\n")
+    out.seek(0)
+    return out.read()
+
+
 def _read(f, dtype_str):
     """
     Read a single value of specific dtype from a stream.

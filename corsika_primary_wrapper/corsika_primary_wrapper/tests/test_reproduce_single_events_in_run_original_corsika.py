@@ -43,7 +43,7 @@ def hash_cherenkov_pools(
             steering_card=card,
             output_path=run_eventio_path,
             stdout_path=run_eventio_path + ".stdout",
-            stderr_path=run_eventio_path + ".stderr",,
+            stderr_path=run_eventio_path + ".stderr",
         )
 
         subprocess.call(
@@ -63,7 +63,7 @@ def hash_cherenkov_pools(
         for event_idx in range(len(run)):
             event = run[event_idx]
             evth = event.header.raw
-            event_id = int(evth[cpw.I_EVTH_EVENT_NUMBER])
+            event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
             bunches = cpw_testing.simpleio_bunches_to_array(
                 bunches=event.cherenkov_photon_bunches
             )
@@ -98,6 +98,9 @@ def test_reproduce_events_with_original_corsika(
     assert os.path.exists(merlict_eventio_converter)
     tmp_dir_handle = tempfile.TemporaryDirectory(prefix="corsika_")
     tmp_dir = non_temporary_path if non_temporary_path else tmp_dir_handle.name
+    tmp_dir = os.path.join(
+        tmp_dir, "test_reproduce_events_with_original_corsika"
+    )
 
     PARTICLES = {
         "gamma": {"particle_id": 1, "energy_GeV": 1.0},

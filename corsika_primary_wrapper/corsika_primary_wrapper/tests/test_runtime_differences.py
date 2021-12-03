@@ -95,7 +95,7 @@ def test_runtime_differences(
                 steering_card=ori_steering_card,
                 output_path=ori_run_path,
                 stdout_path=ori_run_path + ".stdout",
-                stderr_path=ori_run_path + ".stderr",,
+                stderr_path=ori_run_path + ".stderr",
             )
         t_end_ori = datetime.datetime.now()
         dt_ori = (t_end_ori - t_start_ori).total_seconds()

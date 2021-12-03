@@ -5,6 +5,7 @@ import corsika_primary_wrapper as cpw
 import numpy as np
 from os import path as op
 import subprocess
+import simpleio
 
 i4 = np.int32
 i8 = np.int64
@@ -103,7 +104,7 @@ def test_low_energy_electron(
             "CERSIZ 1.",
             "CERFIL F",
             "TSTART T",
-            "EXIT",
+            "EXIT\n",
         ]
     )
 
@@ -116,14 +117,15 @@ def test_low_energy_electron(
         # RUN ORIGINAL CORSIKA
         # --------------------
         # The original CORSIKA will fail to write valid output.
-        ori_run_eventio_path = op.join(tmp_dir, "original_run.eventio")
+        ori_run_path = op.join(tmp_dir, "original_run")
+        ori_run_eventio_path = ori_run_path + ".eventio"
         if not op.exists(ori_run_eventio_path):
             cpw.corsika_vanilla(
                 corsika_path=corsika_path,
                 steering_card=ori_steering_card,
                 output_path=ori_run_eventio_path,
                 stdout_path=ori_run_eventio_path + ".stdout",
-                stderr_path=ori_run_eventio_path + ".stderr",,
+                stderr_path=ori_run_eventio_path + ".stderr",
             )
 
         with open(ori_run_eventio_path + ".stdout", "rt") as f:
@@ -172,7 +174,7 @@ def test_low_energy_electron(
             stdout = f.read()
         assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-        run = cpw.Tario(run_path)
+        run = cpw.tario.Tario(run_path)
         for idx, event in enumerate(run):
             evth, bunches = event
             assert ori_num_bunches[idx] == bunches.shape[0]

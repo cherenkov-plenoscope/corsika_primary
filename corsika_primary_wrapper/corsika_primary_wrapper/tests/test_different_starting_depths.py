@@ -39,7 +39,7 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
         "primaries": [],
     }
 
-    seed = 0
+    seed = 1
     for depth in depths:
         for rep in range(NUM_EVENTS_PER_DEPTH):
             prm = {
@@ -70,7 +70,7 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
                 steering_dict=steering_dict,
                 output_path=run_path,
             )
-        run = cpw.Tario(run_path)
+        run = cpw.tario.Tario(run_path)
 
         for depth in depths:
             _num_bunches = []
@@ -81,11 +81,11 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
                 evth, bunches = event
                 if bunches.shape[0] > 0:
                     _num_bunches.append(bunches.shape[0])
-                    _num_photons.append(np.sum(bunches[:, cpw.IBSIZE]))
+                    _num_photons.append(np.sum(bunches[:, cpw.I.BUNCH.BSIZE]))
                     _std_r.append(
                         np.hypot(
-                            np.std(bunches[:, cpw.IX]),
-                            np.std(bunches[:, cpw.IY]),
+                            np.std(bunches[:, cpw.I.BUNCH.X]),
+                            np.std(bunches[:, cpw.I.BUNCH.Y]),
                         )
                     )
             num_bunches.append(np.mean(_num_bunches))

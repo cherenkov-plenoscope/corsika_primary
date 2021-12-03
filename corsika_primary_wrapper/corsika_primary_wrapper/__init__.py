@@ -4,31 +4,17 @@ import os
 import subprocess
 import shutil
 import io
-import tarfile
 import struct
 import copy
 from . import random_distributions
 from . import random_seed
 from . import collect_version_information
 from . import steering
+from . import I
+from . import tario
 
 
-CM2M = 1e-2
-M2CM = 1.0 / CM2M
 MAX_ZENITH_DEG = 70.0
-
-
-NUM_BYTES_PER_BUNCH = (
-    len(["x", "y", "cx", "cy", "t", "zem", "wvl", "size"]) * 4
-)
-IX = 0
-IY = 1
-ICX = 2
-ICY = 3
-ITIME = 4
-IZEM = 5
-IBSIZE = 6
-IWVL = 7
 
 
 def corsika_primary(
@@ -149,16 +135,17 @@ def corsika_vanilla(
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
-    steering_card = str(steering_card)
-    assert steering_card[-1] == "\n", "Newline to end stdin for CORSIKA."
     output_path = op.abspath(output_path)
+    steering_card = steering.overwrite_telfil_in_card_str(
+        card_str=steering_card,
+        telfil=output_path
+    )
     stdout_path = stdout_path if stdout_path else output_path + ".stdout"
     stderr_path = stderr_path if stderr_path else output_path + ".stderr"
     stdout_path = op.abspath(stdout_path)
     stderr_path = op.abspath(stderr_path)
 
     corsika_run_dir = op.dirname(corsika_path)
-
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
         tmp_corsika_run_dir = op.join(tmp_dir, "run")
         shutil.copytree(corsika_run_dir, tmp_corsika_run_dir, symlinks=False)
@@ -190,58 +177,6 @@ def corsika_vanilla(
     return rc
 
 
-RUNH_MARKER_FLOAT32 = struct.unpack("f", "RUNH".encode())[0]
-EVTH_MARKER_FLOAT32 = struct.unpack("f", "EVTH".encode())[0]
-
-TARIO_RUNH_FILENAME = "runh.float32"
-TARIO_EVTH_FILENAME = "{:09d}.evth.float32"
-TARIO_BUNCHES_FILENAME = "{:09d}.cherenkov_bunches.Nx8_float32"
-
-
-class Tario:
-    def __init__(self, path):
-        self.path = path
-        self.tar = tarfile.open(path, "r|*")
-
-        runh_tar = self.tar.next()
-        runh_bin = self.tar.extractfile(runh_tar).read()
-        self.runh = np.frombuffer(runh_bin, dtype=np.float32)
-        assert self.runh[0] == RUNH_MARKER_FLOAT32
-        self.num_events_read = 0
-
-    def __next__(self):
-        evth_tar = self.tar.next()
-        if evth_tar is None:
-            raise StopIteration
-        evth_number = int(evth_tar.name[0:9])
-        evth_bin = self.tar.extractfile(evth_tar).read()
-        evth = np.frombuffer(evth_bin, dtype=np.float32)
-        assert evth[0] == EVTH_MARKER_FLOAT32
-        assert int(np.round(evth[1])) == evth_number
-
-        bunches_tar = self.tar.next()
-        bunches_number = int(bunches_tar.name[0:9])
-        assert evth_number == bunches_number
-        bunches_bin = self.tar.extractfile(bunches_tar).read()
-        bunches = np.frombuffer(bunches_bin, dtype=np.float32)
-        num_bunches = bunches.shape[0] // (8)
-
-        self.num_events_read += 1
-        return (evth, np.reshape(bunches, newshape=(num_bunches, 8)))
-
-    def __iter__(self):
-        return self
-
-    def __exit__(self):
-        self.tar.close()
-
-    def __repr__(self):
-        out = "{:s}(path='{:s}', read={:d})".format(
-            self.__class__.__name__, self.path, self.num_events_read
-        )
-        return out
-
-
 NUM_RANDOM_SEQUENCES = 4
 
 
@@ -268,6 +203,17 @@ def stdout_ends_with_end_of_run_marker(stdout):
 
 
 def _parse_random_seeds_from_corsika_stdout(stdout):
+    """
+    Returns a list of random-number-generator states at the begin of each
+    event.
+    Does not contain all events. CORSIKA does not print this for all events.
+    Only use this when CORSIKA's Cherenkov-output is broken.
+
+    parameters
+    ----------
+    stdout : str
+        CORSIKA's stdout.
+    """
     events = []
     MARKER = " AND RANDOM NUMBER GENERATOR AT BEGIN OF EVENT :"
     lines = stdout.split("\n")
@@ -305,11 +251,21 @@ def _parse_random_seeds_from_corsika_stdout(stdout):
 
 
 def _parse_num_bunches_from_corsika_stdout(stdout):
+    """
+    Returns the number of bunches, not photons of each event.
+    Does not contain all events. CORSIKA does not print this for all events.
+    Only use this when CORSIKA's Cherenkov-output is broken.
+
+    parameters
+    ----------
+    stdout : str
+        CORSIKA's stdout.
+    """
     marker = " Total number of photons in shower:"
     nums = []
     lines = stdout.split("\n")
     for ll in range(len(lines)):
-        pos = lines[ll].find(" Total number of photons in shower:")
+        pos = lines[ll].find(marker)
         if pos == 0:
             work_line = lines[ll][len(marker) : -1]
             pos_2nd_in = work_line.find("in")
@@ -399,7 +355,7 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.tario_reader = Tario(path=self.fifo_path)
+        self.tario_reader = tario.Tario(path=self.fifo_path)
         self.runh = self.tario_reader.runh
 
     def _close(self):
@@ -428,88 +384,6 @@ class CorsikaPrimary:
         return out
 
 
-# From CORSIKA manual
-# --------------
-
-# RUNHEADER
-# ---------
-I_RUNH_NUM_EVENTS = 93 - 1
-
-# EVENTHEADER
-# -----------
-I_EVTH_MARKER = 1 - 1
-I_EVTH_EVENT_NUMBER = 2 - 1
-I_EVTH_PARTICLE_ID = 3 - 1
-I_EVTH_TOTAL_ENERGY_GEV = 4 - 1
-I_EVTH_STARTING_DEPTH_G_PER_CM2 = 5 - 1
-I_EVTH_NUMBER_OF_FIRST_TARGET_IF_FIXED = 6 - 1
-I_EVTH_Z_FIRST_INTERACTION_CM = 7 - 1
-I_EVTH_PX_MOMENTUM_GEV_PER_C = 8 - 1
-I_EVTH_PY_MOMENTUM_GEV_PER_C = 9 - 1
-I_EVTH_PZ_MOMENTUM_GEV_PER_C = 10 - 1
-I_EVTH_ZENITH_RAD = 11 - 1
-I_EVTH_AZIMUTH_RAD = 12 - 1
-
-I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES = 13 - 1
-
-
-def I_EVTH_RANDOM_SEED(sequence):
-    assert sequence >= 1
-    assert sequence <= 10
-    return (11 + 3 * sequence) - 1
-
-
-def I_EVTH_RANDOM_SEED_CALLS(sequence):
-    assert sequence >= 1
-    assert sequence <= 10
-    return (12 + 3 * sequence) - 1
-
-
-def I_EVTH_RANDOM_SEED_MILLIONS(sequence):
-    """
-    This is actually 10**6, but the input to corsika is billions 10**9
-    """
-    assert sequence >= 1
-    assert sequence <= 10
-    return (13 + 3 * sequence) - 1
-
-
-I_EVTH_RUN_NUMBER = 44 - 1
-I_EVTH_DATE_OF_BEGIN_RUN = 45 - 1
-I_EVTH_VERSION_OF_PROGRAM = 46 - 1
-
-I_EVTH_NUM_OBSERVATION_LEVELS = 47 - 1
-
-
-def I_EVTH_HEIGHT_OBSERVATION_LEVEL(level):
-    assert level >= 1
-    assert level <= 10
-    return (47 + level) - 1
-
-
-I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 71 - 1
-I_EVTH_EARTH_MAGNETIC_FIELD_X_UT = 72 - 1
-
-I_EVTH_ANGLE_X_MAGNETIG_NORTH_RAD = 93 - 1
-
-I_EVTH_NUM_REUSES_OF_CHERENKOV_EVENT = 98 - 1
-
-
-def I_EVTH_X_CORE_CM(reuse):
-    assert reuse >= 1
-    assert reuse <= 20
-    return (98 + reuse) - 1
-
-
-def I_EVTH_Y_CORE_CM(reuse):
-    assert reuse >= 1
-    assert reuse <= 20
-    return (118 + reuse) - 1
-
-
-I_EVTH_STARTING_HEIGHT_CM = 158 - 1
-
-
 def event_seed_from_evth(evth):
     MILLION = np.int64(1000 * 1000)
     BILLION = np.int64(1000 * 1000 * 1000)
@@ -519,15 +393,15 @@ def event_seed_from_evth(evth):
         assert val_i == val
         return val_i
 
-    nseq = ftoi(evth[I_EVTH_NUM_DIFFERENT_RANDOM_SEQUENCES])
+    nseq = ftoi(evth[I.EVTH.NUM_DIFFERENT_RANDOM_SEQUENCES])
 
     seeds = []
     for seq_idx in range(nseq):
         seq_id = seq_idx + 1
 
-        seed = ftoi(evth[I_EVTH_RANDOM_SEED(sequence=seq_id)])
-        calls = ftoi(evth[I_EVTH_RANDOM_SEED_CALLS(sequence=seq_id)])
-        millions = ftoi(evth[I_EVTH_RANDOM_SEED_MILLIONS(sequence=seq_id)])
+        seed = ftoi(evth[I.EVTH.RANDOM_SEED(sequence=seq_id)])
+        calls = ftoi(evth[I.EVTH.RANDOM_SEED_CALLS(sequence=seq_id)])
+        millions = ftoi(evth[I.EVTH.RANDOM_SEED_MILLIONS(sequence=seq_id)])
 
         total_calls = millions * MILLION + calls
         calls_mod_billions = np.mod(total_calls, BILLION)

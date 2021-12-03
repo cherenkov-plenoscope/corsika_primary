@@ -40,7 +40,7 @@ def test_no_obvious_32bit_limitations(
                 "zenith_rad": f8(0.0),
                 "azimuth_rad": f8(0.0),
                 "depth_g_per_cm2": f8(0.0),
-                "random_seed": cpw.random_seed.make_simple_seed(0),
+                "random_seed": cpw.random_seed.make_simple_seed(1),
             }
         ],
     }
@@ -58,16 +58,16 @@ def test_no_obvious_32bit_limitations(
                 steering_dict=steering_dict,
                 output_path=run_path,
             )
-        run = cpw.Tario(run_path)
+        run = cpw.tario.Tario(run_path)
         event = next(run)
         evth, bunches = event
         with pytest.raises(StopIteration):
             next(run)
 
-        assert evth[cpw.I_EVTH_EVENT_NUMBER] == 1.0
-        assert evth[cpw.I_EVTH_PARTICLE_ID] == 3.0
-        assert evth[cpw.I_EVTH_STARTING_DEPTH_G_PER_CM2] == 0.0
+        assert evth[cpw.I.EVTH.EVENT_NUMBER] == 1.0
+        assert evth[cpw.I.EVTH.PARTICLE_ID] == 3.0
+        assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
 
-        sufficient_bunches = int(5e9 // cpw.NUM_BYTES_PER_BUNCH)
+        sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
 
         assert bunches.shape[0] > sufficient_bunches
