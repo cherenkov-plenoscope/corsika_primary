@@ -1,4 +1,6 @@
+import pytest
 import corsika_primary_wrapper as cpw
+import inspect
 import numpy as np
 import tempfile
 import os
@@ -6,6 +8,11 @@ import os
 i4 = np.int32
 i8 = np.int64
 f8 = np.float64
+
+
+@pytest.fixture()
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
 def make_dummy_run_steering(run_id, prng):
@@ -99,7 +106,12 @@ def test_primary_bytes_extract_slice():
         assert primary_is_equal(orig, back)
 
 
-def test_io():
+def test_steering_dict_io(debug_dir):
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
+
     NUM_RUNS = 42
     NUM_EVENTS = 137
     prng = np.random.Generator(np.random.PCG64(42))
@@ -112,11 +124,12 @@ def test_io():
             "primaries": make_dummy_primaries(num=NUM_EVENTS, prng=prng),
         }
 
-    with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
-        path = os.path.join(tmp_dir, "steering.tar")
-        cpw.steering.write_steerings(runs=orig, path=path)
-        back = cpw.steering.read_steerings(path=path)
+    path = os.path.join(tmp.name, "steering.tar")
+    cpw.steering.write_steerings(runs=orig, path=path)
+    back = cpw.steering.read_steerings(path=path)
 
     for run_id in orig:
         assert orig[run_id]["run"] == back[run_id]["run"]
         assert orig[run_id]["primaries"] == back[run_id]["primaries"]
+
+    tmp.cleanup_when_no_debug()

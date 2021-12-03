@@ -4,6 +4,27 @@ import os
 import glob
 from . import I
 
+
+class TmpDebugDir():
+    def __init__(self, debug_dir, suffix=None, prefix="corsika_primary"):
+        if debug_dir:
+            self.debug = True
+            self.handle = None
+            self.name = os.path.join(debug_dir, suffix)
+            os.makedirs(self.name, exist_ok=True)
+        else:
+            self.debug = False
+            self.tmp_dir_handle = tempfile.TemporaryDirectory(
+                prefix=prefix,
+                suffix=suffix
+            )
+            self.name = self.tmp_dir_handle.name
+
+    def cleanup_when_no_debug(self):
+        if not self.debug:
+            self.tmp_dir_handle.cleanup()
+
+
 def bunches_SI_units(bunches):
     b = np.zeros(shape=bunches.shape, dtype=np.float32)
     b[:, I.BUNCH.X] = bunches[:, I.BUNCH.X] * 1e-2  # cm -> m
@@ -26,9 +47,9 @@ def eventio_to_simpleio(
         [
             merlict_eventio_converter,
             "-i",
-            ori_run_eventio_path,
+            eventio_path,
             "-o",
-            ori_run_path,
+            simpleio_path,
         ]
     )
     assert rc == 0

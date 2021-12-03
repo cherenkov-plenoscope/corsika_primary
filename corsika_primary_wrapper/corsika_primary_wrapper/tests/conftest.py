@@ -29,4 +29,4 @@ def pytest_addoption(parser):
             ".", "build", "merlict", "merlict-eventio-converter"
         ),
     )
-    parser.addoption("--non_temporary_path", action="store", default="")
+    parser.addoption("--debug_dir", action="store", default="")

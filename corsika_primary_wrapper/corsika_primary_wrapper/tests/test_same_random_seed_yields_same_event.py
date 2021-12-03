@@ -1,7 +1,7 @@
 import pytest
 import os
-import tempfile
 import corsika_primary_wrapper as cpw
+import inspect
 import numpy as np
 
 i4 = np.int32
@@ -14,8 +14,17 @@ def corsika_primary_path(pytestconfig):
     return pytestconfig.getoption("corsika_primary_path")
 
 
-def test_same_random_seed_yields_same_event(corsika_primary_path):
-    assert os.path.exists(corsika_primary_path)
+@pytest.fixture()
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
+
+
+def test_same_random_seed_yields_same_event(corsika_primary_path, debug_dir):
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
+
     energy_GeV = 7.0
 
     for particle_id in [1, 3, 14]:
@@ -41,27 +50,29 @@ def test_same_random_seed_yields_same_event(corsika_primary_path):
             "zenith_rad": f8(0.0),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": cpw.random_seed.make_simple_seed(0),
+            "random_seed": cpw.random_seed.make_simple_seed(18),
         }
 
         num_primaries = 12
         for idx_primary in range(num_primaries):
             steering_dict["primaries"].append(same_primary.copy())
 
-        with tempfile.TemporaryDirectory(prefix="test_primary_") as tmp_dir:
-            run_path = os.path.join(tmp_dir, "run_with_same_events.tar")
+        run_path = os.path.join(tmp.name, "run_with_same_events.tar")
+        if not os.path.exists(run_path):
             cpw.corsika_primary(
                 corsika_path=corsika_primary_path,
                 steering_dict=steering_dict,
                 output_path=run_path,
             )
-            run = cpw.tario.sTario(run_path)
-            first_event = next(run)
-            first_evth, first_bunches = first_event
-            for event_idx, event in enumerate(run):
-                evth, bunches = event
-                assert first_evth[0] == evth[0]
-                assert first_evth[1] != evth[1]  # event-number
-                np.testing.assert_array_equal(first_evth[2:], evth[2:])
-                np.testing.assert_array_equal(first_bunches, bunches)
-            assert event_idx + 2 == num_primaries
+        run = cpw.tario.Tario(run_path)
+        first_event = next(run)
+        first_evth, first_bunches = first_event
+        for event_idx, event in enumerate(run):
+            evth, bunches = event
+            assert first_evth[0] == evth[0]
+            assert first_evth[1] != evth[1]  # event-number
+            np.testing.assert_array_equal(first_evth[2:], evth[2:])
+            np.testing.assert_array_equal(first_bunches, bunches)
+        assert event_idx + 2 == num_primaries
+
+    tmp.cleanup_when_no_debug()

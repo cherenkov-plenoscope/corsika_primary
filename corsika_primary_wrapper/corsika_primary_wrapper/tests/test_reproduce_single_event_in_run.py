@@ -1,7 +1,7 @@
 import pytest
 import os
-import tempfile
 import corsika_primary_wrapper as cpw
+import inspect
 import numpy as np
 import hashlib
 import pprint
@@ -18,8 +18,8 @@ def corsika_primary_path(pytestconfig):
 
 
 @pytest.fixture()
-def non_temporary_path(pytestconfig):
-    return pytestconfig.getoption("non_temporary_path")
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
 def make_random_steering_dict(
@@ -166,12 +166,13 @@ PARTICLES = {
 
 
 def test_few_events_different_particles_reproduce_one(
-    corsika_primary_path, non_temporary_path
+    corsika_primary_path, debug_dir
 ):
-    tmp_dir_handle = tempfile.TemporaryDirectory(prefix="corsika_primary_")
-    tmp_dir = non_temporary_path if non_temporary_path else tmp_dir_handle.name
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
 
-    assert os.path.exists(corsika_primary_path)
     prng = np.random.Generator(np.random.PCG64(42))
 
     num_primaries = 15
@@ -194,9 +195,7 @@ def test_few_events_different_particles_reproduce_one(
             corsika_primary_path=corsika_primary_path,
             steering_dict=steering_dict,
             event_ids_to_reproduce=event_ids_to_reproduce,
-            tmp_dir=os.path.join(
-                tmp_dir, "few_events_different_particles_reproduce_one", pkey,
-            ),
+            tmp_dir=os.path.join(tmp.name, pkey),
         )
 
         reproduction[pkey] = all_cherenkov_pool_hashes_are_equal(
@@ -211,19 +210,21 @@ def test_few_events_different_particles_reproduce_one(
             all_particles_can_be_reproduced = False
 
     assert all_particles_can_be_reproduced
-    tmp_dir_handle.cleanup()
+
+    tmp.cleanup_when_no_debug()
 
 
-def test_reproduce_full_run(corsika_primary_path, non_temporary_path):
+def test_reproduce_full_run(corsika_primary_path, debug_dir):
     """
     Motivation: In the magnetic deflection estimate I found some events ~50%
     which could not be reproduced i.e. did not yield the same Cherenkov-pool.
     Here we test if it yields at lest the same result when it is called
     multiple times with same input.
     """
-
-    tmp_dir_handle = tempfile.TemporaryDirectory(prefix="corsika_primary_")
-    tmp_dir = non_temporary_path if non_temporary_path else tmp_dir_handle.name
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
 
     prng = np.random.Generator(np.random.PCG64(42))
     num_iterations = 5
@@ -246,9 +247,7 @@ def test_reproduce_full_run(corsika_primary_path, non_temporary_path):
                 corsika_primary_path=corsika_primary_path,
                 steering_dict=steering_dict,
                 tmp_key="{:06d}".format(i),
-                tmp_dir=os.path.join(
-                    tmp_dir, "test_reproduce_full_run", pkey,
-                ),
+                tmp_dir=os.path.join(tmp.name, pkey),
             )
             M.append(hashes)
 
@@ -277,4 +276,4 @@ def test_reproduce_full_run(corsika_primary_path, non_temporary_path):
 
     assert all_iterations_yield_same_cherenkov_pool
 
-    tmp_dir_handle.cleanup()
+    tmp.cleanup_when_no_debug()

@@ -2,6 +2,7 @@ import pytest
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
+import inspect
 import numpy as np
 
 i4 = np.int32
@@ -15,12 +16,15 @@ def corsika_primary_path(pytestconfig):
 
 
 @pytest.fixture()
-def non_temporary_path(pytestconfig):
-    return pytestconfig.getoption("non_temporary_path")
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
-def test_different_starting_depths(corsika_primary_path, non_temporary_path):
-    assert os.path.exists(corsika_primary_path)
+def test_different_starting_depths(corsika_primary_path, debug_dir):
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
 
     NUM_DEPTHS = 10
     NUM_EVENTS_PER_DEPTH = 100
@@ -57,40 +61,35 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
     num_bunches = []
     num_photons = []
     std_r = []
-    tmp_prefix = "test_different_starting_depths_"
-    with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
-        if non_temporary_path != "":
-            tmp_dir = os.path.join(non_temporary_path, tmp_prefix)
-            os.makedirs(tmp_dir, exist_ok=True)
 
-        run_path = os.path.join(tmp_dir, "different_starting_depths.tar")
-        if not os.path.exists(run_path):
-            cpw.corsika_primary(
-                corsika_path=corsika_primary_path,
-                steering_dict=steering_dict,
-                output_path=run_path,
-            )
-        run = cpw.tario.Tario(run_path)
+    run_path = os.path.join(tmp.name, "different_starting_depths.tar")
+    if not os.path.exists(run_path):
+        cpw.corsika_primary(
+            corsika_path=corsika_primary_path,
+            steering_dict=steering_dict,
+            output_path=run_path,
+        )
+    run = cpw.tario.Tario(run_path)
 
-        for depth in depths:
-            _num_bunches = []
-            _num_photons = []
-            _std_r = []
-            for rep in range(NUM_EVENTS_PER_DEPTH):
-                event = next(run)
-                evth, bunches = event
-                if bunches.shape[0] > 0:
-                    _num_bunches.append(bunches.shape[0])
-                    _num_photons.append(np.sum(bunches[:, cpw.I.BUNCH.BSIZE]))
-                    _std_r.append(
-                        np.hypot(
-                            np.std(bunches[:, cpw.I.BUNCH.X]),
-                            np.std(bunches[:, cpw.I.BUNCH.Y]),
-                        )
+    for depth in depths:
+        _num_bunches = []
+        _num_photons = []
+        _std_r = []
+        for rep in range(NUM_EVENTS_PER_DEPTH):
+            event = next(run)
+            evth, bunches = event
+            if bunches.shape[0] > 0:
+                _num_bunches.append(bunches.shape[0])
+                _num_photons.append(np.sum(bunches[:, cpw.I.BUNCH.BSIZE]))
+                _std_r.append(
+                    np.hypot(
+                        np.std(bunches[:, cpw.I.BUNCH.X]),
+                        np.std(bunches[:, cpw.I.BUNCH.Y]),
                     )
-            num_bunches.append(np.mean(_num_bunches))
-            num_photons.append(np.mean(_num_photons))
-            std_r.append(np.mean(_std_r))
+                )
+        num_bunches.append(np.mean(_num_bunches))
+        num_photons.append(np.mean(_num_photons))
+        std_r.append(np.mean(_std_r))
 
     print("num   depth   num.ph.   std.x.y.")
     for ii in range(depths.shape[0]):
@@ -110,3 +109,5 @@ def test_different_starting_depths(corsika_primary_path, non_temporary_path):
     # The spread of the light-pool should be smaller for starting points deeper
     # in the atmosphere.
     assert np.all(np.gradient(std_r) < 0)
+
+    tmp.cleanup_when_no_debug()

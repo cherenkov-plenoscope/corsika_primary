@@ -1,8 +1,7 @@
 import pytest
 import os
-import tempfile
 import corsika_primary_wrapper as cpw
-from corsika_primary_wrapper import testing as cpw_testing
+import inspect
 import subprocess
 import numpy as np
 import hashlib
@@ -22,8 +21,8 @@ def merlict_eventio_converter(pytestconfig):
 
 
 @pytest.fixture()
-def non_temporary_path(pytestconfig):
-    return pytestconfig.getoption("non_temporary_path")
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
 def hash_cherenkov_pools(
@@ -49,7 +48,7 @@ def hash_cherenkov_pools(
             eventio_path=run_eventio_path,
             simpleio_path=run_simpelio_path,
         )
-        run = cpw_testing.SimpleIoRun(path=run_simpelio_path)
+        run = cpw.testing.SimpleIoRun(path=run_simpelio_path)
 
         hashes_csv = ""
         event_seeds = {}
@@ -81,14 +80,11 @@ def hash_cherenkov_pools(
 
 
 def test_reproduce_events_with_original_corsika(
-    corsika_path, merlict_eventio_converter, non_temporary_path,
+    corsika_path, merlict_eventio_converter, debug_dir,
 ):
-    assert os.path.exists(corsika_path)
-    assert os.path.exists(merlict_eventio_converter)
-    tmp_dir_handle = tempfile.TemporaryDirectory(prefix="corsika_")
-    tmp_dir = non_temporary_path if non_temporary_path else tmp_dir_handle.name
-    tmp_dir = os.path.join(
-        tmp_dir, "test_reproduce_events_with_original_corsika"
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
     )
 
     PARTICLES = {
@@ -174,7 +170,7 @@ def test_reproduce_events_with_original_corsika(
             seq4BILLIONS=0,
         )
 
-        full_dir = os.path.join(tmp_dir, pkey, "events_together")
+        full_dir = os.path.join(tmp.name, pkey, "events_together")
         full_hashes, full_seeds = hash_cherenkov_pools(
             card=full_card,
             tmp_dir=full_dir,
@@ -203,7 +199,7 @@ def test_reproduce_events_with_original_corsika(
             )
 
             part_dir = os.path.join(
-                tmp_dir, pkey, "event_alone_{:06d}".format(event_id)
+                tmp.name, pkey, "event_alone_{:06d}".format(event_id)
             )
             part_hashes, part_seeds = hash_cherenkov_pools(
                 card=part_card,
@@ -225,7 +221,7 @@ def test_reproduce_events_with_original_corsika(
                 all_events_can_be_reproduced = False
         report += "\n"
 
-    with open(os.path.join(tmp_dir, "report.md"), "wt") as f:
+    with open(os.path.join(tmp.name, "report.md"), "wt") as f:
         f.write(report)
 
     print(report)
@@ -234,15 +230,15 @@ def test_reproduce_events_with_original_corsika(
         [
             "tar",
             "-C",
-            os.path.join(tmp_dir),
+            os.path.join(tmp.name),
             "--exclude=simpleio",
             "--exclude=eventio",
             "--exclude=eventio.stderr",
             "-cvf",
-            os.path.join(tmp_dir, "test.tar"),
+            os.path.join(tmp.name, "test.tar"),
             ".",
         ]
     )
     assert all_events_can_be_reproduced
 
-    tmp_dir_handle.cleanup()
+    tmp.cleanup_when_no_debug()

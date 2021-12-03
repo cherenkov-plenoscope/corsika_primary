@@ -1,4 +1,5 @@
 import pytest
+import inspect
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
@@ -15,14 +16,18 @@ def corsika_primary_path(pytestconfig):
 
 
 @pytest.fixture()
-def non_temporary_path(pytestconfig):
-    return pytestconfig.getoption("non_temporary_path")
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
-def test_no_obvious_32bit_limitations(
-    corsika_primary_path, non_temporary_path
+def test_32bit_limit_high_energy_shower(
+    corsika_primary_path, debug_dir
 ):
-    assert os.path.exists(corsika_primary_path)
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
+
     steering_dict = {
         "run": {
             "run_id": i8(1),
@@ -45,29 +50,25 @@ def test_no_obvious_32bit_limitations(
         ],
     }
 
-    tmp_prefix = "test_32bit_limit_high_energy_shower"
-    with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
-        if non_temporary_path != "":
-            tmp_dir = os.path.join(non_temporary_path, tmp_prefix)
-            os.makedirs(tmp_dir, exist_ok=True)
+    run_path = os.path.join(tmp.name, "high_energy_electron.tar")
+    if not os.path.exists(run_path):
+        cpw.corsika_primary(
+            corsika_path=corsika_primary_path,
+            steering_dict=steering_dict,
+            output_path=run_path,
+        )
+    run = cpw.tario.Tario(run_path)
+    event = next(run)
+    evth, bunches = event
+    with pytest.raises(StopIteration):
+        next(run)
 
-        run_path = os.path.join(tmp_dir, "high_energy_electron.tar")
-        if not os.path.exists(run_path):
-            cpw.corsika_primary(
-                corsika_path=corsika_primary_path,
-                steering_dict=steering_dict,
-                output_path=run_path,
-            )
-        run = cpw.tario.Tario(run_path)
-        event = next(run)
-        evth, bunches = event
-        with pytest.raises(StopIteration):
-            next(run)
+    assert evth[cpw.I.EVTH.EVENT_NUMBER] == 1.0
+    assert evth[cpw.I.EVTH.PARTICLE_ID] == 3.0
+    assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
 
-        assert evth[cpw.I.EVTH.EVENT_NUMBER] == 1.0
-        assert evth[cpw.I.EVTH.PARTICLE_ID] == 3.0
-        assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
+    sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
 
-        sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
+    assert bunches.shape[0] > sufficient_bunches
 
-        assert bunches.shape[0] > sufficient_bunches
+    tmp.cleanup_when_no_debug()

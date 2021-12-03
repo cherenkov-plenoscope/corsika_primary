@@ -12,6 +12,7 @@ from . import collect_version_information
 from . import steering
 from . import I
 from . import tario
+from . import testing
 
 
 MAX_ZENITH_DEG = 70.0

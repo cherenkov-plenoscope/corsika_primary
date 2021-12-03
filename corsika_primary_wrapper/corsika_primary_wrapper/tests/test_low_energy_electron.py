@@ -2,6 +2,7 @@ import pytest
 import os
 import tempfile
 import corsika_primary_wrapper as cpw
+import inspect
 import numpy as np
 from os import path as op
 import subprocess
@@ -22,12 +23,12 @@ def corsika_path(pytestconfig):
 
 
 @pytest.fixture()
-def non_temporary_path(pytestconfig):
-    return pytestconfig.getoption("non_temporary_path")
+def debug_dir(pytestconfig):
+    return pytestconfig.getoption("debug_dir")
 
 
 def test_low_energy_electron(
-    corsika_primary_path, corsika_path, non_temporary_path,
+    corsika_primary_path, corsika_path, debug_dir,
 ):
     """
     I found televt_ not beeing called for some electron (id=3) or
@@ -57,7 +58,10 @@ def test_low_energy_electron(
     # 41484 "corsika.F"
 
     """
-    assert os.path.exists(corsika_primary_path)
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function
+    )
 
     num_shower = 10
 
@@ -107,73 +111,70 @@ def test_low_energy_electron(
         ]
     )
 
-    tmp_prefix = "test_low_energy_electron_"
-    with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmp_dir:
-        if non_temporary_path != "":
-            tmp_dir = op.join(non_temporary_path, tmp_prefix)
-            os.makedirs(tmp_dir, exist_ok=True)
-
-        # RUN ORIGINAL CORSIKA
-        # --------------------
-        # The original CORSIKA will fail to write valid output.
-        ori_run_path = op.join(tmp_dir, "original_run")
-        ori_run_eventio_path = ori_run_path + ".eventio"
-        if not op.exists(ori_run_eventio_path):
-            cpw.corsika_vanilla(
-                corsika_path=corsika_path,
-                steering_card=ori_steering_card,
-                output_path=ori_run_eventio_path,
-                stdout_path=ori_run_eventio_path + ".stdout",
-                stderr_path=ori_run_eventio_path + ".stderr",
-            )
-
-        with open(ori_run_eventio_path + ".stdout", "rt") as f:
-            ori_stdout = f.read()
-        ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
-            stdout=ori_stdout
-        )
-        ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
-            stdout=ori_stdout
+    # RUN ORIGINAL CORSIKA
+    # --------------------
+    # The original CORSIKA will fail to write valid output.
+    ori_run_path = op.join(tmp.name, "original_run")
+    ori_run_eventio_path = ori_run_path + ".eventio"
+    if not op.exists(ori_run_eventio_path):
+        cpw.corsika_vanilla(
+            corsika_path=corsika_path,
+            steering_card=ori_steering_card,
+            output_path=ori_run_eventio_path,
+            stdout_path=ori_run_eventio_path + ".stdout",
+            stderr_path=ori_run_eventio_path + ".stderr",
         )
 
-        # RUN MODIFIED CORSIKA
-        # --------------------
-        mod_steering_dict = {
-            "run": {
-                "run_id": i8(1),
-                "event_id_of_first_event": i8(1),
-                "observation_level_asl_m": f8(observation_level_asl_m),
-                "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
-                "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
-                "atmosphere_id": i8(atmosphere_id),
-                "energy_range": {"start_GeV": f8(0.2), "stop_GeV": f8(1.0)},
-            },
-            "primaries": [],
+    with open(ori_run_eventio_path + ".stdout", "rt") as f:
+        ori_stdout = f.read()
+    ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+        stdout=ori_stdout
+    )
+    ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+        stdout=ori_stdout
+    )
+
+    # RUN MODIFIED CORSIKA
+    # --------------------
+    mod_steering_dict = {
+        "run": {
+            "run_id": i8(1),
+            "event_id_of_first_event": i8(1),
+            "observation_level_asl_m": f8(observation_level_asl_m),
+            "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
+            "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
+            "atmosphere_id": i8(atmosphere_id),
+            "energy_range": {"start_GeV": f8(0.2), "stop_GeV": f8(1.0)},
+        },
+        "primaries": [],
+    }
+
+    for idx in range(num_shower):
+        prm = {
+            "particle_id": f8(particle_id),
+            "energy_GeV": f8(energy),
+            "zenith_rad": f8(np.deg2rad(zenith_deg)),
+            "azimuth_rad": f8(0.0),
+            "depth_g_per_cm2": f8(depth_g_per_cm2),
+            "random_seed": ori_events_seeds[idx],
         }
+        mod_steering_dict["primaries"].append(prm)
 
-        for idx in range(num_shower):
-            prm = {
-                "particle_id": f8(particle_id),
-                "energy_GeV": f8(energy),
-                "zenith_rad": f8(np.deg2rad(zenith_deg)),
-                "azimuth_rad": f8(0.0),
-                "depth_g_per_cm2": f8(depth_g_per_cm2),
-                "random_seed": ori_events_seeds[idx],
-            }
-            mod_steering_dict["primaries"].append(prm)
-
-        run_path = op.join(tmp_dir, "run.tar")
+    run_path = op.join(tmp.name, "run.tar")
+    if not op.exists(run_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=mod_steering_dict,
             output_path=run_path,
             stdout_path=run_path + ".stdout",
         )
-        with open(run_path + ".stdout", "rt") as f:
-            stdout = f.read()
-        assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
+    with open(run_path + ".stdout", "rt") as f:
+        stdout = f.read()
+    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-        run = cpw.tario.Tario(run_path)
-        for idx, event in enumerate(run):
-            evth, bunches = event
-            assert ori_num_bunches[idx] == bunches.shape[0]
+    run = cpw.tario.Tario(run_path)
+    for idx, event in enumerate(run):
+        evth, bunches = event
+        assert ori_num_bunches[idx] == bunches.shape[0]
+
+    tmp.cleanup_when_no_debug()
