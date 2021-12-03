@@ -56,7 +56,7 @@ def main():
 
     if not os.path.exists(corsika_tar_path):
         if args.username is None or args.password is None:
-            print("Downloading CORSIKA, need username and password.")
+            print("To download from KIT we need both username and password.")
             parser.print_help()
             return 1
 

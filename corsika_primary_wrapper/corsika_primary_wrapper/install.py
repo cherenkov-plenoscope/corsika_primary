@@ -1,11 +1,9 @@
-
 import os
 import tarfile
 import shutil
 import subprocess
 import glob
 import hashlib
-import io
 
 
 CORSIKA_75600_TAR_GZ_HASH_HEXDIGEST = "9ef453eebc4bf5b8b04209b1acdebda2"
