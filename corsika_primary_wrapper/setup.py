@@ -18,7 +18,7 @@ setuptools.setup(
     author="Sebastian Achim Mueller",
     author_email="sebastian-achim.mueller@mpi-hd.mpg.de",
     packages=["corsika_primary_wrapper",],
-    package_data={"corsika_primary_wrapper": ["tests/resources/*",]},
+    package_data={"corsika_primary_wrapper": ["tests/resources/*", "scripts/install.py"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
