@@ -5,7 +5,7 @@ import glob
 from . import I
 
 
-class TmpDebugDir():
+class TmpDebugDir:
     def __init__(self, debug_dir, suffix=None, prefix="corsika_primary"):
         if debug_dir:
             self.debug = True
@@ -15,8 +15,7 @@ class TmpDebugDir():
         else:
             self.debug = False
             self.tmp_dir_handle = tempfile.TemporaryDirectory(
-                prefix=prefix,
-                suffix=suffix
+                prefix=prefix, suffix=suffix
             )
             self.name = self.tmp_dir_handle.name
 
@@ -39,23 +38,15 @@ def bunches_SI_units(bunches):
 
 
 def eventio_to_simpleio(
-    merlict_eventio_converter,
-    eventio_path,
-    simpleio_path
+    merlict_eventio_converter, eventio_path, simpleio_path
 ):
     rc = subprocess.call(
-        [
-            merlict_eventio_converter,
-            "-i",
-            eventio_path,
-            "-o",
-            simpleio_path,
-        ]
+        [merlict_eventio_converter, "-i", eventio_path, "-o", simpleio_path,]
     )
     assert rc == 0
 
 
-class SimpleIoRun():
+class SimpleIoRun:
     def __init__(self, path):
         """
         Parameters
@@ -66,7 +57,7 @@ class SimpleIoRun():
         if not os.path.isdir(self.path):
             raise NotADirectoryError(self.path)
 
-        with open(os.path.join(path, 'corsika_run_header.bin'), "rb") as f:
+        with open(os.path.join(path, "corsika_run_header.bin"), "rb") as f:
             self.runh = np.frombuffer(f.read(), dtype=np.float32)
 
         self.event_ids = []
@@ -82,11 +73,13 @@ class SimpleIoRun():
         if not os.path.isdir(event_path):
             raise StopIteration
 
-        evth_path = os.path.join(event_path, 'corsika_event_header.bin')
+        evth_path = os.path.join(event_path, "corsika_event_header.bin")
         with open(evth_path, "rb") as f:
             evth = np.frombuffer(f.read(), dtype=np.float32)
 
-        bunches_path = os.path.join(event_path, 'air_shower_photon_bunches.bin')
+        bunches_path = os.path.join(
+            event_path, "air_shower_photon_bunches.bin"
+        )
         with open(bunches_path, "rb") as f:
             bunches = np.frombuffer(f.read(), dtype=np.float32)
 
@@ -104,5 +97,5 @@ class SimpleIoRun():
         pass
 
     def __repr__(self):
-        out = self.__class__.__name__ + '(path={:s})'.format(self.path)
+        out = self.__class__.__name__ + "(path={:s})".format(self.path)
         return out

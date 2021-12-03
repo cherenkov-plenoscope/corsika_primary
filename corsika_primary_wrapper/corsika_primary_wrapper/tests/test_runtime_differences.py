@@ -31,7 +31,7 @@ def test_runtime_differences(
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     num_shower = 7
@@ -66,8 +66,7 @@ def test_runtime_differences(
             "OBSLEV {:f}".format(1e2 * obs_level_asl_m),
             "FIXCHI {:f}".format(starting_depth_g_per_cm2),
             "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
-                Bx=earth_magnetic_field_x_muT,
-                Bz=earth_magnetic_field_z_muT,
+                Bx=earth_magnetic_field_x_muT, Bz=earth_magnetic_field_z_muT,
             ),
             "ELMFLG T T",
             "MAXPRT 1",

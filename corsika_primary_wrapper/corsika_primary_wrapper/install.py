@@ -52,13 +52,21 @@ def download_corsika_tar(
             password,
             web_path + corsika_tar_filename,
         ],
-        stdout_path=os.path.join(output_dir, corsika_tar_filename + ".wget.stdout"),
-        stderr_path=os.path.join(output_dir, corsika_tar_filename + ".wget.stderror"),
+        stdout_path=os.path.join(
+            output_dir, corsika_tar_filename + ".wget.stdout"
+        ),
+        stderr_path=os.path.join(
+            output_dir, corsika_tar_filename + ".wget.stderror"
+        ),
     )
 
 
 def install_corsika(
-    corsika_tar_path, install_path, resource_path, modify=False, vanilla_path=None,
+    corsika_tar_path,
+    install_path,
+    resource_path,
+    modify=False,
+    vanilla_path=None,
 ):
     install_path = os.path.abspath(install_path)
     resource_path = os.path.abspath(resource_path)
@@ -91,7 +99,9 @@ def install_corsika(
     if modify:
         # apply modification to CORSIKA itslef.
         patch(
-            vanilla_path=os.path.join(vanilla_path, CORSIKA_NAME, "src", "corsikacompilefile.f",),
+            vanilla_path=os.path.join(
+                vanilla_path, CORSIKA_NAME, "src", "corsikacompilefile.f",
+            ),
             diff_path=os.path.join(resource_path, "corsikacompilefile.f.diff"),
             out_path=os.path.join("src", "corsikacompilefile.f",),
         )
@@ -99,11 +109,12 @@ def install_corsika(
         # apply modifications to bernlohrs iact package.
         shutil.copy(
             os.path.join(resource_path, "microtar.h"),
-            os.path.join("bernlohr", "microtar.h")
+            os.path.join("bernlohr", "microtar.h"),
         )
         shutil.copy(
             os.path.join(resource_path, "iact.c"),
-            os.path.join("bernlohr", "iact.c"))
+            os.path.join("bernlohr", "iact.c"),
+        )
 
     # coconut build
     call_and_save_std(

@@ -20,12 +20,10 @@ def debug_dir(pytestconfig):
     return pytestconfig.getoption("debug_dir")
 
 
-def test_32bit_limit_high_energy_shower(
-    corsika_primary_path, debug_dir
-):
+def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     steering_dict = {

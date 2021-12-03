@@ -20,10 +20,12 @@ def debug_dir(pytestconfig):
     return pytestconfig.getoption("debug_dir")
 
 
-def test_first_and_last_event_same_random_seed(corsika_primary_path, debug_dir):
+def test_first_and_last_event_same_random_seed(
+    corsika_primary_path, debug_dir
+):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     steering_dict = {

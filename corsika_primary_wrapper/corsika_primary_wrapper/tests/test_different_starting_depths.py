@@ -23,7 +23,7 @@ def debug_dir(pytestconfig):
 def test_different_starting_depths(corsika_primary_path, debug_dir):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     NUM_DEPTHS = 10

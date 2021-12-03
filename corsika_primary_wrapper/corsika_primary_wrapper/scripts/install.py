@@ -50,8 +50,7 @@ def main():
     resource_path = os.path.abspath(args.resource_path[0])
     os.makedirs(install_path, exist_ok=True)
     corsika_tar_path = os.path.join(
-        install_path,
-        cpw.install.CORSIKA_TAR_FILENAME
+        install_path, cpw.install.CORSIKA_TAR_FILENAME
     )
 
     if not os.path.exists(corsika_tar_path):
@@ -82,7 +81,6 @@ def main():
             resource_path=resource_path,
         )
 
-
     modified_path = os.path.join(install_path, "modified")
     if not os.path.exists(modified_path):
         cpw.install.install_corsika(
@@ -93,6 +91,7 @@ def main():
             vanilla_path=vanilla_path,
         )
     return 0
+
 
 if __name__ == "__main__":
     main()

@@ -84,7 +84,7 @@ def test_reproduce_events_vanilla(
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     PARTICLES = {

@@ -92,7 +92,7 @@ def test_original_vs_moddified(
     """
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     assert os.path.exists(corsika_primary_path)
@@ -149,9 +149,7 @@ def test_original_vs_moddified(
                 "ELMFLG T T",
                 "MAXPRT 1",
                 "PAROUT F F",
-                "TELESCOPE 0 0 0 {:f}".format(
-                    1e2 * telescope_sphere_radius_m
-                ),
+                "TELESCOPE 0 0 0 {:f}".format(1e2 * telescope_sphere_radius_m),
                 "ATMOSPHERE {:d} T".format(atmosphere_id),
                 "CWAVLG 250 700",
                 "CSCAT 1 0 0",
@@ -199,12 +197,8 @@ def test_original_vs_moddified(
                 "run_id": i8(1),
                 "event_id_of_first_event": i8(1),
                 "observation_level_asl_m": f8(obs_level_m),
-                "earth_magnetic_field_x_muT": f8(
-                    earth_magnetic_field_x_muT
-                ),
-                "earth_magnetic_field_z_muT": f8(
-                    earth_magnetic_field_z_muT
-                ),
+                "earth_magnetic_field_x_muT": f8(earth_magnetic_field_x_muT),
+                "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
                 "atmosphere_id": i8(atmosphere_id),
                 "energy_range": {
                     "start_GeV": f8(
@@ -252,7 +246,6 @@ def test_original_vs_moddified(
             mod_bunches = cpw.testing.bunches_SI_units(mod_bunches)
             ori_bunches = cpw.testing.bunches_SI_units(ori_bunches)
 
-
             evth_compare_path = os.path.join(par_dir, "evth_compare.md")
             with open(evth_compare_path, "at") as fout:
                 md = "---------------{: 3d}--------------\n".format(
@@ -271,9 +264,7 @@ def test_original_vs_moddified(
                         md += "{: 3d}\n".format(ll + 1, mod_evth[ll])
                 fout.write(md)
 
-            assert evth_is_equal_enough(
-                ori_evth=ori_evth, mod_evth=mod_evth
-            )
+            assert evth_is_equal_enough(ori_evth=ori_evth, mod_evth=mod_evth)
 
             if particle == "proton":
                 assert ori_num_bunches[evt_idx] == mod_bunches.shape[0]
@@ -360,10 +351,14 @@ def test_original_vs_moddified(
                     )
 
                     mod_x_wrt_detector_sphere = (
-                        mod_bunches[:, cpw.I.BUNCH.X] - mod_sx * DET_ZO - DET_XO
+                        mod_bunches[:, cpw.I.BUNCH.X]
+                        - mod_sx * DET_ZO
+                        - DET_XO
                     )
                     mod_y_wrt_detector_sphere = (
-                        mod_bunches[:, cpw.I.BUNCH.Y] - mod_sy * DET_ZO - DET_YO
+                        mod_bunches[:, cpw.I.BUNCH.Y]
+                        - mod_sy * DET_ZO
+                        - DET_YO
                     )
 
                     # ctime
@@ -412,23 +407,19 @@ def test_original_vs_moddified(
                         )
 
                         assert (
-                            mod_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM]
-                            < 0.0
+                            mod_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM] < 0.0
                         )
                         assert (
-                            ori_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM]
-                            < 0.0
+                            ori_evth[cpw.I.EVTH.Z_FIRST_INTERACTION_CM] < 0.0
                         )
                     elif particle == "electron":
                         # subtract the xy-offset which was added in iact.c
                         # to correct for magnetig defelction
-                        mod_x_wrt_mean = (
+                        mod_x_wrt_mean = mod_x_wrt_detector_sphere - np.mean(
                             mod_x_wrt_detector_sphere
-                            - np.mean(mod_x_wrt_detector_sphere)
                         )
-                        mod_y_wrt_mean = (
+                        mod_y_wrt_mean = mod_y_wrt_detector_sphere - np.mean(
                             mod_y_wrt_detector_sphere
-                            - np.mean(mod_y_wrt_detector_sphere)
                         )
 
                         _ori_x = ori_bunches[:, cpw.I.BUNCH.X]

@@ -22,7 +22,7 @@ def debug_dir(pytestconfig):
 def test_same_random_seed_yields_same_event(corsika_primary_path, debug_dir):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     energy_GeV = 7.0

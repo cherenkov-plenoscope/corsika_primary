@@ -109,7 +109,7 @@ def test_primary_bytes_extract_slice():
 def test_steering_dict_io(debug_dir):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     NUM_RUNS = 42

@@ -170,7 +170,7 @@ def test_few_events_different_particles_reproduce_one(
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     prng = np.random.Generator(np.random.PCG64(42))
@@ -223,7 +223,7 @@ def test_reproduce_full_run(corsika_primary_path, debug_dir):
     """
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
-        suffix=inspect.getframeinfo(inspect.currentframe()).function
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
     prng = np.random.Generator(np.random.PCG64(42))

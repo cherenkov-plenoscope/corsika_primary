@@ -139,8 +139,7 @@ def corsika_vanilla(
     corsika_path = op.abspath(corsika_path)
     output_path = op.abspath(output_path)
     steering_card = steering.overwrite_telfil_in_card_str(
-        card_str=steering_card,
-        telfil=output_path
+        card_str=steering_card, telfil=output_path
     )
     stdout_path = stdout_path if stdout_path else output_path + ".stdout"
     stderr_path = stderr_path if stderr_path else output_path + ".stderr"
