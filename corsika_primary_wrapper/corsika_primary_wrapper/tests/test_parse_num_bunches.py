@@ -9,7 +9,7 @@ resource_dir = pkg_resources.resource_filename(
 
 
 def test_parse_num_bunches():
-    path = os.path.join(resource_dir, "example_original_corsika.stdout")
+    path = os.path.join(resource_dir, "example_vanilla_corsika.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
     actual_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(

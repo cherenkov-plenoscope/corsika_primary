@@ -46,9 +46,9 @@ def test_runtime_differences(
     azimuth_deg = 0.0
     telescope_sphere_radius = 36.0
 
-    # RUN ORIGINAL CORSIKA
-    # --------------------
-    ori_steering_card = "\n".join(
+    # RUN VANILLA CORSIKA
+    # -------------------
+    van_steering_card = "\n".join(
         [
             "RUNNR 1",
             "EVTNR 1",
@@ -85,26 +85,26 @@ def test_runtime_differences(
     )
 
     t_start_ori = datetime.datetime.now()
-    ori_run_path = os.path.join(tmp.name, "original_run.eventio")
-    if not os.path.exists(ori_run_path):
+    van_run_path = os.path.join(tmp.name, "vanilla_run.eventio")
+    if not os.path.exists(van_run_path):
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
-            steering_card=ori_steering_card,
-            output_path=ori_run_path,
-            stdout_path=ori_run_path + ".stdout",
-            stderr_path=ori_run_path + ".stderr",
+            steering_card=van_steering_card,
+            output_path=van_run_path,
+            stdout_path=van_run_path + ".stdout",
+            stderr_path=van_run_path + ".stderr",
         )
     t_end_ori = datetime.datetime.now()
     dt_ori = (t_end_ori - t_start_ori).total_seconds()
-    print("ori: ", dt_ori)
+    print("vanilla: ", dt_ori)
 
-    with open(ori_run_path + ".stdout", "rt") as f:
-        ori_stdout = f.read()
-    ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
-        stdout=ori_stdout
+    with open(van_run_path + ".stdout", "rt") as f:
+        van_stdout = f.read()
+    van_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+        stdout=van_stdout
     )
-    ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
-        stdout=ori_stdout
+    van_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+        stdout=van_stdout
     )
 
     # RUN MODIFIED CORSIKA
@@ -132,7 +132,7 @@ def test_runtime_differences(
             "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
             "zenith_rad": f8(np.deg2rad(zenith_deg)),
             "depth_g_per_cm2": f8(starting_depth_g_per_cm2),
-            "random_seed": ori_events_seeds[idx_primary],
+            "random_seed": van_events_seeds[idx_primary],
         }
         mod_steering_dict["primaries"].append(prm)
 
@@ -147,9 +147,9 @@ def test_runtime_differences(
     t_end_mod = datetime.datetime.now()
     dt_mod = (t_end_mod - t_start_mod).total_seconds()
 
-    print("mod: ", dt_mod)
+    print("modified: ", dt_mod)
 
     time_diff = np.abs(dt_mod - dt_ori)
-    assert time_diff <= dt_ori, "mod runs over 2 times longer than ori."
+    assert time_diff <= dt_ori, "modified runs >2 times longer than vanilla."
 
     tmp.cleanup_when_no_debug()

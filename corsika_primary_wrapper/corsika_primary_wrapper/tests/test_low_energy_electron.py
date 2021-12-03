@@ -111,27 +111,27 @@ def test_low_energy_electron(
         ]
     )
 
-    # RUN ORIGINAL CORSIKA
+    # RUN VANILLA CORSIKA
     # --------------------
-    # The original CORSIKA will fail to write valid output.
-    ori_run_path = op.join(tmp.name, "original_run")
-    ori_run_eventio_path = ori_run_path + ".eventio"
-    if not op.exists(ori_run_eventio_path):
+    # The vanilla CORSIKA will fail to write valid output.
+    van_run_path = op.join(tmp.name, "vanilla_run")
+    van_run_eventio_path = van_run_path + ".eventio"
+    if not op.exists(van_run_eventio_path):
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
-            steering_card=ori_steering_card,
-            output_path=ori_run_eventio_path,
-            stdout_path=ori_run_eventio_path + ".stdout",
-            stderr_path=ori_run_eventio_path + ".stderr",
+            steering_card=van_steering_card,
+            output_path=van_run_eventio_path,
+            stdout_path=van_run_eventio_path + ".stdout",
+            stderr_path=van_run_eventio_path + ".stderr",
         )
 
-    with open(ori_run_eventio_path + ".stdout", "rt") as f:
-        ori_stdout = f.read()
-    ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
-        stdout=ori_stdout
+    with open(van_run_eventio_path + ".stdout", "rt") as f:
+        van_stdout = f.read()
+    van_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+        stdout=van_stdout
     )
-    ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
-        stdout=ori_stdout
+    van_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+        stdout=van_stdout
     )
 
     # RUN MODIFIED CORSIKA
@@ -156,25 +156,25 @@ def test_low_energy_electron(
             "zenith_rad": f8(np.deg2rad(zenith_deg)),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(depth_g_per_cm2),
-            "random_seed": ori_events_seeds[idx],
+            "random_seed": van_events_seeds[idx],
         }
         mod_steering_dict["primaries"].append(prm)
 
-    run_path = op.join(tmp.name, "run.tar")
-    if not op.exists(run_path):
+    mod_run_path = op.join(tmp.name, "modified_run.tar")
+    if not op.exists(mod_run_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=mod_steering_dict,
-            output_path=run_path,
-            stdout_path=run_path + ".stdout",
+            output_path=mod_run_path,
+            stdout_path=mod_run_path + ".stdout",
         )
-    with open(run_path + ".stdout", "rt") as f:
+    with open(mod_run_path + ".stdout", "rt") as f:
         stdout = f.read()
     assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-    run = cpw.tario.Tario(run_path)
+    run = cpw.tario.Tario(mod_run_path)
     for idx, event in enumerate(run):
         evth, bunches = event
-        assert ori_num_bunches[idx] == bunches.shape[0]
+        assert van_num_bunches[idx] == bunches.shape[0]
 
     tmp.cleanup_when_no_debug()

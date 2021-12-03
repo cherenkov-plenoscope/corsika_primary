@@ -22,7 +22,7 @@ This repository contains:
 ```bash
 ./corsika_install/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
 ```
-This installs both the original CORSIKA 7.56, and our CORSIKA-primary-modification to the ```install_path```.
+This installs both the vanilla CORSIKA 7.56, and our CORSIKA-primary-modification to the ```install_path```.
 For CORSIKA's credentials (`username` and `password`), drop the [CORSIKA-team](https://www.ikp.kit.edu/corsika/index.php) an email, and express your interest in cosmic-rays. They will send you the credentials.
 
 This modification allows you to control the:
@@ -201,13 +201,13 @@ The std-error is expected to be empty. The ```corsika_path``` must be the execut
 The call will NOT write to the "run"-directory in ```corsika_path```. Instead the "run"-directory is copied to a temporary directory from which the CORSIKA call is made. This allows thread safety.
 
 ### Test
-The installer installs both the original and the modified CORSIKA to allow testing for equality of both versions with input parameters which are accesible to both versions.
+The installer installs both the vanilla and the modified CORSIKA to allow testing for equality of both versions with input parameters which are accesible to both versions.
 
 To run the tests, you have to explicitly provide the paths to the corsika executables, and the merlict-eventio-converter. There are defaults which allow to call the tests in the Cherenkov-plenoscope's starter-kit-directory.
 
 ```bash
 py.test ./corsika_primary_wrapper/corsika_primary_wrapper/tests/
-    --corsika_path /path/to/original/corsika/executable
+    --corsika_vanilla_path /path/to/vanilla/corsika/executable
     --corsika_primary_path /path/to/modified/corsika/executable
     --merlict_eventio_converter /path/to/merlict_eventio_converter/executable
 ```

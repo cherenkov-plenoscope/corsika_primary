@@ -9,7 +9,7 @@ resource_dir = pkg_resources.resource_filename(
 
 
 def test_parsing_random_state_gamma():
-    path = os.path.join(resource_dir, "example_original_corsika.stdout")
+    path = os.path.join(resource_dir, "example_vanilla_corsika.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
     assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
