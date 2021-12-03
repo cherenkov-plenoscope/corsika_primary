@@ -14,7 +14,7 @@ setuptools.setup(
     description="Call the modified CORSIKA-primary in a thread safe way.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/fact-project/corsika_wrapper.git",
+    url="https://github.com/cherenkov-plenoscope/corsika_install.git",
     author="Sebastian Achim Mueller",
     author_email="sebastian-achim.mueller@mpi-hd.mpg.de",
     packages=["corsika_primary_wrapper",],
