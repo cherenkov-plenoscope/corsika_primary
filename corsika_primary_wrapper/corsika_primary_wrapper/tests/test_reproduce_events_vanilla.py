@@ -36,6 +36,8 @@ def hash_cherenkov_pools(
     card_path = os.path.join(tmp_dir, "steering_card.txt")
 
     if not os.path.exists(run_hashes_path):
+        with open(card_path, "wt") as f:
+            f.write(card)
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
             steering_card=card,
