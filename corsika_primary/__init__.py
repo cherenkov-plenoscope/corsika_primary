@@ -3,8 +3,6 @@ import tempfile
 import os
 import subprocess
 import shutil
-import io
-import struct
 import copy
 from . import random
 from . import collect_version_information
@@ -189,6 +187,9 @@ class CorsikaPrimary:
         """
         Inits a run-handle which can return the next event on demand.
         No output is written.
+
+        This call is threadsafe, all execution takes place in a temproary copy
+        of CORSIKA's run-directory.
 
         Parameters
         ----------
