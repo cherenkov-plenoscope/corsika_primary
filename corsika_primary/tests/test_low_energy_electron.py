@@ -170,7 +170,7 @@ def test_low_energy_electron(
         )
     with open(mod_run_path + ".stdout", "rt") as f:
         stdout = f.read()
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
     run = cpw.tario.Tario(mod_run_path)
     for idx, event in enumerate(run):

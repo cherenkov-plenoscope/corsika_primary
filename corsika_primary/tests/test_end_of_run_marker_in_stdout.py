@@ -12,18 +12,18 @@ def test_parsing_random_state_gamma():
     path = os.path.join(resource_dir, "example_vanilla_corsika.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout)
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
 
 def test_empty_stdout():
-    stdout = ""
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+    o = ""
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=o) == False
 
-    stdout = "one"
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+    o = "one"
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=o) == False
 
-    stdout = "one\ntwo"
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+    o = "one\ntwo"
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=o) == False
 
-    stdout = "one\ntwo\nthree"
-    assert cpw.stdout_ends_with_end_of_run_marker(stdout=stdout) == False
+    o = "one\ntwo\nthree"
+    assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=o) == False

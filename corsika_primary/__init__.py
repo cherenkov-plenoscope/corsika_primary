@@ -100,7 +100,7 @@ def corsika_primary(
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()
-    assert stdout_ends_with_end_of_run_marker(stdout_txt)
+    assert testing.stdout_ends_with_end_of_run_marker(stdout_txt)
 
     return rc
 
@@ -172,34 +172,12 @@ def corsika_vanilla(
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()
-    assert stdout_ends_with_end_of_run_marker(stdout_txt)
+    assert testing.stdout_ends_with_end_of_run_marker(stdout_txt)
 
     return rc
 
 
 NUM_RANDOM_SEQUENCES = 4
-
-
-def stdout_ends_with_end_of_run_marker(stdout):
-    """
-    According to CORSIKA-author Heck, this is the only sane way to check
-    whether CORSIKA has finished.
-    """
-    lines = stdout.split("\n")
-    if len(lines) < 2:
-        return False
-
-    second_last_line = lines[-2]
-    MARKER = (
-        " "
-        + "=========="
-        + " END OF RUN "
-        + "================================================"
-    )
-    if MARKER in second_last_line:
-        return True
-    else:
-        return False
 
 
 class CorsikaPrimary:
@@ -292,7 +270,7 @@ class CorsikaPrimary:
         self.stderr.close()
         with open(self.stdout_path, "rt") as f:
             stdout_txt = f.read()
-        self.exit_ok = stdout_ends_with_end_of_run_marker(stdout_txt)
+        self.exit_ok = testing.stdout_ends_with_end_of_run_marker(stdout_txt)
         self.tmp_dir_handle.cleanup()
 
     def __next__(self):

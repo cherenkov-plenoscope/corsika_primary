@@ -158,3 +158,25 @@ def parse_num_bunches_from_corsika_stdout(stdout):
             work_line = work_line[pos_2nd_in + 2 : -len("bunch") - 1]
             nums.append(int(float(work_line)))
     return nums
+
+
+def stdout_ends_with_end_of_run_marker(stdout):
+    """
+    According to CORSIKA-author Heck, this is the only sane way to check
+    whether CORSIKA has finished.
+    """
+    lines = stdout.split("\n")
+    if len(lines) < 2:
+        return False
+
+    second_last_line = lines[-2]
+    MARKER = (
+        " "
+        + "=========="
+        + " END OF RUN "
+        + "================================================"
+    )
+    if MARKER in second_last_line:
+        return True
+    else:
+        return False
