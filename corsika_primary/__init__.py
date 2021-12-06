@@ -312,38 +312,6 @@ class CorsikaPrimary:
         return out
 
 
-def event_seed_from_evth(evth):
-    MILLION = np.int64(1000 * 1000)
-    BILLION = np.int64(1000 * 1000 * 1000)
-
-    def ftoi(val):
-        val_i = np.int64(val)
-        assert val_i == val
-        return val_i
-
-    nseq = ftoi(evth[I.EVTH.NUM_DIFFERENT_RANDOM_SEQUENCES])
-
-    seeds = []
-    for seq_idx in range(nseq):
-        seq_id = seq_idx + 1
-
-        seed = ftoi(evth[I.EVTH.RANDOM_SEED(sequence=seq_id)])
-        calls = ftoi(evth[I.EVTH.RANDOM_SEED_CALLS(sequence=seq_id)])
-        millions = ftoi(evth[I.EVTH.RANDOM_SEED_MILLIONS(sequence=seq_id)])
-
-        total_calls = millions * MILLION + calls
-        calls_mod_billions = np.mod(total_calls, BILLION)
-        calls_billions = total_calls // BILLION
-
-        seq = {
-            "SEED": int(seed),
-            "CALLS": int(calls_mod_billions),
-            "BILLIONS": int(calls_billions),
-        }
-        seeds.append(seq)
-    return seeds
-
-
 def bunches_to_si_units(bunches):
     b = copy.deepcopy(bunches)
     b[:, I.BUNCH.X] *= 1e-2  # cm -> m
