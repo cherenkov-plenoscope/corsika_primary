@@ -243,8 +243,8 @@ def test_original_vs_moddified(
         for evt_idx in range(num_shower):
             mod_evth, mod_bunches = next(mod_run)
             ori_evth, ori_bunches = next(ori_run)
-            mod_bunches = cpw.testing.bunches_SI_units(mod_bunches)
-            ori_bunches = cpw.testing.bunches_SI_units(ori_bunches)
+            mod_bunches = cpw.bunches_to_si_units(mod_bunches)
+            ori_bunches = cpw.bunches_to_si_units(ori_bunches)
 
             evth_compare_path = os.path.join(par_dir, "evth_compare.md")
             with open(evth_compare_path, "at") as fout:

@@ -24,19 +24,6 @@ class TmpDebugDir:
             self.tmp_dir_handle.cleanup()
 
 
-def bunches_SI_units(bunches):
-    b = np.zeros(shape=bunches.shape, dtype=np.float32)
-    b[:, I.BUNCH.X] = bunches[:, I.BUNCH.X] * 1e-2  # cm -> m
-    b[:, I.BUNCH.Y] = bunches[:, I.BUNCH.Y] * 1e-2  # cm -> m
-    b[:, I.BUNCH.CX] = bunches[:, I.BUNCH.CX]
-    b[:, I.BUNCH.CY] = bunches[:, I.BUNCH.CY]
-    b[:, I.BUNCH.TIME] = bunches[:, I.BUNCH.TIME] * 1e-9  # ns -> s
-    b[:, I.BUNCH.ZEM] = bunches[:, I.BUNCH.ZEM] * 1e-2  # cm -> m
-    b[:, I.BUNCH.BSIZE] = bunches[:, I.BUNCH.BSIZE]
-    b[:, I.BUNCH.WVL] = np.abs(bunches[:, I.BUNCH.WVL]) * 1e-9  # nm -> m
-    return b
-
-
 def eventio_to_simpleio(
     merlict_eventio_converter, eventio_path, simpleio_path
 ):
