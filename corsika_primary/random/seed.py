@@ -9,6 +9,8 @@ Limit (to get independent sequences of random numbers) is:
 MIN_SEED = 1
 MAX_SEED = 900 * 1000 * 1000
 
+NUM_RANDOM_SEQUENCES = 4
+
 
 def make_simple_seed(seed):
     """

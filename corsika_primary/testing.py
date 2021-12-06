@@ -3,6 +3,7 @@ import subprocess
 import os
 import glob
 from . import I
+from . import random
 
 
 class TmpDebugDir:
@@ -106,13 +107,13 @@ def parse_random_seeds_from_corsika_stdout(stdout):
     idx = 0
     while idx < len(lines):
         if MARKER in lines[idx]:
-            _seeds = [None] * NUM_RANDOM_SEQUENCES
-            _calls = [None] * NUM_RANDOM_SEQUENCES
-            _billions = [None] * NUM_RANDOM_SEQUENCES
+            _seeds = [None] * random.seed.NUM_RANDOM_SEQUENCES
+            _calls = [None] * random.seed.NUM_RANDOM_SEQUENCES
+            _billions = [None] * random.seed.NUM_RANDOM_SEQUENCES
             event_number = int(lines[idx][49:57])
             assert len(events) + 1 == event_number
 
-            for seq in np.arange(0, NUM_RANDOM_SEQUENCES):
+            for seq in np.arange(0, random.seed.NUM_RANDOM_SEQUENCES):
                 is_sequence = False
                 while idx < len(lines) and not is_sequence:
                     idx += 1
@@ -123,7 +124,7 @@ def parse_random_seeds_from_corsika_stdout(stdout):
                 _billions[seq] = int(lines[idx][63:73])
 
             state = []
-            for seq in np.arange(0, NUM_RANDOM_SEQUENCES):
+            for seq in np.arange(0, random.seed.NUM_RANDOM_SEQUENCES):
                 state.append(
                     {
                         "SEED": np.int32(_seeds[seq]),

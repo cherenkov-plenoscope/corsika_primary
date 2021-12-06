@@ -61,7 +61,7 @@ def test_parsing_random_state_gamma():
 
     assert len(events) == len(expected_events)
     for evt in range(len(events)):
-        for seq in range(cpw.NUM_RANDOM_SEQUENCES):
+        for seq in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
             for key in ["SEED", "CALLS", "BILLIONS"]:
                 assert events[evt][seq][key] == expected_events[evt][seq][key]
 
@@ -121,6 +121,6 @@ def test_parsing_random_state_proton():
 
     assert len(events) == len(expected_events)
     for evt in range(len(events)):
-        for seq in range(cpw.NUM_RANDOM_SEQUENCES):
+        for seq in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
             for key in ["SEED", "CALLS", "BILLIONS"]:
                 assert events[evt][seq][key] == expected_events[evt][seq][key]

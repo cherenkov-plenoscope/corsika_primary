@@ -177,9 +177,6 @@ def corsika_vanilla(
     return rc
 
 
-NUM_RANDOM_SEQUENCES = 4
-
-
 class CorsikaPrimary:
     def __init__(
         self,
