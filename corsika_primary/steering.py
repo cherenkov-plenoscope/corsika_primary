@@ -4,7 +4,7 @@ import shutil
 import tarfile
 import os
 from . import version
-from . import random_seed
+from . import random
 
 i8 = np.int64
 f8 = np.float64
@@ -39,7 +39,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.0),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": random_seed.make_simple_seed(1),
+            "random_seed": random.seed.make_simple_seed(1),
         },
         {
             "particle_id": f8(1),
@@ -47,7 +47,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.2),
             "depth_g_per_cm2": f8(3.6),
-            "random_seed": random_seed.make_simple_seed(2),
+            "random_seed": random.seed.make_simple_seed(2),
         },
         {
             "particle_id": f8(1),
@@ -55,7 +55,7 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.25),
             "depth_g_per_cm2": f8(102.2),
-            "random_seed": random_seed.make_simple_seed(3),
+            "random_seed": random.seed.make_simple_seed(3),
         },
     ],
 }

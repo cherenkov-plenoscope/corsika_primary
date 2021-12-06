@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 NN = 1000
-crss = cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=NN)
+crss = cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=NN)
 
 
 def test_valid_airshower_id():
@@ -54,7 +54,7 @@ def test_seed_combinations():
     prng = np.random.Generator(np.random.MT19937(seed=0))
 
     for num in [3, 42, 100, 1337, 25000]:
-        c = cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=num)
+        c = cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=num)
         run_ids = prng.uniform(1, c.max_run_id, size=100).astype("i4")
         event_ids = prng.uniform(1, c.num_events_in_run, size=100).astype("i4")
 
@@ -73,7 +73,7 @@ def test_template_string():
     prng = np.random.Generator(np.random.MT19937(seed=0))
 
     for num in [3, 42, 100, 1337, 25000]:
-        c = cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=num)
+        c = cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=num)
         run_ids = prng.uniform(1, c.max_run_id, size=25).astype("i4")
         event_ids = prng.uniform(1, c.num_events_in_run, size=25).astype("i4")
 
@@ -86,19 +86,19 @@ def test_template_string():
 
 
 def test_raise_when_seed_too_big():
-    c = cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=1)
+    c = cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=1)
 
     with pytest.raises(AssertionError) as e:
-        cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=0)
+        cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=0)
 
     with pytest.raises(AssertionError) as e:
-        cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=1000000000)
+        cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=1000000000)
 
 
 def test_no_duplicate_seeds():
     NUM_R = 10
     NUM_E = 100
-    c = cpw.random_seed.RunIdEventIdSeedStructure(num_events_in_run=100)
+    c = cpw.random.seed.RunIdEventIdSeedStructure(num_events_in_run=100)
     seeds = set()
     for run_id in np.arange(1, NUM_R + 1):
         for event_id in np.arange(1, NUM_E + 1):

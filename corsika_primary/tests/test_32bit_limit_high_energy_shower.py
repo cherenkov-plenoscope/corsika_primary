@@ -43,7 +43,7 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
                 "zenith_rad": f8(0.0),
                 "azimuth_rad": f8(0.0),
                 "depth_g_per_cm2": f8(0.0),
-                "random_seed": cpw.random_seed.make_simple_seed(1),
+                "random_seed": cpw.random.seed.make_simple_seed(1),
             }
         ],
     }

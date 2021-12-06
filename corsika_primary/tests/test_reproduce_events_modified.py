@@ -25,7 +25,7 @@ def debug_dir(pytestconfig):
 def make_random_steering_dict(
     run_id, particle_id, num_primaries, energy_GeV, prng
 ):
-    seed_checker = cpw.random_seed.RunIdEventIdSeedStructure(
+    seed_checker = cpw.random.seed.RunIdEventIdSeedStructure(
         num_events_in_run=100000,
     )
 
@@ -45,7 +45,7 @@ def make_random_steering_dict(
         "primaries": [],
     }
     for event_id in np.arange(1, num_primaries + 1):
-        az, zd = cpw.random_distributions.draw_azimuth_zenith_in_viewcone(
+        az, zd = cpw.random.distributions.draw_azimuth_zenith_in_viewcone(
             prng=prng,
             azimuth_rad=np.deg2rad(20.0),
             zenith_rad=np.deg2rad(5.0),
@@ -59,7 +59,7 @@ def make_random_steering_dict(
             "zenith_rad": f8(zd),
             "azimuth_rad": f8(az),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": cpw.random_seed.make_simple_seed(
+            "random_seed": cpw.random.seed.make_simple_seed(
                 seed=seed_checker.seed_based_on(
                     run_id=run_id, event_id=event_id,
                 ),
