@@ -1,4 +1,4 @@
-# Installing CORSIKA for the Cherenkov-plenoscope
+# CORSIKA-primary-modification
 
 <p align="center">
 <img
@@ -11,7 +11,7 @@
 >
 </p>
 
-Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays for the Cherenkov-plenoscope. This is based on CORSIKA 7.56 with minor modifications to gain more control over the primary particle. 
+Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays for the Cherenkov-plenoscope. This is based on CORSIKA 7.56 with minor modifications to gain more control over the primary particle.
 This repository contains:
 - The installer for the CORSIKA-primary-modification
 - A python-3 wrapper to call and test the CORSIKA-primary-modification
@@ -130,15 +130,15 @@ Photon-bunch:
          float 32            float 32            float 32            float 32
 ```
 
-## corsika-primary-wrapper
-The ```corsika_primary_wrapper``` is a python-3 package to test and call the CORSIKA-primary-modification. 
+## corsika-primary
+The ```corsika_primary``` is a python-3 package to test and call the CORSIKA-primary-modification.
 The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
 
 ### Install
 ```bash
-pip install -e ./corsika_primary_wrapper
+pip install -e ./corsika_primary
 ```
-I use pip's ```-e``` option to modify the wrapper in place.
+I use pip's ```-e``` option to modify the package in place.
 
 ### Steering-dictionary
 A CORSIKA-run is fully described in steering-dictionary. The example shows all possible options.
@@ -189,7 +189,7 @@ This run will create two showers. One gamma-ray ```particle_id=1```, and one ele
 ### Call
 In python do:
 ```python
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 
 cpw.corsika_primary(
     corsika_path="/path/to/my/modified/corsika-75600/run/corsika75600Linux_QGSII_urqmd",
@@ -206,14 +206,14 @@ The installer installs both the vanilla and the modified CORSIKA to allow testin
 To run the tests, you have to explicitly provide the paths to the corsika executables, and the merlict-eventio-converter. There are defaults which allow to call the tests in the Cherenkov-plenoscope's starter-kit-directory.
 
 ```bash
-py.test ./corsika_primary_wrapper/corsika_primary_wrapper/tests/
+py.test ./corsika_primary/corsika_primary/tests/
     --corsika_vanilla_path /path/to/vanilla/corsika/executable
     --corsika_primary_path /path/to/modified/corsika/executable
     --merlict_eventio_converter /path/to/merlict_eventio_converter/executable
 ```
-Thers is also an option ```--non_temporary_path``` which will write the files created during the tests to the path specified in ```non_temporary_path``` to allow debugging and inspection.
+Thers is also an option ```--debug_dir``` which will write the files created during the tests to the path specified in ```debug_dir``` to allow debugging and inspection.
 
-See all options defined in: ```./corsika_primary_wrapper/corsika_primary_wrapper/tests/conftest.py```
+See all options defined in: ```./corsika_primary/corsika_primary/tests/conftest.py```
 
 ### Codestyle
 ```bash

@@ -2,7 +2,7 @@ import pytest
 import inspect
 import os
 import tempfile
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 import numpy as np
 
 i4 = np.int32

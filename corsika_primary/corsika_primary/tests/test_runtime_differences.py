@@ -2,7 +2,7 @@ import pytest
 import os
 import tempfile
 import datetime
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 import inspect
 import numpy as np
 

@@ -1,10 +1,10 @@
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 import os
 import pkg_resources
 
 
 resource_dir = pkg_resources.resource_filename(
-    "corsika_primary_wrapper", os.path.join("tests", "resources")
+    "corsika_primary", os.path.join("tests", "resources")
 )
 
 

@@ -1,6 +1,6 @@
 import pytest
 import os
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 import inspect
 import numpy as np
 import hashlib
