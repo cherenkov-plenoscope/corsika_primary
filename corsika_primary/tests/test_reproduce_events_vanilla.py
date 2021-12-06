@@ -58,8 +58,7 @@ def hash_cherenkov_pools(
             evth, bunches = event
             event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
             event_seeds[event_id] = cpw.random.seed.parse_seed_from_evth(
-                evth=evth,
-                dtype_constructor=int
+                evth=evth, dtype_constructor=int
             )
             h = hashlib.md5(bunches.tobytes()).hexdigest()
             hashes_csv += "{:06d},{:s}\n".format(event_id, h)
