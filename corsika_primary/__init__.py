@@ -4,13 +4,13 @@ import os
 import subprocess
 import shutil
 import copy
-from . import random
-from . import collect_version_information
+from . import install
 from . import steering
+from . import random
 from . import I
 from . import tario
 from . import testing
-from . import install
+from . import collect_version_information
 
 
 MAX_ZENITH_DEG = 70.0
