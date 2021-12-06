@@ -2,7 +2,7 @@
 # Copyright 2017-2021 Sebastian A. Mueller
 import os
 import argparse
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 
 
 def main():

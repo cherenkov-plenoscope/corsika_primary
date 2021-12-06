@@ -12,7 +12,7 @@ The CORSIKA simulation is certainly one of the most advanced simulation tools in
 
 ## run
 ```python
-import corsika_primary_wrapper as cpw
+import corsika_primary as cpw
 
 steering_dict = {
     "run": {
