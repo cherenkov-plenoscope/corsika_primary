@@ -102,7 +102,7 @@ def assert_dtypes_primary_dict(primary_dict):
     assert_dtypes_in_obj(obj=primary_dict, dtype=EXAMPLE["primaries"][0])
 
 
-def make_run_card_str(steering_dict, output_path):
+def make_steering_card_str(steering_dict, output_path):
     """
     Make steering card-st for CORSIKA. The card contains all steering for
     the run which is the same for each event.
@@ -144,7 +144,7 @@ def make_run_card_str(steering_dict, output_path):
     return card
 
 
-def overwrite_telfil_in_card_str(card_str, telfil):
+def overwrite_telfil_in_steering_card_str(card_str, telfil):
     out = io.StringIO()
     for line in str.splitlines(card_str):
         if not "EXIT" in line and not "TELFIL" in line:
@@ -179,7 +179,7 @@ def primary_dict_to_bytes(primary_dict):
         f.write(prmdic["zenith_rad"].tobytes())
         f.write(prmdic["azimuth_rad"].tobytes())
         f.write(prmdic["depth_g_per_cm2"].tobytes())
-        for seq in range(4):
+        for seq in range(random.seed.NUM_RANDOM_SEQUENCES):
             for key in ["SEED", "CALLS", "BILLIONS"]:
                 f.write(prmdic["random_seed"][seq][key].tobytes())
         f.seek(0)
@@ -202,7 +202,7 @@ def primary_bytes_to_dict(primary_bytes):
         prm["azimuth_rad"] = _read(f, PRM["azimuth_rad"].dtype.str)
         prm["depth_g_per_cm2"] = _read(f, PRM["depth_g_per_cm2"].dtype.str)
         prm["random_seed"] = []
-        for n in range(4):
+        for n in range(random.seed.NUM_RANDOM_SEQUENCES):
             seq = {}
             for key in ["SEED", "CALLS", "BILLIONS"]:
                 seq[key] = _read(f, PRM["random_seed"][n][key].dtype.str)

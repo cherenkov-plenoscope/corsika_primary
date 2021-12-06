@@ -58,7 +58,7 @@ def corsika_primary(
 
     steering.assert_values(steering_dict=steering_dict)
 
-    steering_card = steering.make_run_card_str(
+    steering_card = steering.make_steering_card_str(
         steering_dict=steering_dict, output_path=output_path,
     )
     primary_bytes = steering.primary_dicts_to_bytes(
@@ -137,7 +137,7 @@ def corsika_vanilla(
     op = os.path
     corsika_path = op.abspath(corsika_path)
     output_path = op.abspath(output_path)
-    steering_card = steering.overwrite_telfil_in_card_str(
+    steering_card = steering.overwrite_telfil_in_steering_card_str(
         card_str=steering_card, telfil=output_path
     )
     stdout_path = stdout_path if stdout_path else output_path + ".stdout"
@@ -229,7 +229,7 @@ class CorsikaPrimary:
             self.tmp_corsika_run_dir, op.basename(self.corsika_path)
         )
 
-        self.steering_card = steering.make_run_card_str(
+        self.steering_card = steering.make_steering_card_str(
             steering_dict=self.steering_dict, output_path=self.fifo_path,
         )
         assert self.steering_card[-1] == "\n", "Need newline to mark ending."
