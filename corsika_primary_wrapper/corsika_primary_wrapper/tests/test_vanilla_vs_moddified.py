@@ -183,10 +183,10 @@ def test_original_vs_moddified(
 
         with open(ori_run_eventio_path + ".stdout", "rt") as f:
             ori_stdout = f.read()
-        ori_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+        ori_events_seeds = cpw.testing.parse_random_seeds_from_corsika_stdout(
             stdout=ori_stdout
         )
-        ori_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+        ori_num_bunches = cpw.testing.parse_num_bunches_from_corsika_stdout(
             stdout=ori_stdout
         )
 

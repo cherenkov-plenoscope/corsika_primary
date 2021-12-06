@@ -12,7 +12,7 @@ def test_parsing_random_state_gamma():
     path = os.path.join(resource_dir, "example_vanilla_corsika.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
-    events = cpw._parse_random_seeds_from_corsika_stdout(stdout=stdout)
+    events = cpw.testing.parse_random_seeds_from_corsika_stdout(stdout=stdout)
 
     expected_events = [
         [
@@ -70,7 +70,7 @@ def test_parsing_random_state_proton():
     path = os.path.join(resource_dir, "example_vanilla_corsika_proton.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
-    events = cpw._parse_random_seeds_from_corsika_stdout(stdout=stdout)
+    events = cpw.testing.parse_random_seeds_from_corsika_stdout(stdout=stdout)
 
     print(events)
 

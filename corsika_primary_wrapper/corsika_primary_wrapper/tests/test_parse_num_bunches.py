@@ -12,7 +12,7 @@ def test_parse_num_bunches():
     path = os.path.join(resource_dir, "example_vanilla_corsika.stdout")
     with open(path, "rt") as f:
         stdout = f.read()
-    actual_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+    actual_num_bunches = cpw.testing.parse_num_bunches_from_corsika_stdout(
         stdout=stdout
     )
     expected_num_bunches = [50053, 57921, 38977, 42614, 29591, 37821, 33591]

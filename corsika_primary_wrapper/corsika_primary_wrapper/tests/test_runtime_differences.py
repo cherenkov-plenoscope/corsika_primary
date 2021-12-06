@@ -99,10 +99,10 @@ def test_runtime_differences(
 
     with open(van_run_path + ".stdout", "rt") as f:
         van_stdout = f.read()
-    van_events_seeds = cpw._parse_random_seeds_from_corsika_stdout(
+    van_events_seeds = cpw.testing.parse_random_seeds_from_corsika_stdout(
         stdout=van_stdout
     )
-    van_num_bunches = cpw._parse_num_bunches_from_corsika_stdout(
+    van_num_bunches = cpw.testing.parse_num_bunches_from_corsika_stdout(
         stdout=van_stdout
     )
 
