@@ -140,10 +140,10 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
     return complete_hashes, part_hashes
 
 
-def all_cherenkov_pool_hashes_are_equal(
+def cherenkov_pool_hashes_are_different(
     original_hashes, reproduced_hashes, original_steering_dict
 ):
-    all_identical = True
+    diff = []
     for event_id in reproduced_hashes:
         original = original_hashes[event_id]
         reproduced = reproduced_hashes[event_id]
@@ -153,8 +153,8 @@ def all_cherenkov_pool_hashes_are_equal(
             print("pool-md5-hash reproduced: ", reproduced)
             print("steering: ")
             pprint.pprint(original_steering_dict["primaries"][event_id])
-            all_identical = False
-    return all_identical
+            diff.append(event_id)
+    return set(diff)
 
 
 PARTICLES = {
@@ -162,6 +162,14 @@ PARTICLES = {
     "electron": {"particle_id": 3, "energy_GeV": 1.0},
     "proton": {"particle_id": 14, "energy_GeV": 7},
     "helium": {"particle_id": 402, "energy_GeV": 12},
+}
+
+
+EVENT_IDS_EXPECTED_TO_FAIL = {
+    "gamma": set([]),
+    "electron": set([]),
+    "proton": set([]),
+    "helium": set([4, 5, 6, 8]),
 }
 
 
@@ -178,7 +186,7 @@ def test_few_events_different_particles_reproduce_one(
     num_primaries = 15
     event_ids_to_reproduce = np.arange(1, num_primaries + 1)
 
-    reproduction = {}
+    failing_event_ids = {}
     for pkey in PARTICLES:
         steering_dict = make_random_steering_dict(
             particle_id=PARTICLES[pkey]["particle_id"],
@@ -198,18 +206,17 @@ def test_few_events_different_particles_reproduce_one(
             tmp_dir=os.path.join(tmp.name, pkey),
         )
 
-        reproduction[pkey] = all_cherenkov_pool_hashes_are_equal(
+        failing_event_ids[pkey] = cherenkov_pool_hashes_are_different(
             original_hashes=original_hashes,
             reproduced_hashes=reproduced_hashes,
             original_steering_dict=steering_dict,
         )
 
-    all_particles_can_be_reproduced = True
+    failing_is_as_expected = True
     for pkey in PARTICLES:
-        if reproduction[pkey] == False:
-            all_particles_can_be_reproduced = False
-
-    assert all_particles_can_be_reproduced
+        if failing_event_ids[pkey] != EVENT_IDS_EXPECTED_TO_FAIL[pkey]:
+            failing_is_as_expected = False
+    assert failing_is_as_expected
 
     tmp.cleanup_when_no_debug()
 
