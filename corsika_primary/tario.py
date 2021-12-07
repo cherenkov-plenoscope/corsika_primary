@@ -1,5 +1,6 @@
 import tarfile
 import numpy as np
+import re as regex
 from . import I
 
 
@@ -113,7 +114,7 @@ class BunchTapeReader:
         return out
 
 
-def is_match(template, path, digit_wildcard="#"):
+def is_match(template, path):
     """
     Returns true if a path matches a template, false if not.
 
@@ -123,15 +124,16 @@ def is_match(template, path, digit_wildcard="#"):
         A template defining match.
     path : str
         The path to be tested for matching.
-    digit_wildcard : char
-        Chars that match the wildcard are considered to be digits in 'path'
     """
-    if len(template) != len(path):
+    digit_format_regex = regex.compile("\{\w{0,100}:09d\}")
+    ss = digit_format_regex.split(template)
+    math = (9*"#").join(ss)
+    if len(math) != len(path):
         return False
-    for i in range(len(template)):
-        t = template[i]
+    for i in range(len(math)):
+        t = math[i]
         p = path[i]
-        if t == digit_wildcard:
+        if t == "#":
             if not str.isdigit(p):
                 return False
         else:
@@ -139,31 +141,33 @@ def is_match(template, path, digit_wildcard="#"):
                 return False
     return True
 
+
+VERSION_FILENAME = "{run_number:09d}/version.txt"
 RUNH_FILENAME = "{run_number:09d}/RUNH.float32"
 EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/EVTH.float32"
-EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/{cherenkov_block_number:09d}.cer.x8.float32"
+CHERENKOV_BLOCK_FILENAME = "{run_number:09d}/{event_number:09d}/{cherenkov_block_number:09d}.cer.x8.float32"
 EVTE_FILENAME = "{run_number:09d}/{event_number:09d}/EVTE.float32"
 RUNE_FILENAME = "{run_number:09d}/RUNE.float32"
 
 
 def is_cherenkov_block_path(path):
-    return is_match("#########/#########/#########.cer.x8.float32", path)
+    return is_match(CHERENKOV_BLOCK_FILENAME, path)
 
 
 def is_evth_path(path):
-    return is_match(template="#########/#########/EVTH.float32", path=path)
+    return is_match(EVTH_FILENAME, path)
 
 
 def is_evte_path(path):
-    return is_match(template="#########/#########/EVTE.float32", path=path)
+    return is_match(EVTE_FILENAME, path)
 
 
 def is_runh_path(path):
-    return is_match(template="#########/RUNH.float32", path=path)
+    return is_match(RUNH_FILENAME, path)
 
 
 def is_rune_path(path):
-    return is_match(template="#########/RUNE.float32", path=path)
+    return is_match(RUNE_FILENAME, path)
 
 
 def parse_run_number(path):
@@ -179,7 +183,7 @@ def parse_cherenkov_block_number(path):
 
 
 def read_readme(tar, tarinfo):
-    assert is_match("#########/version.txt", tarinfo.name)
+    assert is_match(VERSION_FILENAME, tarinfo.name)
     readme_bin = tar.extractfile(tarinfo).read()
     return readme_bin.decode("ascii")
 
@@ -195,7 +199,7 @@ def read_runh(tar, tarinfo):
 
 
 def read_rune(tar, tarinfo, run_number):
-    assert is_match("#########/RUNE.float32", tarinfo.name)
+    assert is_rune_path(tarinfo.name)
     assert parse_run_number(tarinfo.name) == run_number
     rune_bin = tar.extractfile(tarinfo).read()
     rune = np.frombuffer(rune_bin, dtype=np.float32)
@@ -217,7 +221,7 @@ def read_evth(tar, tarinfo):
 
 
 def read_evte(tar, tarinfo, run_number, event_number):
-    assert is_match("#########/#########/EVTE.float32", tarinfo.name)
+    assert is_evte_path(tarinfo.name)
     assert parse_run_number(tarinfo.name) == run_number
     assert parse_event_number(tarinfo.name) == event_number
     evte_bin = tar.extractfile(tarinfo).read()
