@@ -215,12 +215,12 @@ def test_reproduce_events_vanilla(
 
         report += pkey + "\n"
         report += "=" * len(pkey) + "\n"
-        report += "event-num.  reproduction\n"
-        report += "------------------------\n"
+        report += "| event-num. | reproduction |\n"
+        report += "| ---------- | ------------ |\n"
         for event_id in event_ids_to_reproduce:
             fine = full_hashes[event_id] == repr_hashes[event_id]
             msg = "ok" if fine else "BAD"
-            report += "  {: 3d}      ".format(event_id) + msg + "\n"
+            report += "| {: 3d} | ".format(event_id) + msg + " |\n"
             if not fine:
                 all_events_can_be_reproduced = False
         report += "\n"

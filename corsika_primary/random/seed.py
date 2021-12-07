@@ -39,7 +39,7 @@ def make_simple_seed(seed):
     ]
 
 
-def parse_seed_from_evth(evth, dtype_constructor=i4):
+def parse_seed_from_evth(evth, dtype_constructor=np.int32):
     """
     Returns random-generator-state at the begin of an event parsed from the
     event's event-header (EVTH).
