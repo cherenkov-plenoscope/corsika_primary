@@ -182,6 +182,7 @@ class CorsikaPrimary:
         steering_dict,
         stdout_path,
         stderr_path,
+        read_block_by_block=False,
         tmp_dir_prefix="corsika_primary_",
     ):
         """
@@ -259,11 +260,14 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.tario_reader = tario.Tario(path=self.fifo_path)
-        self.runh = self.tario_reader.runh
+        self.event_tape_reader = tario.EventTapeReader(
+            path=self.fifo_path,
+            read_block_by_block=read_block_by_block,
+        )
+        self.runh = self.event_tape_reader.runh
 
     def _close(self):
-        self.tario_reader.__exit__()
+        self.event_tape_reader.__exit__()
         self.stdout.close()
         self.stderr.close()
         with open(self.stdout_path, "rt") as f:
@@ -273,7 +277,7 @@ class CorsikaPrimary:
 
     def __next__(self):
         try:
-            return self.tario_reader.__next__()
+            return self.event_tape_reader.__next__()
         except StopIteration:
             self._close()
             raise

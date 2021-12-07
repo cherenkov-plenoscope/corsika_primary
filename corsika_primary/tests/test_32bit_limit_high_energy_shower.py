@@ -55,7 +55,7 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
             steering_dict=steering_dict,
             output_path=run_path,
         )
-    run = cpw.tario.Tario(run_path)
+    run = cpw.tario.EventTapeReader(run_path)
     event = next(run)
     evth, bunches = event
     with pytest.raises(StopIteration):

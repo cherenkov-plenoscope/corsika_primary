@@ -69,7 +69,7 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
             steering_dict=steering_dict,
             output_path=run_path,
         )
-    run = cpw.tario.Tario(run_path)
+    run = cpw.tario.EventTapeReader(run_path)
 
     for depth in depths:
         _num_bunches = []

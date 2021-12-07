@@ -34,35 +34,8 @@
 #include <ctype.h>
 #include <stdint.h>
 
+#include "mli_corsika_EventTape_headeronly.h"
 #include "microtar.h"
-
-#define iact_clean_errno() (errno == 0 ? "None" : strerror(errno))
-
-#define iact_log_err(M) \
-    fprintf( \
-        stderr, \
-        "[ERROR] (%s:%d: errno: %s) " M "\n", \
-        __FILE__, \
-        __LINE__, \
-        iact_clean_errno())
-
-#define iact_check(A, M) \
-    if (!(A)) {\
-        iact_log_err(M); \
-        errno = 0; \
-        goto error; \
-    }
-
-#define iact_fwrite(PTR, SIZE_OF_TYPE, NUM, F) { \
-    const size_t num_written = fwrite(PTR, SIZE_OF_TYPE, NUM, F); \
-    iact_check(num_written == NUM, "Can not write to file."); \
-}
-
-#define iact_fread(PTR, SIZE_OF_TYPE, NUM, F) { \
-    const size_t num_read = fread(PTR, SIZE_OF_TYPE, NUM, F); \
-    iact_check(num_read == NUM, "Can not read from file."); \
-}
-
 
 typedef float cors_real_t;
 typedef double cors_real_now_t;
@@ -111,11 +84,9 @@ int event_number;
 const char *PRIMARY_PATH = "primary_bytes.5xf8_12xi4";
 FILE *primary_file = NULL;
 
-const char* CHERENKOV_BUFFER_PATH = "cherenkov_buffer.float32";
-FILE *cherenkov_buffer = NULL;
-
 char output_path[1024] = "";
-mtar_t tar;
+const uint64_t CHERENKOV_BUFFER_SIZE = 1048576;
+struct mliEventTapeWriter taro;
 
 //-------------------- CORSIKA bridge ------------------------------------------
 
@@ -126,11 +97,12 @@ mtar_t tar;
 void telfil_(char *name) {
     const uint64_t sz = sizeof(output_path);
     const int rc = snprintf(output_path, sz, "%s", name);
-    iact_check(rc > 0 && rc < sz, "Can not copy TELFIL path.");
+    chk_msg(rc > 0 && rc < sz, "Can not copy TELFIL path.");
     return;
 error:
     exit(1);
 }
+
 
 /**
  *  Save aparameters from CORSIKA run header.
@@ -139,23 +111,22 @@ error:
  *  @return (none)
 */
 void telrnh_(cors_real_t runh[273]) {
-    iact_check(
-        mtar_open(&tar, output_path, "w") == MTAR_ESUCCESS,
-        "Can not open tar.");
-    iact_check(
-        mtar_write_file_header(
-            &tar, "runh.float32", 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
-        "Can not write tar-header of 'runh.float32' to tar.");
-    iact_check(
-        mtar_write_data(&tar, runh, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
-        "Can not write data of 'runh.float32' to tar.");
-
+    taro = mliEventTapeWriter_init();
+    chk_msg(
+        mliEventTapeWriter_open(&taro, output_path, CHERENKOV_BUFFER_SIZE),
+        "Can't open EventTapeWriter."
+    );
+    chk_msg(
+        mliEventTapeWriter_write_runh(&taro, runh),
+        "Can't write RUNH to EventTape."
+    );
     primary_file = fopen(PRIMARY_PATH, "rb");
-    iact_check(primary_file, "Can not open primary_file.");
+    chk_msg(primary_file, "Can not open primary_file.");
     return;
 error:
     exit(1);
 }
+
 
 /**
  *  Called at begin of shower. Explicitly set primary particle.
@@ -186,27 +157,27 @@ void extprm_(
     int seed_seq3_, calls_seq3_, billions_seq3_;
     int seed_seq4_, calls_seq4_, billions_seq4_;
 
-    iact_fread(&type_, sizeof(double), 1, primary_file);
-    iact_fread(&eprim_, sizeof(double), 1, primary_file);
-    iact_fread(&thetap_, sizeof(double), 1, primary_file);
-    iact_fread(&phip_, sizeof(double), 1, primary_file);
-    iact_fread(&thick0_, sizeof(double), 1, primary_file);
+    chk_fread(&type_, sizeof(double), 1, primary_file);
+    chk_fread(&eprim_, sizeof(double), 1, primary_file);
+    chk_fread(&thetap_, sizeof(double), 1, primary_file);
+    chk_fread(&phip_, sizeof(double), 1, primary_file);
+    chk_fread(&thick0_, sizeof(double), 1, primary_file);
 
-    iact_fread(&seed_seq1_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&calls_seq1_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&billions_seq1_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&seed_seq1_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&calls_seq1_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&billions_seq1_, sizeof(int32_t), 1, primary_file);
 
-    iact_fread(&seed_seq2_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&calls_seq2_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&billions_seq2_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&seed_seq2_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&calls_seq2_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&billions_seq2_, sizeof(int32_t), 1, primary_file);
 
-    iact_fread(&seed_seq3_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&calls_seq3_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&billions_seq3_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&seed_seq3_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&calls_seq3_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&billions_seq3_, sizeof(int32_t), 1, primary_file);
 
-    iact_fread(&seed_seq4_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&calls_seq4_, sizeof(int32_t), 1, primary_file);
-    iact_fread(&billions_seq4_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&seed_seq4_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&calls_seq4_, sizeof(int32_t), 1, primary_file);
+    chk_fread(&billions_seq4_, sizeof(int32_t), 1, primary_file);
     (*type) = type_;
     (*eprim) = eprim_;
     (*thetap) = thetap_;
@@ -234,6 +205,7 @@ error:
     exit(1);
 }
 
+
 /**
  *  Start of new event. Save event parameters.
  *
@@ -242,26 +214,10 @@ error:
  *  @return (none)
 */
 void televt_(cors_real_t evth[273], cors_real_dbl_t prmpar[PRMPAR_SIZE]) {
-    event_number = (int)(round(evth[1]));
-    iact_check(event_number > 0, "Expected event_number > 0.");
-
-    char evth_filename[1024] = "";
-    snprintf(
-        evth_filename,
-        sizeof(evth_filename),
-        "%09d.evth.float32", event_number);
-
-    iact_check(
-        mtar_write_file_header(
-            &tar, evth_filename, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
-        "Can not write tar-header of EVTH to tar-file.");
-    iact_check(
-        mtar_write_data(&tar, evth, 273*sizeof(cors_real_t)) == MTAR_ESUCCESS,
-        "Can not write data of EVTH to tar-file.");
-
-    cherenkov_buffer = fopen(CHERENKOV_BUFFER_PATH, "w");
-    iact_check(cherenkov_buffer, "Can not open cherenkov_buffer.");
-
+    chk_msg(
+        mliEventTapeWriter_write_evth(&taro, evth),
+        "Can't write EVTH to EventTapeWriter."
+    );
     return;
 error:
     exit(1);
@@ -306,7 +262,10 @@ int telout_(
     bunch[5] = (float)(*zem);
     bunch[6] = (float)(*bsize);
     bunch[7] = (float)(*lambda);
-    iact_fwrite(bunch, sizeof(float), 8, cherenkov_buffer);
+    chk_msg(
+        mliEventTapeWriter_write_cherenkov_bunch_raw(&taro, bunch),
+        "Can't write Cherenkov-bunch to EventTapeWriter."
+    );
     return 1;
 error:
     exit(1);
@@ -315,37 +274,10 @@ error:
 
 
 /**
- *  End of event. Write photon-bunches into tar-file.
+ *  End of event.
 */
 void telend_(cors_real_t evte[273]) {
-    iact_check(cherenkov_buffer != NULL, "Expected cherenkov_buffer != NULL");
-    int64_t sizeof_cherenkov_buffer = ftell(cherenkov_buffer);
-    iact_check(sizeof_cherenkov_buffer >= 0, "Can't ftell cherenkov_buffer");
-
-    iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
-
-    cherenkov_buffer = fopen(CHERENKOV_BUFFER_PATH, "r");
-    iact_check(cherenkov_buffer, "Can not re-open cherenkov_buffer for read.");
-
-    char bunch_filename[1024] = "";
-    snprintf(
-        bunch_filename,
-        sizeof(bunch_filename),
-        "%09d.cherenkov_bunches.Nx8_float32", event_number);
-
-    iact_check(
-        mtar_write_file_header(
-            &tar, bunch_filename, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
-        "Can't write tar-header of bunches to tar-file.");
-    iact_check(
-        mtar_write_data_from_stream(
-            &tar, cherenkov_buffer, sizeof_cherenkov_buffer) == MTAR_ESUCCESS,
-        "Can't write data of bunches to tar-file.");
-
-    iact_check(fclose(cherenkov_buffer) == 0, "Can't close cherenkov_buffer.");
     return;
-error:
-    exit(1);
 }
 
 
@@ -355,18 +287,7 @@ error:
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
-    iact_check(
-        mtar_finalize(&tar) == MTAR_ESUCCESS,
-        "Can't finalize tar-file.");
-    iact_check(
-        mtar_close(&tar) == MTAR_ESUCCESS,
-        "Can't close tar-file.");
-    iact_check(
-        primary_file != NULL,
-        "Expected primary_file != NULL");
-    iact_check(
-        fclose(primary_file) == 0,
-        "Can't close primary_file.");
+    chk_msg(mliEventTapeWriter_close(&taro), "Can't close EventTapeWriter.");
     return;
 error:
     exit(1);
@@ -401,6 +322,7 @@ void tellng_(
     int *np,
     int *nthick,
     double *thickstep);
+
 
 /**
  *  Add another telescope to the system (array) of telescopes.

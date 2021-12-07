@@ -77,7 +77,7 @@ def evth_is_equal_enough(ori_evth, mod_evth):
     return equal
 
 
-def test_original_vs_moddified(
+def test_vanilla_vs_moddified(
     corsika_primary_path,
     corsika_vanilla_path,
     merlict_eventio_converter,
@@ -237,7 +237,7 @@ def test_original_vs_moddified(
 
         # READ ORIGINAL AND MODIFIED RUNS
         # -------------------------------
-        mod_run = cpw.tario.Tario(mod_run_path)
+        mod_run = cpw.tario.EventTapeReader(mod_run_path)
         ori_run = cpw.testing.SimpleIoRun(ori_run_path)
 
         for evt_idx in range(num_shower):

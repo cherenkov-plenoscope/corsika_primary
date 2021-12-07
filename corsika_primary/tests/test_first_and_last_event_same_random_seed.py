@@ -66,7 +66,7 @@ def test_first_and_last_event_same_random_seed(
             steering_dict=steering_dict,
             output_path=run_path,
         )
-    run = cpw.tario.Tario(run_path)
+    run = cpw.tario.EventTapeReader(run_path)
     first_evth, first_bunches = next(run)
     second_evth, second_bunches = next(run)
     third_evth, third_bunches = next(run)

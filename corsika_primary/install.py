@@ -112,6 +112,10 @@ def install_corsika(
             os.path.join("bernlohr", "microtar.h"),
         )
         shutil.copy(
+            os.path.join(resource_path, "mli_corsika_EventTape_headeronly.h"),
+            os.path.join("bernlohr", "mli_corsika_EventTape_headeronly.h"),
+        )
+        shutil.copy(
             os.path.join(resource_path, "iact.c"),
             os.path.join("bernlohr", "iact.c"),
         )

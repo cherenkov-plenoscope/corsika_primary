@@ -172,7 +172,7 @@ def test_low_energy_electron(
         stdout = f.read()
     assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-    run = cpw.tario.Tario(mod_run_path)
+    run = cpw.tario.EventTapeReader(mod_run_path)
     for idx, event in enumerate(run):
         evth, bunches = event
         assert van_num_bunches[idx] == bunches.shape[0]
