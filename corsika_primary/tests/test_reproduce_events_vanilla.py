@@ -140,7 +140,7 @@ def test_reproduce_events_vanilla(
                     Bz=earth_magnetic_field_z_muT,
                 ),
                 "ELMFLG T T",
-                "MAXPRT 1",
+                "MAXPRT {NSHOW:d}",
                 "PAROUT F F",
                 "TELESCOPE 0 0 {:f} {:f}".format(
                     1e2 * telescope_sphere_radius_m * (-1),
