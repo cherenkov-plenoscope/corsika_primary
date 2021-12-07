@@ -64,7 +64,7 @@ def test_same_random_seed_yields_same_event(corsika_primary_path, debug_dir):
                 steering_dict=steering_dict,
                 output_path=run_path,
             )
-        run = cpw.tario.EventTapeReader(run_path)
+        run = cpw.event_tape.EventTapeReader(run_path)
         first_event = next(run)
         first_evth, first_bunches = first_event
         for event_idx, event in enumerate(run):

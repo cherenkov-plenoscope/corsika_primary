@@ -8,7 +8,7 @@ from . import install
 from . import steering
 from . import random
 from . import I
-from . import tario
+from . import event_tape
 from . import testing
 from . import collect_version_information
 
