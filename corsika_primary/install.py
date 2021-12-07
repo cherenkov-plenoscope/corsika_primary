@@ -108,10 +108,6 @@ def install_corsika(
 
         # apply modifications to bernlohrs iact package.
         shutil.copy(
-            os.path.join(resource_path, "microtar.h"),
-            os.path.join("bernlohr", "microtar.h"),
-        )
-        shutil.copy(
             os.path.join(resource_path, "mli_corsika_EventTape_headeronly.h"),
             os.path.join("bernlohr", "mli_corsika_EventTape_headeronly.h"),
         )

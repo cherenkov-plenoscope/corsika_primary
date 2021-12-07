@@ -35,7 +35,6 @@
 #include <stdint.h>
 
 #include "mli_corsika_EventTape_headeronly.h"
-#include "microtar.h"
 
 typedef float cors_real_t;
 typedef double cors_real_now_t;
@@ -121,7 +120,7 @@ void telrnh_(cors_real_t runh[273]) {
         "Can't write RUNH to EventTape."
     );
     primary_file = fopen(PRIMARY_PATH, "rb");
-    chk_msg(primary_file, "Can not open primary_file.");
+    chk_msg(primary_file, "Can't open primary_file.");
     return;
 error:
     exit(1);
@@ -263,7 +262,7 @@ int telout_(
     bunch[6] = (float)(*bsize);
     bunch[7] = (float)(*lambda);
     chk_msg(
-        mliEventTapeWriter_write_cherenkov_bunch_raw(&taro, bunch),
+        mliEventTapeWriter_write_cherenkov_bunch(&taro, bunch),
         "Can't write Cherenkov-bunch to EventTapeWriter."
     );
     return 1;
@@ -277,7 +276,13 @@ error:
  *  End of event.
 */
 void telend_(cors_real_t evte[273]) {
+    chk_msg(
+        mliEventTapeWriter_write_evte(&taro, evte),
+        "Can't write EVTE to EventTape."
+    );
     return;
+error:
+    exit(1);
 }
 
 
@@ -287,6 +292,10 @@ void telend_(cors_real_t evte[273]) {
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
+    chk_msg(
+        mliEventTapeWriter_write_rune(&taro, rune),
+        "Can't write RUNE to EventTape."
+    );
     chk_msg(mliEventTapeWriter_close(&taro), "Can't close EventTapeWriter.");
     return;
 error:

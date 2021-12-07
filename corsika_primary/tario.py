@@ -20,19 +20,30 @@ class EventTapeReader:
         """
         self.path = str(path)
         self.read_block_by_block = bool(read_block_by_block)
-        self.tar = tarfile.open(path, "r")
+        self.tar = tarfile.open(name=path, mode="r|")
 
         self.next_info = self.tar.next()
         self.readme = read_readme(tar=self.tar, tarinfo=self.next_info)
 
         self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
+        self.rune = None
+        self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
 
         self.next_info = self.tar.next()
 
     def __next__(self):
         if self.next_info is None:
             raise StopIteration
+        if not is_evth_path(self.next_info.name):
+            self.rune = read_rune(
+                tar=self.tar,
+                tarinfo=self.next_info,
+                run_number=self.run_number,
+            )
+            self.next_info = self.tar.next()
+            raise StopIteration
+
         evth = read_evth(tar=self.tar, tarinfo=self.next_info)
         self.event_number = int(evth[I.EVTH.EVENT_NUMBER])
 
@@ -61,11 +72,19 @@ class BunchTapeReader:
     def __init__(self, run):
         self.run = run
         self.cherenkov_block_number = 1
+        self.evte = None
 
     def __next__(self):
         if self.run.next_info is None:
             raise StopIteration
         if not is_cherenkov_block_path(self.run.next_info.name):
+            self.evte = read_evte(
+                tar=self.run.tar,
+                tarinfo=self.run.next_info,
+                run_number=self.run.run_number,
+                event_number=self.run.event_number,
+            )
+            self.run.next_info = self.run.tar.next()
             raise StopIteration
 
         assert self.run.event_number == parse_event_number(
@@ -120,49 +139,92 @@ def is_match(template, path, digit_wildcard="#"):
                 return False
     return True
 
+RUNH_FILENAME = "{run_number:09d}/RUNH.float32"
+EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/EVTH.float32"
+EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/{cherenkov_block_number:09d}.cer.x8.float32"
+EVTE_FILENAME = "{run_number:09d}/{event_number:09d}/EVTE.float32"
+RUNE_FILENAME = "{run_number:09d}/RUNE.float32"
+
 
 def is_cherenkov_block_path(path):
-    return is_match(
-        template="events/#########/cherenkov_bunches/#########.x8.float32",
-        path=path,
-    )
+    return is_match("#########/#########/#########.cer.x8.float32", path)
 
 
 def is_evth_path(path):
-    return is_match(template="events/#########/EVTH.float32", path=path,)
+    return is_match(template="#########/#########/EVTH.float32", path=path)
+
+
+def is_evte_path(path):
+    return is_match(template="#########/#########/EVTE.float32", path=path)
+
+
+def is_runh_path(path):
+    return is_match(template="#########/RUNH.float32", path=path)
+
+
+def is_rune_path(path):
+    return is_match(template="#########/RUNE.float32", path=path)
+
+
+def parse_run_number(path):
+    return int(path[0 : 0 + 9])
 
 
 def parse_event_number(path):
-    return int(path[7 : 7 + 9])
+    return int(path[10 : 10 + 9])
 
 
 def parse_cherenkov_block_number(path):
-    return int(path[35 : 35 + 9])
+    return int(path[20 : 20 + 9])
 
 
 def read_readme(tar, tarinfo):
-    assert tarinfo.name == "readme/version.txt"
+    assert is_match("#########/version.txt", tarinfo.name)
     readme_bin = tar.extractfile(tarinfo).read()
     return readme_bin.decode("ascii")
 
 
 def read_runh(tar, tarinfo):
-    assert tarinfo.name == "RUNH.float32"
+    assert is_runh_path(tarinfo.name)
     runh_bin = tar.extractfile(tarinfo).read()
     runh = np.frombuffer(runh_bin, dtype=np.float32)
     assert runh.shape[0] == 273
     assert runh[I.RUNH.MARKER] == I.RUNH.MARKER_FLOAT32
+    assert runh[I.RUNH.RUN_NUMBER] == parse_run_number(tarinfo.name)
     return runh
+
+
+def read_rune(tar, tarinfo, run_number):
+    assert is_match("#########/RUNE.float32", tarinfo.name)
+    assert parse_run_number(tarinfo.name) == run_number
+    rune_bin = tar.extractfile(tarinfo).read()
+    rune = np.frombuffer(rune_bin, dtype=np.float32)
+    assert rune.shape[0] == 273
+    assert rune[I.RUNE.MARKER] == I.RUNE.MARKER_FLOAT32
+    return rune
 
 
 def read_evth(tar, tarinfo):
     assert is_evth_path(tarinfo.name)
+    event_number_path = parse_event_number(tarinfo.name)
     evth_bin = tar.extractfile(tarinfo).read()
     evth = np.frombuffer(evth_bin, dtype=np.float32)
     assert evth.shape[0] == 273
     assert evth[I.EVTH.MARKER] == I.EVTH.MARKER_FLOAT32
+    assert evth[I.EVTH.RUN_NUMBER] == parse_run_number(tarinfo.name)
     assert evth[I.EVTH.EVENT_NUMBER] == parse_event_number(tarinfo.name)
     return evth
+
+
+def read_evte(tar, tarinfo, run_number, event_number):
+    assert is_match("#########/#########/EVTE.float32", tarinfo.name)
+    assert parse_run_number(tarinfo.name) == run_number
+    assert parse_event_number(tarinfo.name) == event_number
+    evte_bin = tar.extractfile(tarinfo).read()
+    evte = np.frombuffer(evte_bin, dtype=np.float32)
+    assert evte.shape[0] == 273
+    assert evte[I.EVTE.MARKER] == I.EVTE.MARKER_FLOAT32
+    return evte
 
 
 def read_cherenkov_bunch_block(tar, tarinfo):

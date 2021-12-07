@@ -76,7 +76,7 @@ def test_low_energy_electron(
     zenith_deg = 45.0
     telescope_sphere_radius = 1e3
 
-    ori_steering_card = "\n".join(
+    van_steering_card = "\n".join(
         [
             "RUNNR 1",
             "EVTNR 1",

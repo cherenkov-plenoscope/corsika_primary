@@ -1,15 +1,13 @@
-#include <stdio.h>
-#include <stdint.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <math.h>
-#include <float.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <assert.h>
 #include <string.h>
-#include <errno.h>
+#include <math.h>
 
 
 
@@ -279,97 +277,6 @@ int mli_cstr_print_uint64(
 
 
 
-/* mli_quadratic_equation.h */
-/* Copyright 2019 Sebastian A. Mueller */
-#ifndef MLI_QUADRATIC_EQUATION_H_
-#define MLI_QUADRATIC_EQUATION_H_
-
-int mli_quadratic_equation(
-        const double p,
-        const double q,
-        double *minus_solution,
-        double *plus_solution);
-
-#endif
-
-
-
-/* mliVec.h */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-#ifndef MLIVEC_H_
-#define MLIVEC_H_
-
-
-struct mliVec {
-        double x;
-        double y;
-        double z;
-};
-
-void mliVec_print(const struct mliVec v);
-uint32_t mliVec_octant(const struct mliVec a);
-int mliVec_equal(const struct mliVec a, const struct mliVec b);
-int mliVec_equal_margin(
-        const struct mliVec a,
-        const struct mliVec b,
-        const double distance_margin);
-struct mliVec mliVec_mirror(const struct mliVec in, const struct mliVec normal);
-double mliVec_norm_between(const struct mliVec a, const struct mliVec b);
-double mliVec_angle_between(const struct mliVec a, const struct mliVec b);
-struct mliVec mliVec_normalized(struct mliVec a);
-double mliVec_norm(const struct mliVec a);
-struct mliVec mliVec_multiply(const struct mliVec v, const double a);
-double mliVec_dot(const struct mliVec a, const struct mliVec b);
-struct mliVec mliVec_cross(const struct mliVec a, const struct mliVec b);
-struct mliVec mliVec_substract(const struct mliVec a, const struct mliVec b);
-struct mliVec mliVec_add(const struct mliVec a, const struct mliVec b);
-struct mliVec mliVec_set(const double x, const double y, const double z);
-int mliVec_sign3_bitmask(const struct mliVec a, const double epsilon);
-#endif
-
-
-
-/* mliRay.h */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-#ifndef MLIRAY_H_
-#define MLIRAY_H_
-
-
-struct mliRay {
-        struct mliVec support;
-        struct mliVec direction;
-} mliRay;
-
-struct mliVec mliRay_at(const struct mliRay *ray, const double t);
-struct mliRay mliRay_set(
-        const struct mliVec support,
-        const struct mliVec direction);
-int mliRay_sphere_intersection(
-        const struct mliVec support,
-        const struct mliVec direction,
-        const double radius,
-        double *minus_solution,
-        double *plus_solution);
-#endif
-
-
-
-/* mliPhoton.h */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-#ifndef MLIPHOTON_H_
-#define MLIPHOTON_H_
-
-
-struct mliPhoton {
-        struct mliRay ray;
-        double wavelength;
-        int64_t id;
-};
-
-#endif
-
-
-
 /* mliTar.h */
 /**
  * Copyright (c) 2017 rxi
@@ -544,6 +451,16 @@ int mliTar_field12_to_uint64_2001star_base256(const char *field, uint64_t *val);
 
 
 
+/* mliDynFloat.h */
+/* Copyright 2018-2020 Sebastian Achim Mueller */
+#ifndef MLIDYNARRAY_FLOAT_H_
+#define MLIDYNARRAY_FLOAT_H_
+
+MLIDYNARRAY_DEFINITON(mli, Float, float)
+#endif
+
+
+
 /* mli_corsika_version.h */
 /* Copyright 2018-2020 Sebastian Achim Mueller */
 #ifndef MLI_CORSIKA_VERSION_H_
@@ -562,11 +479,10 @@ int mliTar_field12_to_uint64_2001star_base256(const char *field, uint64_t *val);
 #ifndef MLI_CORSIKA_UTILS_H_
 #define MLI_CORSIKA_UTILS_H_
 
+float mli_chars_to_float(const char *four_char_word);
 
-float mli_4chars_to_float(const char *four_char_word);
-
-#define MLI_CORSIKA_HEADER_SIZE (sizeof(float) * 273)
-#define MLI_CORSIKA_BUNCH_SIZE (sizeof(float) * 8)
+#define MLI_CORSIKA_HEADER_SIZE_BYTES (sizeof(float) * 273)
+#define MLI_CORSIKA_BUNCH_SIZE_BYTES (sizeof(float) * 8)
 
 #define MLI_CORSIKA_RUNH_RUN_NUMBER 1
 #define MLI_CORSIKA_RUNH_SLOPE_OF_ENERGY_SPECTRUM 15
@@ -575,70 +491,12 @@ float mli_4chars_to_float(const char *four_char_word);
 #define MLI_CORSIKA_RUNH_NUM_OBSERVATION_LEVELS 4
 
 #define MLI_CORSIKA_EVTH_EVENT_NUMBER 1
+#define MLI_CORSIKA_EVTH_RUN_NUMBER 43
 #define MLI_CORSIKA_EVTH_PARTICLE_ID 2
 #define MLI_CORSIKA_EVTH_ENERGY_GEV 3
 #define MLI_CORSIKA_EVTH_ZENITH_RAD 10
 #define MLI_CORSIKA_EVTH_AZIMUTH_RAD 11
 #define MLI_CORSIKA_EVTH_FIRST_INTERACTION_HEIGHT_CM 6
-
-#endif
-
-
-
-/* mli_corsika_CorsikaPhotonBunch.h */
-/* Copyright 2016 Sebastian A. Mueller, Dominik Neise */
-#ifndef MLI_CORSIKA_CORSIKAPHOTONBUNCH_H_
-#define MLI_CORSIKA_CORSIKAPHOTONBUNCH_H_
-
-
-struct mliCorsikaPhotonBunch {
-        /*
-         * x in cm
-         * y in cm
-         * cx
-         * cy
-         * time in nanoseconds since first interaction.
-         * zem
-         * photons
-         * wavelength is in nanometer negative if scattered ?!
-         */
-        float x_cm;
-        float y_cm;
-        float cx_rad;
-        float cy_rad;
-        float time_ns;
-        float z_emission_cm;
-        float weight_photons;
-        float wavelength_nm;
-};
-
-MLIDYNARRAY_DEFINITON(mli, CorsikaPhotonBunch, struct mliCorsikaPhotonBunch)
-
-void mliCorsikaPhotonBunch_set_from_raw(
-        struct mliCorsikaPhotonBunch *bunch,
-        const float *raw);
-void mliCorsikaPhotonBunch_to_raw(
-        const struct mliCorsikaPhotonBunch *bunch,
-        float *raw);
-
-struct mliPhoton mliCorsikaPhotonBunch_to_merlict_photon(
-        const struct mliCorsikaPhotonBunch bunch,
-        const double production_distance_offset,
-        const int64_t id);
-
-struct mliVec mli_corsika_photon_direction_of_motion(
-        const struct mliCorsikaPhotonBunch bunch);
-
-struct mliVec mli_corsika_photon_support_on_observation_level(
-        const struct mliCorsikaPhotonBunch bunch);
-
-double mli_corsika_photon_wavelength(const struct mliCorsikaPhotonBunch bunch);
-
-double mli_corsika_photon_emission_height(
-        const struct mliCorsikaPhotonBunch bunch);
-
-double mli_corsika_photon_relative_arrival_time_on_observation_level(
-        const struct mliCorsikaPhotonBunch bunch);
 
 #endif
 
@@ -650,15 +508,17 @@ double mli_corsika_photon_relative_arrival_time_on_observation_level(
 #define MLI_CORSIKA_EVENTTAPE_H_
 
 
-#define MLI_CORSIKA_EVENTTAPE_VERSION_MAYOR 0
-#define MLI_CORSIKA_EVENTTAPE_VERSION_MINOR 1
+
+#define MLI_CORSIKA_EVENTTAPE_VERSION_MAYOR 1
+#define MLI_CORSIKA_EVENTTAPE_VERSION_MINOR 0
 #define MLI_CORSIKA_EVENTTAPE_VERSION_PATCH 0
 
 struct mliEventTapeWriter {
         struct mliTar tar;
+        int run_number;
         int event_number;
         int cherenkov_bunch_block_number;
-        struct mliDynCorsikaPhotonBunch buffer;
+        struct mliDynFloat buffer;
 };
 struct mliEventTapeWriter mliEventTapeWriter_init(void);
 int mliEventTapeWriter_open(
@@ -669,20 +529,27 @@ int mliEventTapeWriter_close(struct mliEventTapeWriter *tio);
 int mliEventTapeWriter_write_runh(
         struct mliEventTapeWriter *tio,
         const float *runh);
+int mliEventTapeWriter_write_rune(
+        struct mliEventTapeWriter *tio,
+        const float *rune);
 int mliEventTapeWriter_write_evth(
         struct mliEventTapeWriter *tio,
         const float *evth);
+int mliEventTapeWriter_write_evte(
+        struct mliEventTapeWriter *tio,
+        const float *evte);
 int mliEventTapeWriter_write_cherenkov_bunch(
         struct mliEventTapeWriter *tio,
-        const struct mliCorsikaPhotonBunch *bunch);
-int mliEventTapeWriter_write_cherenkov_bunch_raw(
-        struct mliEventTapeWriter *tio,
-        const float *bunch_raw);
+        const float *bunch);
 int mliEventTapeWriter_flush_cherenkov_bunch_block(
         struct mliEventTapeWriter *tio);
-int mliEventTapeWriter_write_readme(struct mliEventTapeWriter *tio);
+int mliEventTapeWriter_write_readme(
+        struct mliEventTapeWriter *tio,
+        const char *path);
 
 struct mliEventTapeReader {
+        uint64_t run_number;
+
         /* Current event-number */
         uint64_t event_number;
 
@@ -692,6 +559,7 @@ struct mliEventTapeReader {
         /* Current bunch-number inside the current cherenkov-block */
         uint64_t block_at;
         uint64_t block_size;
+        int has_still_bunches_in_event;
 
         /* Underlying tape-archive */
         struct mliTar tar;
@@ -704,14 +572,12 @@ struct mliEventTapeReader mliEventTapeReader_init(void);
 int mliEventTapeReader_open(struct mliEventTapeReader *tio, const char *path);
 int mliEventTapeReader_close(struct mliEventTapeReader *tio);
 int mliEventTapeReader_read_runh(struct mliEventTapeReader *tio, float *runh);
+int mliEventTapeReader_read_rune(struct mliEventTapeReader *tio, float *rune);
 int mliEventTapeReader_read_evth(struct mliEventTapeReader *tio, float *evth);
+int mliEventTapeReader_read_evte(struct mliEventTapeReader *tio, float *evte);
 int mliEventTapeReader_read_cherenkov_bunch(
         struct mliEventTapeReader *tio,
-        struct mliCorsikaPhotonBunch *bunch);
-int mliEventTapeReader_read_cherenkov_bunch_raw(
-        struct mliEventTapeReader *tio,
-        float *bunch_raw);
-
+        float *bunch);
 int mliEventTapeReader_tarh_is_valid_cherenkov_block(
         const struct mliEventTapeReader *tio);
 int mliEventTapeReader_tarh_might_be_valid_cherenkov_block(
@@ -1342,265 +1208,6 @@ error:
 
 
 
-/* mli_quadratic_equation.c */
-/* Copyright 2019 Sebastian A. Mueller */
-
-int mli_quadratic_equation(
-        const double p,
-        const double q,
-        double *minus_solution,
-        double *plus_solution)
-{
-        /*
-         *  y = a*x^2 + b*x + c
-         *  p = b/a
-         *  q = c/a
-         *  x_m = -p/2 - sqrt((-p/2)^2 - q)
-         *  x_p = -p/2 + sqrt((-p/2)^2 - q)
-         */
-        const double p_over_2 = 0.5 * p;
-        const double inner_part_of_squareroot = p_over_2 * p_over_2 - q;
-        double squareroot;
-        if (inner_part_of_squareroot >= 0.0) {
-                squareroot = sqrt(inner_part_of_squareroot);
-                (*minus_solution) = -p_over_2 - squareroot;
-                (*plus_solution) = -p_over_2 + squareroot;
-                return 1;
-        } else {
-                return 0;
-        }
-}
-
-
-
-/* mliVec.c */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-
-struct mliVec mliVec_set(const double x, const double y, const double z)
-{
-        struct mliVec out;
-        out.x = x;
-        out.y = y;
-        out.z = z;
-        return out;
-}
-
-struct mliVec mliVec_add(const struct mliVec a, const struct mliVec b)
-{
-        struct mliVec out;
-        out.x = a.x + b.x;
-        out.y = a.y + b.y;
-        out.z = a.z + b.z;
-        return out;
-}
-
-struct mliVec mliVec_substract(const struct mliVec a, const struct mliVec b)
-{
-        struct mliVec out;
-        out.x = a.x - b.x;
-        out.y = a.y - b.y;
-        out.z = a.z - b.z;
-        return out;
-}
-
-struct mliVec mliVec_cross(const struct mliVec a, const struct mliVec b)
-{
-        struct mliVec out;
-        out.x = (a.y * b.z - a.z * b.y);
-        out.y = (a.z * b.x - a.x * b.z);
-        out.z = (a.x * b.y - a.y * b.x);
-        return out;
-}
-
-double mliVec_dot(const struct mliVec a, const struct mliVec b)
-{
-        return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-struct mliVec mliVec_multiply(const struct mliVec v, const double a)
-{
-        struct mliVec out;
-        out.x = v.x * a;
-        out.y = v.y * a;
-        out.z = v.z * a;
-        return out;
-}
-
-double mliVec_norm(const struct mliVec a) { return sqrt(mliVec_dot(a, a)); }
-
-struct mliVec mliVec_normalized(struct mliVec a)
-{
-        return mliVec_multiply(a, 1. / mliVec_norm(a));
-}
-
-double mliVec_angle_between(const struct mliVec a, const struct mliVec b)
-{
-        struct mliVec a_normalized = mliVec_multiply(a, 1. / mliVec_norm(a));
-        struct mliVec b_normalized = mliVec_multiply(b, 1. / mliVec_norm(b));
-        return acos(mliVec_dot(a_normalized, b_normalized));
-}
-
-double mliVec_norm_between(const struct mliVec a, const struct mliVec b)
-{
-        return mliVec_norm(mliVec_substract(a, b));
-}
-
-struct mliVec mliVec_mirror(const struct mliVec in, const struct mliVec normal)
-{
-        /*
-         *      This is taken from
-         *      (OPTI 421/521 – Introductory Optomechanical Engineering)
-         *      J.H. Bruge
-         *      University of Arizona
-         *
-         *                     k1    n     k2
-         *                      \    /\   /
-         *                       \   |   /
-         *                        \  |  /
-         *                         \ | /
-         *      ____________________\|/______________________
-         *      mirror-surface
-         *
-         *      k1: incidate ray
-         *      k2: reflected ray
-         *      n:  surface normal
-         *
-         *      n = [nx,ny,nz]^T
-         *
-         *      It can be written:
-         *
-         *      k2 = M*k1
-         *
-         *      M = EYE - 2*n*n^T
-         *
-         *      using EYE =  [1 0 0]
-         *                   [0 1 0]
-         *                   [0 0 1]
-         */
-        struct mliVec out;
-        out.x = (1. - 2. * normal.x * normal.x) * in.x +
-                -2. * normal.x * normal.y * in.y +
-                -2. * normal.x * normal.z * in.z;
-
-        out.y = -2. * normal.x * normal.y * in.x +
-                (1. - 2. * normal.y * normal.y) * in.y +
-                -2. * normal.y * normal.z * in.z;
-
-        out.z = -2. * normal.x * normal.z * in.x +
-                -2. * normal.y * normal.z * in.y +
-                (1. - 2. * normal.z * normal.z) * in.z;
-        return out;
-}
-
-int mliVec_equal_margin(
-        const struct mliVec a,
-        const struct mliVec b,
-        const double distance_margin)
-{
-        struct mliVec diff;
-        double distance_squared;
-        diff = mliVec_substract(a, b);
-        distance_squared = mliVec_dot(diff, diff);
-        return distance_squared <= distance_margin * distance_margin;
-}
-
-int mliVec_equal(const struct mliVec a, const struct mliVec b)
-{
-        if (fabs(a.x - b.x) > DBL_EPSILON)
-                return 0;
-        if (fabs(a.y - b.y) > DBL_EPSILON)
-                return 0;
-        if (fabs(a.z - b.z) > DBL_EPSILON)
-                return 0;
-        return 1;
-}
-
-uint32_t mliVec_octant(const struct mliVec a)
-{
-        /*
-         *  encodes the octant sectors where the vector is pointing to
-         *      x y z sector
-         *      - - -   0
-         *      - - +   1
-         *      - + -   2
-         *      - + +   3
-         *      + - -   4
-         *      + - +   5
-         *      + + -   6
-         *      + + +   7
-         */
-        const uint32_t sx = a.x >= 0.;
-        const uint32_t sy = a.y >= 0.;
-        const uint32_t sz = a.z >= 0.;
-        return 4 * sx + 2 * sy + 1 * sz;
-}
-
-int mliVec_sign3_bitmask(const struct mliVec a, const double epsilon)
-{
-        /* bits: 7  6  5  4  3  2  1  0  */
-        /*             xp yp zp xn yn zn */
-
-        const int xn = a.x < epsilon ? 4 : 0;   /* 2**2 */
-        const int xp = a.x > -epsilon ? 32 : 0; /* 2**5 */
-
-        const int yn = a.y < epsilon ? 2 : 0;   /* 2**1 */
-        const int yp = a.y > -epsilon ? 16 : 0; /* 2**4 */
-
-        const int zn = a.z < epsilon ? 1 : 0;  /* 2**0 */
-        const int zp = a.z > -epsilon ? 8 : 0; /* 2**3 */
-
-        return (xn | xp | yn | yp | zn | zp);
-}
-
-
-
-/* mliRay.c */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-
-struct mliRay mliRay_set(
-        const struct mliVec support,
-        const struct mliVec direction)
-{
-        struct mliRay ray;
-        ray.support = support;
-        ray.direction = mliVec_multiply(direction, 1. / mliVec_norm(direction));
-        return ray;
-}
-
-struct mliVec mliRay_at(const struct mliRay *ray, const double t)
-{
-        struct mliVec out;
-        out.x = ray->support.x + t * ray->direction.x;
-        out.y = ray->support.y + t * ray->direction.y;
-        out.z = ray->support.z + t * ray->direction.z;
-        return out;
-}
-
-int mliRay_sphere_intersection(
-        const struct mliVec support,
-        const struct mliVec direction,
-        const double radius,
-        double *minus_solution,
-        double *plus_solution)
-{
-        const double sup_times_dir = mliVec_dot(support, direction);
-        const double dir_times_dir = mliVec_dot(direction, direction);
-        const double sup_times_sup = mliVec_dot(support, support);
-        const double radius_square = radius * radius;
-
-        const double p = 2.0 * (sup_times_dir / dir_times_dir);
-        const double q = sup_times_sup / dir_times_dir - radius_square;
-
-        return mli_quadratic_equation(p, q, minus_solution, plus_solution);
-}
-
-
-
-/* mliPhoton.c */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
-
-
-
 /* mliTar.c */
 /**
  * Copyright (c) 2017 rxi
@@ -2037,183 +1644,20 @@ error:
 
 
 
+/* mliDynFloat.c */
+/* Copyright 2018-2020 Sebastian Achim Mueller */
+MLIDYNARRAY_IMPLEMENTATION(mli, Float, float)
+
+
+
 /* mli_corsika_utils.c */
 /* Copyright 2020 Sebastian A. Mueller*/
 
-float mli_4chars_to_float(const char *four_char_word)
+float mli_chars_to_float(const char *four_char_word)
 {
         float f;
-        assert(strlen(four_char_word) == 4);
         memcpy(&f, four_char_word, sizeof(float));
         return f;
-}
-
-
-
-/* mli_corsika_CorsikaPhotonBunch.c */
-/* Copyright 2016 Sebastian A. Mueller */
-
-MLIDYNARRAY_IMPLEMENTATION(
-        mli,
-        CorsikaPhotonBunch,
-        struct mliCorsikaPhotonBunch)
-
-void mliCorsikaPhotonBunch_set_from_raw(
-        struct mliCorsikaPhotonBunch *bunch,
-        const float *raw)
-{
-        bunch->x_cm = raw[0];
-        bunch->y_cm = raw[1];
-        bunch->cx_rad = raw[2];
-        bunch->cy_rad = raw[3];
-        bunch->time_ns = raw[4];
-        bunch->z_emission_cm = raw[5];
-        bunch->weight_photons = raw[6];
-        bunch->wavelength_nm = raw[7];
-}
-
-void mliCorsikaPhotonBunch_to_raw(
-        const struct mliCorsikaPhotonBunch *bunch,
-        float *raw)
-{
-        raw[0] = bunch->x_cm;
-        raw[1] = bunch->y_cm;
-        raw[2] = bunch->cx_rad;
-        raw[3] = bunch->cy_rad;
-        raw[4] = bunch->time_ns;
-        raw[5] = bunch->z_emission_cm;
-        raw[6] = bunch->weight_photons;
-        raw[7] = bunch->wavelength_nm;
-}
-
-struct mliPhoton mliCorsikaPhotonBunch_to_merlict_photon(
-        const struct mliCorsikaPhotonBunch bunch,
-        const double production_distance_offset,
-        const int64_t id)
-{
-        /*
-        Returns an mliPhoton that will reach the observation-level in
-        the same way as the corsika-photon-bunch. The weight of the
-        corsika-photon-bunch is not taken into account here.
-
-        Parameters
-        ----------
-        bunch :
-                The corsika-photon-bunch
-        production_distance_offset : double
-                An arbitrary distance for the photon to travel until they
-                reach the observation-level. If 0.0, the distance for a
-                merlict photon is only defined by the relative arrival time
-                on the observation-level.
-                Ensure this offset is at least as big as your detector system
-                so that photons do not start inside your detector.
-        id : int64
-                The photon's id.
-        */
-
-        const double VACUUM_SPPED_OF_LIGHT = 299792458.0;
-        const struct mliVec photon_direction_of_motion =
-                mli_corsika_photon_direction_of_motion(bunch);
-
-        const struct mliRay ray_running_upwards_to_production = mliRay_set(
-                mli_corsika_photon_support_on_observation_level(bunch),
-                mliVec_multiply(photon_direction_of_motion, -1.0));
-
-        const double offset =
-                (production_distance_offset +
-                 VACUUM_SPPED_OF_LIGHT *
-                         mli_corsika_photon_relative_arrival_time_on_observation_level(
-                                 bunch));
-
-        const struct mliVec photon_emission_position =
-                mliRay_at(&ray_running_upwards_to_production, offset);
-
-        struct mliPhoton photon;
-        photon.ray.support = photon_emission_position;
-        photon.ray.direction = photon_direction_of_motion;
-        photon.wavelength = mli_corsika_photon_wavelength(bunch);
-        photon.id = id;
-        return photon;
-}
-
-struct mliVec mli_corsika_photon_direction_of_motion(
-        const struct mliCorsikaPhotonBunch bunch)
-{ /*
-       KIT-CORSIKA coordinate-system
-
-                         /\ z-axis
-                         |
-                         |\ p
-                         | \ a
-                         |  \ r
-                         |   \ t
-                         |    \ i
-                         |     \ c
-                         |      \ l
-                         |       \ e
-                         |        \
-                         |  theta  \ m
-                         |       ___\ o
-                         |___----    \ m      ___
-                         |            \ e       /| y-axis (west)
-                         |             \ n    /
-                         |              \ t /
-                         |               \/u
-                         |              / \ m
-                         |            /    \
-                         |          /       \
-                         |        /__________\
-                         |      /      ___---/
-                         |    /   __---    /
-                         |  /__--- phi \ /
-         ________________|/--__________/______\ x-axis (north)
-                        /|                    /
-                      /  |
-                    /    |
-                  /
-
-
-          Extensive Air Shower Simulation with CORSIKA, Figure 1, page 114
-          (Version 7.6400 from December 27, 2017)
-
-          Direction-cosines:
-
-          cx = sin(theta) * cos(phi)
-          cy = sin(theta) * sin(phi)
-
-          The zenith-angle theta opens relative to the negative z-axis.
-
-          It is the momentum of the Cherenkov-photon, which is pointing
-          down towards the observation-plane.
-  */
-        const double cz_rad =
-                sqrt(1.0 - bunch.cx_rad * bunch.cx_rad -
-                     bunch.cy_rad * bunch.cy_rad);
-        return mliVec_set(bunch.cx_rad, bunch.cy_rad, -cz_rad);
-}
-
-struct mliVec mli_corsika_photon_support_on_observation_level(
-        const struct mliCorsikaPhotonBunch bunch)
-{
-        return mliVec_set(
-                (double)bunch.x_cm * 1e-2, (double)bunch.y_cm * 1e-2, 0.0);
-}
-
-double mli_corsika_photon_wavelength(const struct mliCorsikaPhotonBunch bunch)
-{
-        return fabs((double)bunch.wavelength_nm * 1e-9);
-}
-
-double mli_corsika_photon_emission_height(
-        const struct mliCorsikaPhotonBunch bunch)
-{
-        return (double)bunch.z_emission_cm * 1e-2;
-}
-
-double mli_corsika_photon_relative_arrival_time_on_observation_level(
-        const struct mliCorsikaPhotonBunch bunch)
-{
-        return (double)bunch.time_ns * 1e-9;
 }
 
 
@@ -2227,25 +1671,20 @@ struct mliEventTapeWriter mliEventTapeWriter_init(void)
 {
         struct mliEventTapeWriter tio;
         tio.tar = mliTar_init();
+        tio.run_number = 0;
         tio.event_number = 0;
         tio.cherenkov_bunch_block_number = 1;
-        tio.buffer = mliDynCorsikaPhotonBunch_init();
+        tio.buffer = mliDynFloat_init();
         return tio;
 }
 
 int mliEventTapeWriter_close(struct mliEventTapeWriter *tio)
 {
         if (tio->tar.stream) {
-                if (tio->event_number) {
-                        chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(
-                                        tio),
-                                "Can't finalize final event's "
-                                "cherenkov-bunch-block");
-                }
                 chk_msg(mliTar_finalize(&tio->tar), "Can't finalize tar-file.");
                 chk_msg(mliTar_close(&tio->tar), "Can't close tar-file.");
         }
-        mliDynCorsikaPhotonBunch_free(&tio->buffer);
+        mliDynFloat_free(&tio->buffer);
         (*tio) = mliEventTapeWriter_init();
         return 1;
 error:
@@ -2260,17 +1699,16 @@ int mliEventTapeWriter_open(
         chk_msg(mliEventTapeWriter_close(tio),
                 "Can't close and free previous tar-io-writer.");
         chk_msg(mliTar_open(&tio->tar, path, "w"), "Can't open tar.");
-        chk_msg(mliDynCorsikaPhotonBunch_malloc(
-                        &tio->buffer, num_bunches_buffer),
+        chk_msg(mliDynFloat_malloc(&tio->buffer, 8 * num_bunches_buffer),
                 "Can't malloc cherenkov-bunch-buffer.");
-        chk_msg(mliEventTapeWriter_write_readme(tio), "Can't write info.")
-
-                return 1;
+        return 1;
 error:
         return 0;
 }
 
-int mliEventTapeWriter_write_readme(struct mliEventTapeWriter *tio)
+int mliEventTapeWriter_write_readme(
+    struct mliEventTapeWriter *tio,
+    const char *path)
 {
         struct mliTarHeader tarh = mliTarHeader_init();
         char vers[1024];
@@ -2304,12 +1742,12 @@ int mliEventTapeWriter_write_readme(struct mliEventTapeWriter *tio)
                         MLI_CORSIKA_EVENTTAPE_VERSION_PATCH);
         chk_msg(p < sizeof(vers), "Info string is too long.");
 
-        chk_msg(mliTarHeader_set_normal_file(&tarh, "readme/version.txt", p),
-                "Can't set tar-header for 'readme/version.txt'.");
+        chk_msg(mliTarHeader_set_normal_file(&tarh, path, p),
+                "Can't set tar-header for 'version.txt'.");
         chk_msg(mliTar_write_header(&tio->tar, &tarh),
-                "Can't write tar-header for 'readme/version.txt' to tar.");
+                "Can't write tar-header for 'version.txt' to tar.");
         chk_msg(mliTar_write_data(&tio->tar, vers, p),
-                "Can't write data of 'readme/version.txt' to tar.");
+                "Can't write data of 'version.txt' to tar.");
 
         return 1;
 error:
@@ -2323,14 +1761,14 @@ int mliEventTapeWriter_write_corsika_header(
 {
         struct mliTarHeader tarh = mliTarHeader_init();
         chk_msg(mliTarHeader_set_normal_file(
-                        &tarh, path, MLI_CORSIKA_HEADER_SIZE),
+                        &tarh, path, MLI_CORSIKA_HEADER_SIZE_BYTES),
                 "Can't set tar-header for corsika-header.");
 
         chk_msg(mliTar_write_header(&tio->tar, &tarh),
                 "Can't write tar-header for corsika-header to tar.");
 
         chk_msg(mliTar_write_data(
-                        &tio->tar, corsika_header, MLI_CORSIKA_HEADER_SIZE),
+                        &tio->tar, corsika_header, MLI_CORSIKA_HEADER_SIZE_BYTES),
                 "Can't write data of corsika-header to tar.");
         return 1;
 error:
@@ -2341,9 +1779,31 @@ int mliEventTapeWriter_write_runh(
         struct mliEventTapeWriter *tio,
         const float *runh)
 {
-        chk_msg(mliEventTapeWriter_write_corsika_header(
-                        tio, "RUNH.float32", runh),
-                "Can't write 'RUNH.float32' to tario.");
+        char path[MLI_TAR_NAME_LENGTH] = {'\0'};
+        tio->run_number = (int)(MLI_ROUND(runh[1]));
+        chk_msg(tio->run_number >= 1, "Expected run_number >= 1.");
+
+        sprintf(path, "%09d/version.txt", tio->run_number);
+        chk_msg(mliEventTapeWriter_write_readme(tio, path),
+                "Can't write info.");
+
+        sprintf(path, "%09d/RUNH.float32", tio->run_number);
+        chk_msg(mliEventTapeWriter_write_corsika_header(tio, path, runh),
+                "Can't write 'RUNH.float32' to event-tape.");
+        return 1;
+error:
+        return 0;
+}
+
+int mliEventTapeWriter_write_rune(
+        struct mliEventTapeWriter *tio,
+        const float *rune)
+{
+        char path[MLI_TAR_NAME_LENGTH] = {'\0'};
+        chk_msg(tio->run_number > 0, "Expected RUNH before RUNE.");
+        sprintf(path, "%09d/RUNE.float32", tio->run_number);
+        chk_msg(mliEventTapeWriter_write_corsika_header(tio, path, rune),
+                "Can't write 'RUNE.float32' to event-tape.");
         return 1;
 error:
         return 0;
@@ -2354,22 +1814,53 @@ int mliEventTapeWriter_write_evth(
         const float *evth)
 {
         char path[MLI_TAR_NAME_LENGTH] = {'\0'};
+        int run_number_in_evth = (int)(
+                MLI_ROUND(evth[MLI_CORSIKA_EVTH_RUN_NUMBER]));
+
+        chk_msg(tio->run_number != 0, "Expected RUNH before EVTH.");
+        chk_msg(tio->run_number == run_number_in_evth,
+                "Expected run_number in EVTH "
+                "to match run_number in last RUNH.");
+
+        tio->event_number = (int)(
+                MLI_ROUND(evth[MLI_CORSIKA_EVTH_EVENT_NUMBER]));
+        chk_msg(tio->event_number > 0, "Expected event_number > 0.");
+
+        tio->cherenkov_bunch_block_number = 1;
+
+        sprintf(path,
+                "%09d/%09d/EVTH.float32",
+                tio->run_number,
+                tio->event_number);
+
+        chk_msg(mliEventTapeWriter_write_corsika_header(tio, path, evth),
+                "Can't write 'EVTH.float32' to event-tape.");
+        return 1;
+error:
+        return 0;
+}
+
+int mliEventTapeWriter_write_evte(
+        struct mliEventTapeWriter *tio,
+        const float *evte)
+{
+        char path[MLI_TAR_NAME_LENGTH] = {'\0'};
+        chk_msg(tio->run_number > 0, "Expected RUNH and EVTH before EVTE.");
+        chk_msg(tio->event_number > 0, "Expected EVTH before EVTE.");
 
         /* finalize previous event */
-
         if (tio->event_number) {
                 chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(tio),
                         "Can't finalize previous event's "
                         "cherenkov-bunch-block");
         }
-        tio->event_number = (int)(MLI_ROUND(evth[1]));
-        chk_msg(tio->event_number > 0, "Expected event_number > 0.");
 
-        tio->cherenkov_bunch_block_number = 1;
-
-        sprintf(path, "events/%09d/EVTH.float32", tio->event_number);
-        chk_msg(mliEventTapeWriter_write_corsika_header(tio, path, evth),
-                "Can't write 'EVTH.float32' to tario.");
+        sprintf(path,
+                "%09d/%09d/EVTE.float32",
+                tio->run_number,
+                tio->event_number);
+        chk_msg(mliEventTapeWriter_write_corsika_header(tio, path, evte),
+                "Can't write 'EVTE.float32' to event-tape.");
         return 1;
 error:
         return 0;
@@ -2380,28 +1871,25 @@ int mliEventTapeWriter_flush_cherenkov_bunch_block(
 {
         char path[MLI_TAR_NAME_LENGTH] = {'\0'};
         struct mliTarHeader tarh = mliTarHeader_init();
-        float bunch_raw[8] = {0.0};
-        uint64_t i = 0;
 
         sprintf(path,
-                "events/%09d/cherenkov_bunches/%09d.x8.float32",
+                "%09d/%09d/%09d.cer.x8.float32",
+                tio->run_number,
                 tio->event_number,
                 tio->cherenkov_bunch_block_number);
 
         chk_msg(mliTarHeader_set_normal_file(
-                        &tarh, path, tio->buffer.size * MLI_CORSIKA_BUNCH_SIZE),
+                        &tarh, path, tio->buffer.size * sizeof(float)),
                 "Can't set cherenkov-bunch-block's tar-header.");
 
         chk_msg(mliTar_write_header(&tio->tar, &tarh),
                 "Can't write tar-header for cherenkov-bunch-block to tar.");
 
-        for (i = 0; i < tio->buffer.size; i++) {
-                mliCorsikaPhotonBunch_to_raw(&tio->buffer.array[i], bunch_raw);
-                chk_msg(mliTar_write_data(
-                                &tio->tar, bunch_raw, MLI_CORSIKA_BUNCH_SIZE),
-                        "Can't write cherenkov-bunch-block to tar-file.");
-        }
-
+        chk_msg(mliTar_write_data(
+                        &tio->tar,
+                        tio->buffer.array,
+                        tio->buffer.size * sizeof(float)),
+                "Can't write cherenkov-bunch-block to tar-file.");
         tio->buffer.size = 0;
 
         tio->cherenkov_bunch_block_number += 1;
@@ -2412,28 +1900,21 @@ error:
 
 int mliEventTapeWriter_write_cherenkov_bunch(
         struct mliEventTapeWriter *tio,
-        const struct mliCorsikaPhotonBunch *bunch)
+        const float *bunch)
 {
+        uint64_t i;
         if (tio->buffer.size == tio->buffer.capacity) {
                 chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(tio),
                         "Can't finalize cherenkov-bunch-block.");
                 chk_msg(tio->buffer.size == 0, "Expected buffer to be empty.");
         }
-        tio->buffer.array[tio->buffer.size] = (*bunch);
-        tio->buffer.size += 1;
-        return 1;
-error:
-        return 0;
-}
+        chk_msg(tio->buffer.size + 8 <= tio->buffer.capacity,
+                "Not enough capacity in buffer to push back Cherenkov-bunch.");
 
-int mliEventTapeWriter_write_cherenkov_bunch_raw(
-        struct mliEventTapeWriter *tio,
-        const float *bunch_raw)
-{
-        struct mliCorsikaPhotonBunch bunch;
-        mliCorsikaPhotonBunch_set_from_raw(&bunch, bunch_raw);
-        chk_msg(mliEventTapeWriter_write_cherenkov_bunch(tio, &bunch),
-                "Can't add raw-bunch to tar-io.");
+        for (i = 0; i < 8; i ++) {
+            tio->buffer.array[tio->buffer.size] = bunch[i];
+            tio->buffer.size += 1;
+        }
         return 1;
 error:
         return 0;
@@ -2447,10 +1928,12 @@ struct mliEventTapeReader mliEventTapeReader_init(void)
         struct mliEventTapeReader tio;
         tio.tar = mliTar_init();
         tio.tarh = mliTarHeader_init();
+        tio.run_number = 0;
         tio.event_number = 0;
         tio.cherenkov_bunch_block_number = 0;
         tio.block_at = 0;
         tio.block_size = 0;
+        tio.has_still_bunches_in_event = 0;
         return tio;
 }
 
@@ -2487,11 +1970,11 @@ int mliEventTapeReader_read_readme_until_runh(struct mliEventTapeReader *tio)
         while (1) {
                 chk_msg(i < 128, "Expected < 128 files before 'RUNH.float32'.");
                 if (tio->has_tarh) {
-                        if (strcmp(tio->tarh.name, "RUNH.float32") == 0) {
+                        if (mli_cstr_match_templeate(tio->tarh.name, "ddddddddd/RUNH.float32", 'd')) {
                                 break;
                         } else {
                                 /* read readme's payload */
-                                int c;
+                                uint64_t c;
                                 char payload;
                                 for (c = 0; c < tio->tarh.size; c++) {
                                         chk_msg(mliTar_read_data(
@@ -2513,15 +1996,36 @@ error:
 
 int mliEventTapeReader_read_runh(struct mliEventTapeReader *tio, float *runh)
 {
+        const uint64_t NUM_DIGITS = 9;
+        const uint64_t BASE = 10;
+        uint64_t run_number_from_evth = 0;
+
         chk_msg(tio->has_tarh, "Expected next tar-header.");
-        chk_msg(strcmp(tio->tarh.name, "RUNH.float32") == 0,
-                "Expected file to be 'RUNH.float32.'");
-        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE,
+        chk_msg(mli_cstr_match_templeate(
+                    tio->tarh.name,
+                    "ddddddddd/RUNH.float32",
+                    'd'),
+                "Expected file to be 'ddddddddd/RUNH.float32.'");
+        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
                 "Expected RUNH to have size 273*sizeof(float)");
         chk_msg(mliTar_read_data(&tio->tar, (void *)runh, tio->tarh.size),
                 "Can't read RUNH from tar.");
-        chk_msg(runh[0] == mli_4chars_to_float("RUNH"),
+        chk_msg(runh[0] == mli_chars_to_float("RUNH"),
                 "Expected RUNH[0] == 'RUNH'");
+
+        chk_msg(mli_cstr_nto_uint64(
+                &tio->run_number,
+                &tio->tarh.name[0],
+                BASE,
+                NUM_DIGITS),
+                "Can't read run_number from RUNH's path.");
+
+        run_number_from_evth = (uint64_t)(
+                MLI_ROUND(runh[MLI_CORSIKA_RUNH_RUN_NUMBER]));
+        chk_msg(tio->run_number == run_number_from_evth,
+                "Expected run_number in RUNH's path "
+                "to match run_number in RUNH.");
+
         tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
         return 1;
 error:
@@ -2530,27 +2034,50 @@ error:
 
 int mliEventTapeReader_read_evth(struct mliEventTapeReader *tio, float *evth)
 {
-        uint64_t event_number_path, event_number_evth;
-        char match[MLI_TAR_NAME_LENGTH] = "events/ddddddddd/EVTH.float32";
+        const uint64_t NUM_DIGITS = 9;
+        const uint64_t BASE = 10;
+        uint64_t event_number_path;
+        uint64_t event_number_evth;
+        uint64_t run_number_path;
+        uint64_t run_number_evth;
+
+        char match[MLI_TAR_NAME_LENGTH] = "ddddddddd/ddddddddd/EVTH.float32";
 
         if (!tio->has_tarh) {
                 return 0;
         }
-        chk_msg(mli_cstr_match_templeate(tio->tarh.name, match, 'd'),
-                "Expected EVTH filename to match "
-                "'events/ddddddddd/EVTH.float32'.");
-        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE,
+        if (!mli_cstr_match_templeate(tio->tarh.name, match, 'd')) {
+                return 0;
+        }
+
+        chk_msg(mli_cstr_nto_uint64(
+                        &event_number_path,
+                        &tio->tarh.name[10],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse event-number from path.");
+        chk_msg(mli_cstr_nto_uint64(
+                        &run_number_path,
+                        &tio->tarh.name[0],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse run-number from path.");
+
+        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
                 "Expected EVTH to have size 273*sizeof(float)");
         chk_msg(mliTar_read_data(&tio->tar, (void *)evth, tio->tarh.size),
                 "Can't read EVTH from tar.");
-        chk_msg(evth[0] == mli_4chars_to_float("EVTH"),
+        chk_msg(evth[0] == mli_chars_to_float("EVTH"),
                 "Expected EVTH[0] == 'EVTH'");
-        chk_msg(mli_cstr_nto_uint64(
-                        &event_number_path, &tio->tarh.name[7], 10, 9),
-                "Can't parse event-number from path.");
+
         event_number_evth = (uint64_t)evth[MLI_CORSIKA_EVTH_EVENT_NUMBER];
+        run_number_evth = (uint64_t)evth[MLI_CORSIKA_EVTH_RUN_NUMBER];
+
         chk_msg(event_number_evth == event_number_path,
-                "Expected same event-number in path and EVTH.");
+                "Expected paths' event-number to match event-number in EVTH.");
+        chk_msg(run_number_evth == run_number_path,
+                "Expected paths' run-number to match run-number in EVTH.");
+
         tio->event_number = event_number_evth;
         tio->cherenkov_bunch_block_number = 1;
 
@@ -2560,11 +2087,94 @@ int mliEventTapeReader_read_evth(struct mliEventTapeReader *tio, float *evth)
         chk_msg(mliEventTapeReader_tarh_is_valid_cherenkov_block(tio),
                 "Cherenkov-bunch-block's tar-header doesn't match.");
 
-        chk_msg(tio->tarh.size % MLI_CORSIKA_BUNCH_SIZE == 0,
+        chk_msg(tio->tarh.size % MLI_CORSIKA_BUNCH_SIZE_BYTES == 0,
                 "Expected cherenkov-bunch-block-size "
                 "to be multiple of bunch-size.");
-        tio->block_size = tio->tarh.size / MLI_CORSIKA_BUNCH_SIZE;
+        tio->block_size = tio->tarh.size / MLI_CORSIKA_BUNCH_SIZE_BYTES;
         tio->block_at = 0;
+        tio->has_still_bunches_in_event = 1;
+
+        return 1;
+error:
+        return 0;
+}
+
+int mliEventTapeReader_read_evte(struct mliEventTapeReader *tio, float *evte)
+{
+        const uint64_t NUM_DIGITS = 9;
+        const uint64_t BASE = 10;
+        uint64_t event_number_path;
+        uint64_t run_number_path;
+
+        char match[MLI_TAR_NAME_LENGTH] = "ddddddddd/ddddddddd/EVTE.float32";
+
+        chk_msg(mli_cstr_match_templeate(tio->tarh.name, match, 'd'),
+                "Expected EVTE filename to match "
+                "'ddddddddd/ddddddddd/EVTE.float32'.");
+
+        chk_msg(mli_cstr_nto_uint64(
+                        &event_number_path,
+                        &tio->tarh.name[10],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse event-number from path.");
+        chk_msg(mli_cstr_nto_uint64(
+                        &run_number_path,
+                        &tio->tarh.name[0],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse run-number from path.");
+
+        chk_msg(tio->event_number == event_number_path,
+                "Expected paths' event-number to match event-number in Reader.");
+        chk_msg(tio->run_number == run_number_path,
+                "Expected paths' run-number to match run-number in Reader.");
+
+        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
+                "Expected EVTE to have size 273*sizeof(float)");
+        chk_msg(mliTar_read_data(&tio->tar, (void *)evte, tio->tarh.size),
+                "Can't read EVTE from tar.");
+
+        chk_msg(evte[0] == mli_chars_to_float("EVTE"),
+                "Expected EVTE[0] == 'EVTE'");
+
+        tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
+
+        return 1;
+error:
+        return 0;
+}
+
+int mliEventTapeReader_read_rune(struct mliEventTapeReader *tio, float *rune)
+{
+        const uint64_t NUM_DIGITS = 9;
+        const uint64_t BASE = 10;
+        uint64_t run_number_path;
+
+        char match[MLI_TAR_NAME_LENGTH] = "ddddddddd/RUNE.float32";
+
+        chk_msg(mli_cstr_match_templeate(tio->tarh.name, match, 'd'),
+                "Expected RUNE filename to match "
+                "'ddddddddd/RUNE.float32'.");
+        chk_msg(mli_cstr_nto_uint64(
+                        &run_number_path,
+                        &tio->tarh.name[0],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse run-number from path.");
+        chk_msg(tio->run_number == run_number_path,
+                "Expected paths' run-number to match run-number in Reader.");
+
+        chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
+                "Expected RUNE to have size 273*sizeof(float)");
+        chk_msg(mliTar_read_data(&tio->tar, (void *)rune, tio->tarh.size),
+                "Can't read RUNE from tar.");
+
+        chk_msg(rune[0] == mli_chars_to_float("RUNE"),
+                "Expected RUNE[0] == 'RUNE'");
+
+        tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
+
         return 1;
 error:
         return 0;
@@ -2574,30 +2184,47 @@ int mliEventTapeReader_tarh_might_be_valid_cherenkov_block(
         const struct mliEventTapeReader *tio)
 {
         char match[MLI_TAR_NAME_LENGTH] =
-                "events/ddddddddd/cherenkov_bunches/ddddddddd.x8.float32";
+                "ddddddddd/ddddddddd/ddddddddd.cer.x8.float32";
         return mli_cstr_match_templeate(tio->tarh.name, match, 'd');
 }
 
 int mliEventTapeReader_tarh_is_valid_cherenkov_block(
         const struct mliEventTapeReader *tio)
 {
-        uint64_t event_number_path, block_number_path;
+        const uint64_t NUM_DIGITS = 9;
+        const uint64_t BASE = 10;
+        uint64_t run_number_path;
+        uint64_t event_number_path;
+        uint64_t block_number_path;
         chk_msg(tio->has_tarh, "Expected a next tar-header.");
 
         chk_msg(mliEventTapeReader_tarh_might_be_valid_cherenkov_block(tio),
                 "Expected cherenkov-bunch-block-name to be valid.");
 
         chk_msg(mli_cstr_nto_uint64(
-                        &event_number_path, &tio->tarh.name[7], 10, 9),
-                "Can't parse event-number from path.");
+                        &run_number_path,
+                        &tio->tarh.name[0],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse run-number from path.");
+        chk_msg(run_number_path == tio->run_number,
+                "Expected consistent run-number in cherenkov-block-path.");
 
+        chk_msg(mli_cstr_nto_uint64(
+                        &event_number_path,
+                        &tio->tarh.name[9 + 1],
+                        BASE,
+                        NUM_DIGITS),
+                "Can't parse event-number from path.");
         chk_msg(event_number_path == tio->event_number,
                 "Expected same event-number in cherenkov-block-path and EVTH.");
 
         chk_msg(mli_cstr_nto_uint64(
-                        &block_number_path, &tio->tarh.name[28 + 7], 10, 9),
+                        &block_number_path,
+                        &tio->tarh.name[9 + 1 + 9 + 1],
+                        BASE,
+                        NUM_DIGITS),
                 "Can't parse cherenkov-block-number from path.");
-
         chk_msg(block_number_path == tio->cherenkov_bunch_block_number,
                 "Expected different cherenkov-bunch-block-number in "
                 "cherenkov-block-path.");
@@ -2608,50 +2235,35 @@ error:
 
 int mliEventTapeReader_read_cherenkov_bunch(
         struct mliEventTapeReader *tio,
-        struct mliCorsikaPhotonBunch *bunch)
+        float *bunch)
 {
-        float raw[8];
-        int rc = mliEventTapeReader_read_cherenkov_bunch_raw(tio, raw);
-        if (rc == 1) {
-                mliCorsikaPhotonBunch_set_from_raw(bunch, raw);
-                return 1;
-        } else {
+        if (tio->has_still_bunches_in_event == 0) {
                 return 0;
         }
-}
 
-int mliEventTapeReader_read_cherenkov_bunch_raw(
-        struct mliEventTapeReader *tio,
-        float *bunch_raw)
-{
         if (tio->block_at == tio->block_size) {
                 tio->cherenkov_bunch_block_number += 1;
                 tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
-
                 if (!tio->has_tarh) {
+                        tio->has_still_bunches_in_event = 0;
                         return 0;
                 }
                 if (!mliEventTapeReader_tarh_might_be_valid_cherenkov_block(
                             tio)) {
+                        tio->has_still_bunches_in_event = 0;
                         return 0;
                 }
                 chk_msg(mliEventTapeReader_tarh_is_valid_cherenkov_block(tio),
                         "Cherenkov-bunch-block's tar-header doesn't match.");
-
-                chk_msg(tio->tarh.size % MLI_CORSIKA_BUNCH_SIZE == 0,
+                chk_msg(tio->tarh.size % MLI_CORSIKA_BUNCH_SIZE_BYTES == 0,
                         "Expected cherenkov-bunch-block-size "
                         "to be multiple of bunch-size.");
-                tio->block_size = tio->tarh.size / MLI_CORSIKA_BUNCH_SIZE;
+                tio->block_size = tio->tarh.size / MLI_CORSIKA_BUNCH_SIZE_BYTES;
                 tio->block_at = 0;
         }
 
-        if (tio->block_size == 0) {
-                tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
-                return 0;
-        }
-
         chk_msg(mliTar_read_data(
-                        &tio->tar, (void *)(bunch_raw), MLI_CORSIKA_BUNCH_SIZE),
+                        &tio->tar, (void *)(bunch), MLI_CORSIKA_BUNCH_SIZE_BYTES),
                 "Failed to read cherenkov_bunch.");
 
         tio->block_at += 1;
