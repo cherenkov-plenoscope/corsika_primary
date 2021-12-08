@@ -91,10 +91,18 @@ def test_low_energy_electron(
             "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
             "PHIP {:f} {:f}".format(0.0, 0.0),
             "VIEWCONE 0 0",
-            "SEED {:d} {:d} {:d}".format(seed[0][_S], seed[0][_C], seed[0][_B]),
-            "SEED {:d} {:d} {:d}".format(seed[1][_S], seed[1][_C], seed[1][_B]),
-            "SEED {:d} {:d} {:d}".format(seed[2][_S], seed[2][_C], seed[2][_B]),
-            "SEED {:d} {:d} {:d}".format(seed[3][_S], seed[3][_C], seed[3][_B]),
+            "SEED {:d} {:d} {:d}".format(
+                seed[0][_S], seed[0][_C], seed[0][_B]
+            ),
+            "SEED {:d} {:d} {:d}".format(
+                seed[1][_S], seed[1][_C], seed[1][_B]
+            ),
+            "SEED {:d} {:d} {:d}".format(
+                seed[2][_S], seed[2][_C], seed[2][_B]
+            ),
+            "SEED {:d} {:d} {:d}".format(
+                seed[3][_S], seed[3][_C], seed[3][_B]
+            ),
             "OBSLEV {:f}".format(1e2 * observation_level_asl_m),
             "FIXCHI {:f}".format(depth_g_per_cm2),
             "MAGNET {Bx:3.3e} {Bz:3.3e}".format(

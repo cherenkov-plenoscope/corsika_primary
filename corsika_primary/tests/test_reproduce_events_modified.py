@@ -83,24 +83,16 @@ def write_seeds(path, seeds):
             se = seeds[event_id]
             s = "{:d},".format(event_id)
             s += "{:d},{:d},{:d},".format(
-                se[0]["SEED"],
-                se[0]["CALLS"],
-                se[0]["BILLIONS"]
+                se[0]["SEED"], se[0]["CALLS"], se[0]["BILLIONS"]
             )
             s += "{:d},{:d},{:d},".format(
-                se[1]["SEED"],
-                se[1]["CALLS"],
-                se[1]["BILLIONS"]
+                se[1]["SEED"], se[1]["CALLS"], se[1]["BILLIONS"]
             )
             s += "{:d},{:d},{:d},".format(
-                se[2]["SEED"],
-                se[2]["CALLS"],
-                se[2]["BILLIONS"]
+                se[2]["SEED"], se[2]["CALLS"], se[2]["BILLIONS"]
             )
             s += "{:d},{:d},{:d}\n".format(
-                se[3]["SEED"],
-                se[3]["CALLS"],
-                se[3]["BILLIONS"]
+                se[3]["SEED"], se[3]["CALLS"], se[3]["BILLIONS"]
             )
             f.write(s)
 
@@ -110,7 +102,21 @@ def read_seeds(path):
     i4 = np.int32
     with open(path, "rt") as f:
         for line in str.splitlines(f.read()):
-            event_id, s1S, s1C, s1B, s2S, s2C, s2B, s3S, s3C, s3B, s4S, s4C, s4B = str.split(line, ",")
+            (
+                event_id,
+                s1S,
+                s1C,
+                s1B,
+                s2S,
+                s2C,
+                s2B,
+                s3S,
+                s3C,
+                s3B,
+                s4S,
+                s4C,
+                s4B,
+            ) = str.split(line, ",")
             seeds[int(event_id)] = [
                 {"SEED": i4(s1S), "CALLS": i4(s1C), "BILLIONS": i4(s1B)},
                 {"SEED": i4(s2S), "CALLS": i4(s2C), "BILLIONS": i4(s2B)},
@@ -148,7 +154,6 @@ def hash_cherenkov_pools(
 
         write_hashes(path=hashes_path, hashes=hashes)
         write_seeds(path=seeds_path, seeds=seeds)
-
 
     hashes = read_hashes(path=hashes_path)
     seeds = read_seeds(path=seeds_path)

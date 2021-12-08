@@ -51,6 +51,7 @@ def HEIGHT_OBSERVATION_LEVEL(level):
     assert level <= 10
     return (47 + level) - 1
 
+
 ENERGY_LOWER_LIMIT = 59 - 1
 ENERGY_UPPER_LIMIT = 60 - 1
 

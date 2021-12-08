@@ -44,12 +44,10 @@ def report_str(ii, h1, h2, ok):
     oks = "[ OK ]" if ok else "[ BAD]"
     rep = oks
     rep += "[{: 3d} - 1]  {:3.3f}  {:3.3f}  ({:E})\n".format(
-        ii + 1,
-        h1[ii],
-        h2[ii],
-        h1[ii] - h2[ii],
+        ii + 1, h1[ii], h2[ii], h1[ii] - h2[ii],
     )
     return rep
+
 
 def evth_is_equal_enough(ori_evth, mod_evth):
     assert ori_evth.shape[0] == mod_evth.shape[0]
@@ -72,7 +70,6 @@ def evth_is_equal_enough(ori_evth, mod_evth):
                 report += report_str(ii, ori_evth, mod_evth, ok=False)
             else:
                 report += report_str(ii, ori_evth, mod_evth, ok=True)
-
 
         elif ii == cpw.I.EVTH.CHERENKOV_FLAG:
             # We ignore field 77. (fortran77 idx starts at 1)
@@ -169,10 +166,18 @@ def test_vanilla_vs_moddified(
                 "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
                 "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
                 "VIEWCONE 0 0",
-                "SEED {:d} {:d} {:d}".format(seed[0][_S], seed[0][_C], seed[0][_B]),
-                "SEED {:d} {:d} {:d}".format(seed[1][_S], seed[1][_C], seed[1][_B]),
-                "SEED {:d} {:d} {:d}".format(seed[2][_S], seed[2][_C], seed[2][_B]),
-                "SEED {:d} {:d} {:d}".format(seed[3][_S], seed[3][_C], seed[3][_B]),
+                "SEED {:d} {:d} {:d}".format(
+                    seed[0][_S], seed[0][_C], seed[0][_B]
+                ),
+                "SEED {:d} {:d} {:d}".format(
+                    seed[1][_S], seed[1][_C], seed[1][_B]
+                ),
+                "SEED {:d} {:d} {:d}".format(
+                    seed[2][_S], seed[2][_C], seed[2][_B]
+                ),
+                "SEED {:d} {:d} {:d}".format(
+                    seed[3][_S], seed[3][_C], seed[3][_B]
+                ),
                 "OBSLEV {:f}".format(1e2 * obs_level_m),
                 "FIXCHI {:f}".format(chi_g_per_cm2),
                 "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
@@ -274,8 +279,7 @@ def test_vanilla_vs_moddified(
             ori_bunches = cpw.bunches_to_si_units(ori_bunches)
 
             evth_equal, report = evth_is_equal_enough(
-                ori_evth=ori_evth,
-                mod_evth=mod_evth
+                ori_evth=ori_evth, mod_evth=mod_evth
             )
             write_append_corsika_header_diff(
                 path=evth_compare_path,

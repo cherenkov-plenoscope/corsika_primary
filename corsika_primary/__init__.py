@@ -261,8 +261,7 @@ class CorsikaPrimary:
         self.corsika_process.stdin.flush()
 
         self.event_tape_reader = event_tape.EventTapeReader(
-            path=self.fifo_path,
-            read_block_by_block=read_block_by_block,
+            path=self.fifo_path, read_block_by_block=read_block_by_block,
         )
         self.runh = self.event_tape_reader.runh
 
