@@ -9,36 +9,38 @@ NUM_CHERENKOV_BUNCHES_IN_BUFFER = 1048576
 
 class EventTapeWriter:
     def __init__(self, path, buffer_capacity=NUM_CHERENKOV_BUNCHES_IN_BUFFER):
+        """
+        Write an EventTape. Add RUNH, EVTH, and cherenkov-bunches.
+
+        path : str
+            Path to event-tape file.
+        buffer_capacity : int
+            Buffer-size in cherenkov-bunches.
+        """
         self.path = str(path)
         self.tar = tarfile.open(name=self.path, mode="w|")
+
         self.run_number = None
         self.event_number = None
         self.cherenkov_block_number = None
 
-        self.buffer = np.zeros(
-            shape=(buffer_capacity, 8),
-            dtype=np.float32,
-        )
+        self.buffer = np.zeros(shape=(buffer_capacity, 8), dtype=np.float32)
         self.buffer_size = 0
 
-    def runh(self, runh):
+    def write_runh(self, runh):
         self.run_number = int(runh[I.RUNH.RUN_NUMBER])
         assert self.run_number > 0
-        write_runh(tar=self.tar, runh=runh, run_number=self.run_number)
+        write_runh(self.tar, runh, self.run_number)
 
-    def evth(self, evth):
+    def write_evth(self, evth):
         assert self.run_number is not None, "Expected RUNH before EVTH."
-        assert self.event_number is None
+        if self.event_number is not None:
+            self._flush_cherenkov_bunch_buffer()
         self.event_number = int(evth[I.EVTH.EVENT_NUMBER])
         self.cherenkov_block_number = 1
-        write_evth(
-            tar=self.tar,
-            evth=evth,
-            run_number=self.run_number,
-            event_number=self.event_number
-        )
+        write_evth(self.tar, evth, self.run_number, self.event_number)
 
-    def bunches(self, bunches):
+    def write_bunches(self, bunches):
         assert self.event_number is not None, "Expected EVTH before bunches."
         assert bunches.dtype == np.float32
         assert bunches.shape[1] == 8
@@ -64,26 +66,30 @@ class EventTapeWriter:
                 self._flush_cherenkov_bunch_buffer()
 
     def _flush_cherenkov_bunch_buffer(self):
-        self.tarw(
+        if self.cherenkov_block_number is None:
+            return
+        part = self.buffer[0:self.buffer_size].copy()
+        tar_write(
+            tar=self.tar,
             filename=CHERENKOV_BLOCK_FILENAME.format(
                 run_number=self.run_number,
                 event_number=self.event_number,
                 cherenkov_block_number=self.cherenkov_block_number
             ),
-            filebytes=self.buffer[0:self.buffer_size].tobytes()
+            filebytes=part.tobytes()
         )
         self.cherenkov_block_number += 1
         self.buffer_size = 0
 
-    def tarw(self, filename, filebytes):
-        with io.BytesIO() as buff:
-            info = tarfile.TarInfo(filename)
-            info.size = buff.write(filebytes)
-            buff.seek(0)
-            self.tar.addfile(info, buff)
-
-    def __exit__(self):
+    def close(self):
+        self._flush_cherenkov_bunch_buffer()
         self.tar.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
 
     def __repr__(self):
         out = "{:s}(path='{:s}')".format(self.__class__.__name__, self.path)
@@ -110,9 +116,6 @@ class EventTapeReader:
         self.tar = tarfile.open(name=path, mode="r|")
 
         self.next_info = self.tar.next()
-        self.readme = read_readme(tar=self.tar, tarinfo=self.next_info)
-
-        self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
         self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
 
@@ -136,11 +139,17 @@ class EventTapeReader:
                 cherenkov_blocks.append(cherenkov_block)
             return (evth, np.vstack(cherenkov_blocks))
 
+    def close(self):
+        self.tar.close()
+
     def __iter__(self):
         return self
 
-    def __exit__(self):
-        self.tar.close()
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
 
     def __repr__(self):
         out = "{:s}(path='{:s}')".format(self.__class__.__name__, self.path)
