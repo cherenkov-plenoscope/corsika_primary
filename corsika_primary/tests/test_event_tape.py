@@ -32,7 +32,7 @@ def make_dummy_evth(prng, run_number, event_number):
 
 
 def make_dummy_bunches(prng, num_bunches):
-    bunches = prng.uniform(size=8*num_bunches).astype(np.float32)
+    bunches = prng.uniform(size=8 * num_bunches).astype(np.float32)
     bunches = np.reshape(bunches, (num_bunches, 8))
     return bunches
 
@@ -49,14 +49,9 @@ def make_dummy_run(prng, run_number, avg_num_events, avg_num_bunches):
         num_bunches = int(prng.uniform(avg_num_bunches))
         run["events"][event_number] = {
             "EVTH": make_dummy_evth(
-                prng=prng,
-                run_number=run_number,
-                event_number=event_number
+                prng=prng, run_number=run_number, event_number=event_number
             ),
-            "bunches":  make_dummy_bunches(
-                prng=prng,
-                num_bunches=num_bunches
-            ),
+            "bunches": make_dummy_bunches(prng=prng, num_bunches=num_bunches),
         }
     return run
 
@@ -75,7 +70,7 @@ def test_event_tape(debug_dir):
             prng=prng,
             run_number=run_number,
             avg_num_events=25,
-            avg_num_bunches=10000
+            avg_num_bunches=10000,
         )
         path = os.path.join(tmp.name, "run{:06d}.evt.tar".format(run_number))
 

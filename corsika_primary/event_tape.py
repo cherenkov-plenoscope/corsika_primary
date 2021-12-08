@@ -56,7 +56,9 @@ class EventTapeWriter:
             start_bunches = bunches_at
             stop_bunches = start_bunches + num_to_buffer
 
-            self.buffer[start_buffer:stop_buffer, :] = bunches[start_bunches:stop_bunches, :]
+            self.buffer[start_buffer:stop_buffer, :] = bunches[
+                start_bunches:stop_bunches, :
+            ]
 
             bunches_remaining -= num_to_buffer
             bunches_at = stop_bunches
@@ -68,15 +70,15 @@ class EventTapeWriter:
     def _flush_cherenkov_bunch_buffer(self):
         if self.cherenkov_block_number is None:
             return
-        part = self.buffer[0:self.buffer_size].copy()
+        part = self.buffer[0 : self.buffer_size].copy()
         tar_write(
             tar=self.tar,
             filename=CHERENKOV_BLOCK_FILENAME.format(
                 run_number=self.run_number,
                 event_number=self.event_number,
-                cherenkov_block_number=self.cherenkov_block_number
+                cherenkov_block_number=self.cherenkov_block_number,
             ),
-            filebytes=part.tobytes()
+            filebytes=part.tobytes(),
         )
         self.cherenkov_block_number += 1
         self.buffer_size = 0
@@ -269,7 +271,7 @@ def write_runh(tar, runh, run_number):
     tar_write(
         tar=tar,
         filename=RUNH_FILENAME.format(run_number=run_number),
-        filebytes=runh.tobytes()
+        filebytes=runh.tobytes(),
     )
 
 
@@ -296,7 +298,7 @@ def write_evth(tar, evth, run_number, event_number):
         filename=EVTH_FILENAME.format(
             run_number=run_number, event_number=event_number,
         ),
-        filebytes=evth.tobytes()
+        filebytes=evth.tobytes(),
     )
 
 
