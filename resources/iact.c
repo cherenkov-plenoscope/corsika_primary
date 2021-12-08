@@ -232,13 +232,7 @@ error:
  *  End of event.
 */
 void telend_(cors_real_t evte[273]) {
-    chk_msg(
-        mliEventTapeWriter_write_evte(&taro, evte),
-        "Can't write EVTE to EventTape."
-    );
     return;
-error:
-    exit(1);
 }
 
 
@@ -248,10 +242,6 @@ error:
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
-    chk_msg(
-        mliEventTapeWriter_write_rune(&taro, rune),
-        "Can't write RUNE to EventTape."
-    );
     chk_msg(mliEventTapeWriter_close(&taro), "Can't close EventTapeWriter.");
     return;
 error:
