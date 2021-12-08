@@ -14,6 +14,8 @@ from . import collect_version_information
 
 
 MAX_ZENITH_DEG = 70.0
+CM2M = 1e-2
+M2CM = 1e2
 
 
 def corsika_primary(
@@ -293,12 +295,12 @@ class CorsikaPrimary:
 
 def bunches_to_si_units(bunches):
     b = copy.deepcopy(bunches)
-    b[:, I.BUNCH.X] *= 1e-2  # cm -> m
-    b[:, I.BUNCH.Y] *= 1e-2  # cm -> m
+    b[:, I.BUNCH.X] *= CM2M  # cm -> m
+    b[:, I.BUNCH.Y] *= CM2M  # cm -> m
     # b[:, I.BUNCH.CX]
     # b[:, I.BUNCH.CY]
     b[:, I.BUNCH.TIME] *= 1e-9  # ns -> s
-    b[:, I.BUNCH.ZEM] *= 1e-2  # cm -> m
+    b[:, I.BUNCH.ZEM] *= CM2M  # cm -> m
     # b[:, I.BUNCH.BSIZE] = bunches[:, I.BUNCH.BSIZE]
     b[:, I.BUNCH.WVL] = np.abs(b[:, I.BUNCH.WVL]) * 1e-9  # nm -> m
     return b
