@@ -34,8 +34,8 @@ def make_random_steering_dict(
             "earth_magnetic_field_z_muT": f8(-25.9),
             "atmosphere_id": i8(10),
             "energy_range": {
-                "start_GeV": f8(energy_GeV * 0.99),
-                "stop_GeV": f8(energy_GeV * 1.01),
+                "start_GeV": f8(energy_GeV),
+                "stop_GeV": f8(energy_GeV),
             },
             "random_seed": cpw.random.seed.make_simple_seed(seed=run_id),
         },
@@ -135,6 +135,7 @@ def cherenkov_pool_hashes_are_different(
 ):
     diff = []
     for event_id in reproduced_hashes:
+        event_idx = event_id - original_steering_dict["run"]["event_id_of_first_event"]
         original = original_hashes[event_id]
         reproduced = reproduced_hashes[event_id]
         if reproduced != original:
@@ -142,24 +143,32 @@ def cherenkov_pool_hashes_are_different(
             print("pool-md5-hash original  : ", original)
             print("pool-md5-hash reproduced: ", reproduced)
             print("steering: ")
-            pprint.pprint(original_steering_dict["primaries"][event_id])
+            pprint.pprint(original_steering_dict["primaries"][event_idx])
             diff.append(event_id)
     return set(diff)
 
 
 PARTICLES = {
-    "gamma": {"particle_id": 1, "energy_GeV": 1.0},
-    "electron": {"particle_id": 3, "energy_GeV": 1.0},
-    "proton": {"particle_id": 14, "energy_GeV": 7},
-    "helium": {"particle_id": 402, "energy_GeV": 12},
-}
-
-
-EVENT_IDS_EXPECTED_TO_FAIL = {
-    "gamma": set([]),
-    "electron": set([]),
-    "proton": set([]),
-    "helium": set([6, 10, 12, 14]),
+    "gamma": {
+        "particle_id": 1,
+        "energy_GeV": 1.0,
+        "expected_to_fail": set([]),
+    },
+    "electron": {
+        "particle_id": 3,
+        "energy_GeV": 1.0,
+        "expected_to_fail": set([]),
+    },
+    "proton": {
+        "particle_id": 14,
+        "energy_GeV": 7.0,
+        "expected_to_fail": set([15]),
+    },
+    "helium": {
+        "particle_id": 402,
+        "energy_GeV": 12.0,
+        "expected_to_fail": set([6, 7, 8, 13]),
+    },
 }
 
 
@@ -204,7 +213,7 @@ def test_few_events_different_particles_reproduce_one(
 
     failing_is_as_expected = True
     for pkey in PARTICLES:
-        if failing_event_ids[pkey] != EVENT_IDS_EXPECTED_TO_FAIL[pkey]:
+        if failing_event_ids[pkey] != PARTICLES[pkey]["expected_to_fail"]:
             failing_is_as_expected = False
     assert failing_is_as_expected
 
