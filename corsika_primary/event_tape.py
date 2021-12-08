@@ -125,7 +125,7 @@ def is_match(template, path):
     path : str
         The path to be tested for matching.
     """
-    digit_format_regex = regex.compile("\{\w{0,100}:09d\}")
+    digit_format_regex = regex.compile(r"\{\w{0,100}:09d\}")
     ss = digit_format_regex.split(template)
     math = (9 * "#").join(ss)
     if len(math) != len(path):
