@@ -26,61 +26,47 @@ def debug_dir(pytestconfig):
 
 
 def hash_cherenkov_pools(
-    card, tmp_dir, corsika_vanilla_path, merlict_eventio_converter
+    steering_card, tmp_dir, corsika_vanilla_path, merlict_eventio_converter
 ):
     os.makedirs(tmp_dir, exist_ok=True)
-    run_eventio_path = os.path.join(tmp_dir, "eventio")
-    run_simpelio_path = os.path.join(tmp_dir, "simpleio")
-    run_hashes_path = os.path.join(tmp_dir, "cherenkov_pool_md5_hashes.csv")
-    run_seeds_path = os.path.join(tmp_dir, "seeds.json")
+    eventio_path = os.path.join(tmp_dir, "eventio")
+    simpelio_path = os.path.join(tmp_dir, "simpleio")
+    hashes_path = os.path.join(tmp_dir, "cherenkov_pool_md5_hashes.csv")
+    seeds_path = os.path.join(tmp_dir, "seeds.csv")
     card_path = os.path.join(tmp_dir, "steering_card.txt")
 
-    if not os.path.exists(run_hashes_path):
+    hashes = {}
+    seeds = {}
+    if not os.path.exists(hashes_path):
         with open(card_path, "wt") as f:
-            f.write(card)
+            f.write(steering_card)
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
-            steering_card=card,
-            output_path=run_eventio_path,
-            stdout_path=run_eventio_path + ".stdout",
-            stderr_path=run_eventio_path + ".stderr",
+            steering_card=steering_card,
+            output_path=eventio_path,
+            stdout_path=eventio_path + ".stdout",
+            stderr_path=eventio_path + ".stderr",
         )
         cpw.testing.eventio_to_simpleio(
             merlict_eventio_converter=merlict_eventio_converter,
-            eventio_path=run_eventio_path,
-            simpleio_path=run_simpelio_path,
+            eventio_path=eventio_path,
+            simpleio_path=simpelio_path,
         )
-        run = cpw.testing.SimpleIoRun(path=run_simpelio_path)
+        run = cpw.testing.SimpleIoRun(path=simpelio_path)
 
-        hashes_csv = ""
-        event_seeds = {}
         for event in run:
             evth, bunches = event
             event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-            event_seeds[event_id] = cpw.random.seed.parse_seed_from_evth(
-                evth=evth, dtype_constructor=int
-            )
-            h = hashlib.md5(bunches.tobytes()).hexdigest()
-            hashes_csv += "{:06d},{:s}\n".format(event_id, h)
+            hashes[event_id] = hashlib.md5(bunches.tobytes()).hexdigest()
+            seeds[event_id] = cpw.random.seed.parse_seed_from_evth(evth)
 
-        with open(run_hashes_path, "wt") as f:
-            f.write(hashes_csv)
-        with open(run_seeds_path, "wt") as f:
-            f.write(json.dumps(event_seeds, indent=4))
+        cpw.testing.write_hashes(path=hashes_path, hashes=hashes)
+        cpw.testing.write_seeds(path=seeds_path, seeds=seeds)
 
-    with open(run_hashes_path, "rt") as f:
-        hashes = {}
-        for line in str.splitlines(f.read()):
-            event_id_str, h_str = str.split(line, ",")
-            hashes[int(event_id_str)] = h_str
+    hashes = cpw.testing.read_hashes(path=hashes_path)
+    seeds = cpw.testing.read_seeds(path=seeds_path)
 
-    with open(run_seeds_path, "rt") as f:
-        _event_seeds = json.loads(f.read())
-        event_seeds = {}
-        for key in _event_seeds:
-            event_seeds[int(key)] = _event_seeds[key]
-
-    return hashes, event_seeds
+    return hashes, seeds
 
 
 def test_reproduce_events_vanilla(
@@ -192,7 +178,7 @@ def test_reproduce_events_vanilla(
 
         full_dir = os.path.join(tmp.name, pkey, "events_together")
         full_hashes, full_seeds = hash_cherenkov_pools(
-            card=full_card,
+            steering_card=full_card,
             tmp_dir=full_dir,
             corsika_vanilla_path=corsika_vanilla_path,
             merlict_eventio_converter=merlict_eventio_converter,
@@ -222,7 +208,7 @@ def test_reproduce_events_vanilla(
                 tmp.name, pkey, "event_alone_{:06d}".format(event_id)
             )
             part_hashes, part_seeds = hash_cherenkov_pools(
-                card=part_card,
+                steering_card=part_card,
                 tmp_dir=part_dir,
                 corsika_vanilla_path=corsika_vanilla_path,
                 merlict_eventio_converter=merlict_eventio_converter,
