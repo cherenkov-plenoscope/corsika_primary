@@ -40,41 +40,66 @@ def equal(a, b, absolute_margin=1e-6):
     return np.abs(a - b) < absolute_margin
 
 
+def report_str(ii, h1, h2, ok):
+    oks = "[ OK ]" if ok else "[ BAD]"
+    rep = oks
+    rep += "[{: 3d} - 1]  {:3.3f}  {:3.3f}  ({:E})\n".format(
+        ii + 1,
+        h1[ii],
+        h2[ii],
+        h1[ii] - h2[ii],
+    )
+    return rep
+
 def evth_is_equal_enough(ori_evth, mod_evth):
-    I_ENERGY_LOWER_LIMIT = 59
-    I_ENERGY_UPPER_LIMIT = 60
     assert ori_evth.shape[0] == mod_evth.shape[0]
     equal = True
+    report = ""
     for ii in range(ori_evth.shape[0]):
-        if ii == (I_ENERGY_LOWER_LIMIT - 1):
+        if ii == cpw.I.EVTH.ENERGY_LOWER_LIMIT:
             # Our CORSIKA-primary mod is told to only accept energies within
             # upper and lower limits. Therefore, a small overhead is added when
             # declaring the energy-limits to CORSIKA in the beginning of a run.
-            d = np.abs(
-                ori_evth[ii] * (1.0 - cpw.steering.ENERGY_LIMIT_OVERHEAD)
-                - mod_evth[ii]
-            )
-            if d > 1e-6:
+            if np.abs(ori_evth[ii] - mod_evth[ii]) > 1e-6:
                 equal = False
+                report += report_str(ii, ori_evth, mod_evth, ok=False)
+            else:
+                report += report_str(ii, ori_evth, mod_evth, ok=True)
 
-        elif ii == (I_ENERGY_UPPER_LIMIT - 1):
-            d = np.abs(
-                ori_evth[ii] * (1.0 + cpw.steering.ENERGY_LIMIT_OVERHEAD)
-                - mod_evth[ii]
-            )
-            if d > 1e-6:
+        elif ii == cpw.I.EVTH.ENERGY_UPPER_LIMIT:
+            if np.abs(ori_evth[ii] - mod_evth[ii]) > 1e-6:
                 equal = False
+                report += report_str(ii, ori_evth, mod_evth, ok=False)
+            else:
+                report += report_str(ii, ori_evth, mod_evth, ok=True)
 
-        elif ii == (77 - 1):
+
+        elif ii == cpw.I.EVTH.CHERENKOV_FLAG:
             # We ignore field 77. (fortran77 idx starts at 1)
             # Here iact.c sets a flag in case of VOLUMEDET option.
             # Its only relevant for the geometry of the scattering,
             # what is obsolete now.
-            pass
+            report += report_str(ii, ori_evth, mod_evth, ok=True)
+
+        # Ignore random-sequence 4. It is used in vanilla CORSIKA by iact.c.
+        elif ii == cpw.I.EVTH.RANDOM_SEED(sequence=4):
+            report += report_str(ii, ori_evth, mod_evth, ok=True)
+        elif ii == cpw.I.EVTH.RANDOM_SEED_CALLS(sequence=4):
+            report += report_str(ii, ori_evth, mod_evth, ok=True)
+        elif ii == cpw.I.EVTH.RANDOM_SEED_MILLIONS(sequence=4):
+            report += report_str(ii, ori_evth, mod_evth, ok=True)
+
         else:
             if ori_evth[ii] != mod_evth[ii]:
                 equal = False
-    return equal
+                report += report_str(ii, ori_evth, mod_evth, ok=False)
+    return equal, report
+
+
+def write_append_corsika_header_diff(path, event_id, report):
+    with open(path, "at") as f:
+        f.write("--- event_id {: 3d} ---\n".format(int(event_id)))
+        f.write(report)
 
 
 def test_vanilla_vs_moddified(
@@ -109,6 +134,10 @@ def test_vanilla_vs_moddified(
     zenith_deg = 0.0
     azimuth_deg = 0.0
     telescope_sphere_radius_m = 1e4
+    seed = cpw.random.seed.make_simple_seed(seed=273)
+    _S = "SEED"
+    _C = "CALLS"
+    _B = "BILLIONS"
 
     cfg = {
         "gamma": {"id": 1, "energy": 1.337},
@@ -120,6 +149,10 @@ def test_vanilla_vs_moddified(
     for particle in cfg:
         par_dir = os.path.join(tmp.name, particle)
         os.makedirs(par_dir, exist_ok=True)
+
+        evth_compare_path = os.path.join(par_dir, "evth_compare.md")
+        with open(evth_compare_path, "wt") as f:
+            f.write("")
 
         # RUN ORIGINAL CORSIKA
         # --------------------
@@ -136,10 +169,10 @@ def test_vanilla_vs_moddified(
                 "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
                 "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
                 "VIEWCONE 0 0",
-                "SEED 1 0 0",
-                "SEED 2 0 0",
-                "SEED 3 0 0",
-                "SEED 4 0 0",
+                "SEED {:d} {:d} {:d}".format(seed[0][_S], seed[0][_C], seed[0][_B]),
+                "SEED {:d} {:d} {:d}".format(seed[1][_S], seed[1][_C], seed[1][_B]),
+                "SEED {:d} {:d} {:d}".format(seed[2][_S], seed[2][_C], seed[2][_B]),
+                "SEED {:d} {:d} {:d}".format(seed[3][_S], seed[3][_C], seed[3][_B]),
                 "OBSLEV {:f}".format(1e2 * obs_level_m),
                 "FIXCHI {:f}".format(chi_g_per_cm2),
                 "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
@@ -201,15 +234,10 @@ def test_vanilla_vs_moddified(
                 "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
                 "atmosphere_id": i8(atmosphere_id),
                 "energy_range": {
-                    "start_GeV": f8(
-                        cfg[particle]["energy"]
-                        * (1 - cpw.steering.ENERGY_LIMIT_OVERHEAD)
-                    ),
-                    "stop_GeV": f8(
-                        cfg[particle]["energy"]
-                        * (1 + cpw.steering.ENERGY_LIMIT_OVERHEAD)
-                    ),
+                    "start_GeV": f8(cfg[particle]["energy"]),
+                    "stop_GeV": f8(cfg[particle]["energy"]),
                 },
+                "random_seed": seed,
             },
             "primaries": [],
         }
@@ -221,7 +249,6 @@ def test_vanilla_vs_moddified(
                 "zenith_rad": f8(np.deg2rad(zenith_deg)),
                 "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
                 "depth_g_per_cm2": f8(chi_g_per_cm2),
-                "random_seed": ori_events_seeds[idx_primary],
             }
             mod_steering_dict["primaries"].append(prm)
 
@@ -246,25 +273,17 @@ def test_vanilla_vs_moddified(
             mod_bunches = cpw.bunches_to_si_units(mod_bunches)
             ori_bunches = cpw.bunches_to_si_units(ori_bunches)
 
-            evth_compare_path = os.path.join(par_dir, "evth_compare.md")
-            with open(evth_compare_path, "at") as fout:
-                md = "---------------{: 3d}--------------\n".format(
-                    evt_idx + 1
-                )
-                for ll in range(ori_evth.shape[0]):
-                    ll_diff = mod_evth[ll] - ori_evth[ll]
-                    if np.abs(ll_diff) > 0.0:
-                        md += "{: 3d} {:3.3f} {:3.3f} {:3.3f}\n".format(
-                            ll + 1,
-                            mod_evth[ll],
-                            ori_evth[ll],
-                            mod_evth[ll] - ori_evth[ll],
-                        )
-                    else:
-                        md += "{: 3d}\n".format(ll + 1, mod_evth[ll])
-                fout.write(md)
+            evth_equal, report = evth_is_equal_enough(
+                ori_evth=ori_evth,
+                mod_evth=mod_evth
+            )
+            write_append_corsika_header_diff(
+                path=evth_compare_path,
+                event_id=ori_evth[cpw.I.EVTH.EVENT_NUMBER],
+                report=report,
+            )
 
-            assert evth_is_equal_enough(ori_evth=ori_evth, mod_evth=mod_evth)
+            assert evth_equal
 
             if particle == "proton":
                 assert ori_num_bunches[evt_idx] == mod_bunches.shape[0]

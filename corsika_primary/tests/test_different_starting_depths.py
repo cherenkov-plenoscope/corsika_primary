@@ -39,11 +39,11 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
             "earth_magnetic_field_z_muT": f8(-25.9),
             "atmosphere_id": i8(10),
             "energy_range": {"start_GeV": f8(0.5), "stop_GeV": f8(2.0)},
+            "random_seed": cpw.random.seed.make_simple_seed(seed=1337),
         },
         "primaries": [],
     }
 
-    seed = 1
     for depth in depths:
         for rep in range(NUM_EVENTS_PER_DEPTH):
             prm = {
@@ -52,10 +52,8 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
                 "zenith_rad": f8(0.0),
                 "azimuth_rad": f8(0.0),
                 "depth_g_per_cm2": f8(depth),
-                "random_seed": cpw.random.seed.make_simple_seed(seed),
             }
             steering_dict["primaries"].append(prm)
-            seed += 1
 
     num_events = len(steering_dict["primaries"])
     num_bunches = []

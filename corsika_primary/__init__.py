@@ -260,7 +260,7 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.event_tape_reader = tario.EventTapeReader(
+        self.event_tape_reader = event_tape.EventTapeReader(
             path=self.fifo_path,
             read_block_by_block=read_block_by_block,
         )

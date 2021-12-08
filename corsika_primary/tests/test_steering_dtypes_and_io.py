@@ -28,6 +28,14 @@ def make_dummy_run_steering(run_id, prng):
             "stop_GeV": f8(prng.uniform(low=10, high=20)),
         },
     }
+    run["random_seed"] = []
+    for j in range(4):
+        seeds = {
+            "SEED": i4(prng.uniform(100)),
+            "CALLS": i4(prng.uniform(100)),
+            "BILLIONS": i4(prng.uniform(100)),
+        }
+        run["random_seed"].append(seeds)
     return run
 
 
@@ -40,14 +48,6 @@ def make_dummy_primaries(num, prng):
         prm["zenith_rad"] = f8(prng.uniform(1))
         prm["azimuth_rad"] = f8(prng.uniform(2) - 1)
         prm["depth_g_per_cm2"] = f8(0.0)
-        prm["random_seed"] = []
-        for j in range(4):
-            seeds = {
-                "SEED": i4(prng.uniform(100)),
-                "CALLS": i4(prng.uniform(100)),
-                "BILLIONS": i4(prng.uniform(100)),
-            }
-            prm["random_seed"].append(seeds)
         cpw.steering.assert_dtypes_primary_dict(prm)
         primaries.append(prm)
     return primaries
@@ -66,10 +66,6 @@ def primary_is_equal(a, b):
         return False
     if a["depth_g_per_cm2"] != b["depth_g_per_cm2"]:
         return False
-    for j in range(4):
-        for key in ["SEED", "CALLS", "BILLIONS"]:
-            if a["random_seed"][j][key] != b["random_seed"][j][key]:
-                return False
     return True
 
 

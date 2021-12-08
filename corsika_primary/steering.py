@@ -9,10 +9,10 @@ from . import random
 i8 = np.int64
 f8 = np.float64
 
-NUM_BYTES_PRIMARY_STEERING = 5 * 8 + 12 * 4
-NUM_BYTES_RUN_STEERING = 8 * 8
+NUM_BYTES_PRIMARY_STEERING = 5 * 8
+NUM_BYTES_RUN_STEERING = 8 * 8 + 12 * 4
 ENERGY_LIMIT_OVERHEAD = 0.01
-PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primary_bytes.5xf8_12xi4"
+PRIMARY_BYTES_FILENAME_IN_CORSIKA_RUN_DIR = "primaries.x5.float64"
 
 HEADER = "{:<23}\n".format("CORSIKA-PRIMARY-MOD")
 HEADER += "{:<23}\n".format("BY S. A. Mueller")
@@ -31,6 +31,7 @@ EXAMPLE = {
         "earth_magnetic_field_z_muT": f8(-25.9),
         "atmosphere_id": i8(10),
         "energy_range": {"start_GeV": f8(1.0), "stop_GeV": f8(20.0)},
+        "random_seed": random.seed.make_simple_seed(1),
     },
     "primaries": [
         {
@@ -39,7 +40,6 @@ EXAMPLE = {
             "zenith_rad": f8(0.0),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": random.seed.make_simple_seed(1),
         },
         {
             "particle_id": f8(1),
@@ -47,7 +47,6 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.2),
             "depth_g_per_cm2": f8(3.6),
-            "random_seed": random.seed.make_simple_seed(2),
         },
         {
             "particle_id": f8(1),
@@ -55,7 +54,6 @@ EXAMPLE = {
             "zenith_rad": f8(0.1),
             "azimuth_rad": f8(0.25),
             "depth_g_per_cm2": f8(102.2),
-            "random_seed": random.seed.make_simple_seed(3),
         },
     ],
 }
@@ -64,21 +62,19 @@ EXAMPLE = {
 def assert_values(steering_dict):
     run = steering_dict["run"]
     primaries = steering_dict["primaries"]
-    int32_limit = 2 ** 31
 
+    for seq in run["random_seed"]:
+        assert random.seed.MIN_SEED <= seq["SEED"] <= random.seed.MAX_SEED
+        assert 0 <= seq["CALLS"]
+        assert 0 <= seq["BILLIONS"]
     # energy
     assert run["energy_range"]["start_GeV"] > 0
     assert run["energy_range"]["stop_GeV"] > 0
-    assert run["energy_range"]["start_GeV"] < run["energy_range"]["stop_GeV"]
+    assert run["energy_range"]["start_GeV"] <= run["energy_range"]["stop_GeV"]
 
     for p in primaries:
-        assert p["energy_GeV"] > run["energy_range"]["start_GeV"]
-        assert p["energy_GeV"] < run["energy_range"]["stop_GeV"]
-
-        for sequence in p["random_seed"]:
-            assert sequence["SEED"] < int32_limit
-            assert sequence["CALLS"] < int32_limit
-            assert sequence["BILLIONS"] < int32_limit
+        assert p["energy_GeV"] >= run["energy_range"]["start_GeV"]
+        assert p["energy_GeV"] <= run["energy_range"]["stop_GeV"]
 
 
 def assert_dtypes_in_obj(obj, dtype):
@@ -113,6 +109,10 @@ def make_steering_card_str(steering_dict, output_path):
     for prm in primaries:
         assert_dtypes_primary_dict(prm)
     M_TO_CM = 1e2
+    rnd = run["random_seed"]
+    _S = "SEED"
+    _C = "CALLS"
+    _B = "BILLIONS"
     card = "\n".join(
         [
             "RUNNR {:d}".format(run["run_id"]),
@@ -127,6 +127,10 @@ def make_steering_card_str(steering_dict, output_path):
                 x=run["earth_magnetic_field_x_muT"],
                 z=run["earth_magnetic_field_z_muT"],
             ),
+            "SEED {:d} {:d} {:d}".format(rnd[0][_S], rnd[0][_C], rnd[0][_B]),
+            "SEED {:d} {:d} {:d}".format(rnd[1][_S], rnd[1][_C], rnd[1][_B]),
+            "SEED {:d} {:d} {:d}".format(rnd[2][_S], rnd[2][_C], rnd[2][_B]),
+            "SEED {:d} {:d} {:d}".format(rnd[3][_S], rnd[3][_C], rnd[3][_B]),
             "MAXPRT 1",
             "PAROUT F F",
             "ATMOSPHERE {:d} T".format(run["atmosphere_id"]),
@@ -179,9 +183,6 @@ def primary_dict_to_bytes(primary_dict):
         f.write(prmdic["zenith_rad"].tobytes())
         f.write(prmdic["azimuth_rad"].tobytes())
         f.write(prmdic["depth_g_per_cm2"].tobytes())
-        for seq in range(random.seed.NUM_RANDOM_SEQUENCES):
-            for key in ["SEED", "CALLS", "BILLIONS"]:
-                f.write(prmdic["random_seed"][seq][key].tobytes())
         f.seek(0)
         return f.read()
 
@@ -201,12 +202,6 @@ def primary_bytes_to_dict(primary_bytes):
         prm["zenith_rad"] = _read(f, PRM["zenith_rad"].dtype.str)
         prm["azimuth_rad"] = _read(f, PRM["azimuth_rad"].dtype.str)
         prm["depth_g_per_cm2"] = _read(f, PRM["depth_g_per_cm2"].dtype.str)
-        prm["random_seed"] = []
-        for n in range(random.seed.NUM_RANDOM_SEQUENCES):
-            seq = {}
-            for key in ["SEED", "CALLS", "BILLIONS"]:
-                seq[key] = _read(f, PRM["random_seed"][n][key].dtype.str)
-            prm["random_seed"].append(seq)
     assert_dtypes_primary_dict(prm)
     return prm
 
@@ -249,6 +244,9 @@ def run_dict_to_bytes(run_dict):
         f.write(rd["atmosphere_id"].tobytes())
         f.write(rd["energy_range"]["start_GeV"].tobytes())
         f.write(rd["energy_range"]["stop_GeV"].tobytes())
+        for seq in range(random.seed.NUM_RANDOM_SEQUENCES):
+            for key in ["SEED", "CALLS", "BILLIONS"]:
+                f.write(rd["random_seed"][seq][key].tobytes())
         f.seek(0)
         return f.read()
 
@@ -279,6 +277,12 @@ def run_bytes_to_dict(run_bytes):
         rud["energy_range"]["stop_GeV"] = _read(
             f, RUN["energy_range"]["stop_GeV"].dtype.str
         )
+        rud["random_seed"] = []
+        for seq in range(random.seed.NUM_RANDOM_SEQUENCES):
+            scb = {}
+            for key in ["SEED", "CALLS", "BILLIONS"]:
+                scb[key] = _read(f, RUN["random_seed"][seq][key].dtype.str)
+            rud["random_seed"].append(scb)
     assert_dtypes_run_dict(rud)
     return rud
 

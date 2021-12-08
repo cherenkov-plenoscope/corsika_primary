@@ -35,6 +35,7 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
             "earth_magnetic_field_z_muT": f8(-25.9),
             "atmosphere_id": i8(10),
             "energy_range": {"start_GeV": f8(3.2e3), "stop_GeV": f8(3.4e3)},
+            "random_seed": cpw.random.seed.make_simple_seed(1),
         },
         "primaries": [
             {
@@ -43,7 +44,6 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
                 "zenith_rad": f8(0.0),
                 "azimuth_rad": f8(0.0),
                 "depth_g_per_cm2": f8(0.0),
-                "random_seed": cpw.random.seed.make_simple_seed(1),
             }
         ],
     }

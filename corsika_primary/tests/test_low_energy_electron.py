@@ -75,7 +75,11 @@ def test_low_energy_electron(
     energy = 0.25
     zenith_deg = 45.0
     telescope_sphere_radius = 1e3
+    seed = cpw.random.seed.make_simple_seed(seed=37)
 
+    _S = "SEED"
+    _C = "CALLS"
+    _B = "BILLIONS"
     van_steering_card = "\n".join(
         [
             "RUNNR 1",
@@ -87,10 +91,10 @@ def test_low_energy_electron(
             "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
             "PHIP {:f} {:f}".format(0.0, 0.0),
             "VIEWCONE 0 0",
-            "SEED 1 0 0",
-            "SEED 2 0 0",
-            "SEED 3 0 0",
-            "SEED 4 0 0",
+            "SEED {:d} {:d} {:d}".format(seed[0][_S], seed[0][_C], seed[0][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[1][_S], seed[1][_C], seed[1][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[2][_S], seed[2][_C], seed[2][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[3][_S], seed[3][_C], seed[3][_B]),
             "OBSLEV {:f}".format(1e2 * observation_level_asl_m),
             "FIXCHI {:f}".format(depth_g_per_cm2),
             "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
@@ -145,6 +149,7 @@ def test_low_energy_electron(
             "earth_magnetic_field_z_muT": f8(earth_magnetic_field_z_muT),
             "atmosphere_id": i8(atmosphere_id),
             "energy_range": {"start_GeV": f8(0.2), "stop_GeV": f8(1.0)},
+            "random_seed": seed,
         },
         "primaries": [],
     }
@@ -156,7 +161,6 @@ def test_low_energy_electron(
             "zenith_rad": f8(np.deg2rad(zenith_deg)),
             "azimuth_rad": f8(0.0),
             "depth_g_per_cm2": f8(depth_g_per_cm2),
-            "random_seed": van_events_seeds[idx],
         }
         mod_steering_dict["primaries"].append(prm)
 

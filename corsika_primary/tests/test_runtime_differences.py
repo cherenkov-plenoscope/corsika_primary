@@ -45,7 +45,11 @@ def test_runtime_differences(
     zenith_deg = 15.0
     azimuth_deg = 0.0
     telescope_sphere_radius = 36.0
+    seed = cpw.random.seed.make_simple_seed(seed=3141)
 
+    _S = "SEED"
+    _C = "CALLS"
+    _B = "BILLIONS"
     # RUN VANILLA CORSIKA
     # -------------------
     van_steering_card = "\n".join(
@@ -59,10 +63,10 @@ def test_runtime_differences(
             "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
             "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
             "VIEWCONE 0 0",
-            "SEED 1 0 0",
-            "SEED 2 0 0",
-            "SEED 3 0 0",
-            "SEED 4 0 0",
+            "SEED {:d} {:d} {:d}".format(seed[0][_S], seed[0][_C], seed[0][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[1][_S], seed[1][_C], seed[1][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[2][_S], seed[2][_C], seed[2][_B]),
+            "SEED {:d} {:d} {:d}".format(seed[3][_S], seed[3][_C], seed[3][_B]),
             "OBSLEV {:f}".format(1e2 * obs_level_asl_m),
             "FIXCHI {:f}".format(starting_depth_g_per_cm2),
             "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
@@ -120,6 +124,7 @@ def test_runtime_differences(
                 "start_GeV": f8(energy_GeV * 0.9),
                 "stop_GeV": f8(energy_GeV * 1.1),
             },
+            "random_seed": seed,
         },
         "primaries": [],
     }
@@ -131,7 +136,6 @@ def test_runtime_differences(
             "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
             "zenith_rad": f8(np.deg2rad(zenith_deg)),
             "depth_g_per_cm2": f8(starting_depth_g_per_cm2),
-            "random_seed": van_events_seeds[idx_primary],
         }
         mod_steering_dict["primaries"].append(prm)
 

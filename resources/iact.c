@@ -65,11 +65,7 @@ void extprm_(
     cors_real_dbl_t *eprim,
     double *thetap,
     double *phip,
-    double *thick0,
-    int* seed_seq1, int* calls_seq1, int* billions_seq1,
-    int* seed_seq2, int* calls_seq2, int* billions_seq2,
-    int* seed_seq3, int* calls_seq3, int* billions_seq3,
-    int* seed_seq4, int* calls_seq4, int* billions_seq4);
+    double *thick0);
 
 
 /* =============================================================== */
@@ -80,7 +76,7 @@ extern double refidx_(double *height);
 //-------------------- init ----------------------------------------------------
 int event_number;
 
-const char *PRIMARY_PATH = "primary_bytes.5xf8_12xi4";
+const char *PRIMARY_PATH = "primaries.x5.float64";
 FILE *primary_file = NULL;
 
 char output_path[1024] = "";
@@ -136,7 +132,6 @@ error:
  *      float64, particle's theta
  *      float64, particle's phi
  *      float64, particle's starting depth in atmosphere
- *      int32    random seed
  *  ]
  *  defining the primary particle.
  */
@@ -145,16 +140,8 @@ void extprm_(
     cors_real_dbl_t *eprim,
     double *thetap,
     double *phip,
-    double *thick0,
-    int* seed_seq1, int* calls_seq1, int* billions_seq1,
-    int* seed_seq2, int* calls_seq2, int* billions_seq2,
-    int* seed_seq3, int* calls_seq3, int* billions_seq3,
-    int* seed_seq4, int* calls_seq4, int* billions_seq4) {
+    double *thick0) {
     double type_, eprim_, thetap_, phip_, thick0_;
-    int seed_seq1_, calls_seq1_, billions_seq1_;
-    int seed_seq2_, calls_seq2_, billions_seq2_;
-    int seed_seq3_, calls_seq3_, billions_seq3_;
-    int seed_seq4_, calls_seq4_, billions_seq4_;
 
     chk_fread(&type_, sizeof(double), 1, primary_file);
     chk_fread(&eprim_, sizeof(double), 1, primary_file);
@@ -162,42 +149,11 @@ void extprm_(
     chk_fread(&phip_, sizeof(double), 1, primary_file);
     chk_fread(&thick0_, sizeof(double), 1, primary_file);
 
-    chk_fread(&seed_seq1_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&calls_seq1_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&billions_seq1_, sizeof(int32_t), 1, primary_file);
-
-    chk_fread(&seed_seq2_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&calls_seq2_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&billions_seq2_, sizeof(int32_t), 1, primary_file);
-
-    chk_fread(&seed_seq3_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&calls_seq3_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&billions_seq3_, sizeof(int32_t), 1, primary_file);
-
-    chk_fread(&seed_seq4_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&calls_seq4_, sizeof(int32_t), 1, primary_file);
-    chk_fread(&billions_seq4_, sizeof(int32_t), 1, primary_file);
     (*type) = type_;
     (*eprim) = eprim_;
     (*thetap) = thetap_;
     (*phip) = phip_;
     (*thick0) = thick0_;
-
-    (*seed_seq1) = seed_seq1_;
-    (*calls_seq1) = calls_seq1_;
-    (*billions_seq1) = billions_seq1_;
-
-    (*seed_seq2) = seed_seq2_;
-    (*calls_seq2) = calls_seq2_;
-    (*billions_seq2) = billions_seq2_;
-
-    (*seed_seq3) = seed_seq3_;
-    (*calls_seq3) = calls_seq3_;
-    (*billions_seq3) = billions_seq3_;
-
-    (*seed_seq4) = seed_seq4_;
-    (*calls_seq4) = calls_seq4_;
-    (*billions_seq4) = billions_seq4_;
 
     return;
 error:

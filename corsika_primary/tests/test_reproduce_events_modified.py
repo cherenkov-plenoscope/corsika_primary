@@ -25,10 +25,6 @@ def debug_dir(pytestconfig):
 def make_random_steering_dict(
     run_id, particle_id, num_primaries, energy_GeV, prng
 ):
-    seed_checker = cpw.random.seed.RunIdEventIdSeedStructure(
-        num_events_in_run=100000,
-    )
-
     steering_dict = {
         "run": {
             "run_id": i8(run_id),
@@ -41,6 +37,7 @@ def make_random_steering_dict(
                 "start_GeV": f8(energy_GeV * 0.99),
                 "stop_GeV": f8(energy_GeV * 1.01),
             },
+            "random_seed": cpw.random.seed.make_simple_seed(seed=run_id),
         },
         "primaries": [],
     }
@@ -59,14 +56,68 @@ def make_random_steering_dict(
             "zenith_rad": f8(zd),
             "azimuth_rad": f8(az),
             "depth_g_per_cm2": f8(0.0),
-            "random_seed": cpw.random.seed.make_simple_seed(
-                seed=seed_checker.seed_based_on(
-                    run_id=run_id, event_id=event_id,
-                ),
-            ),
         }
         steering_dict["primaries"].append(prm)
     return steering_dict
+
+
+def write_hashes(path, hashes):
+    with open(path, "wt") as f:
+        for event_id in hashes:
+            s = "{:d},{:s}\n".format(event_id, hashes[event_id])
+            f.write(s)
+
+
+def read_hashes(path):
+    hashes = {}
+    with open(path, "rt") as f:
+        for line in str.splitlines(f.read()):
+            event_id_str, h_str = str.split(line, ",")
+            hashes[int(event_id_str)] = h_str
+    return hashes
+
+
+def write_seeds(path, seeds):
+    with open(path, "wt") as f:
+        for event_id in seeds:
+            se = seeds[event_id]
+            s = "{:d},".format(event_id)
+            s += "{:d},{:d},{:d},".format(
+                se[0]["SEED"],
+                se[0]["CALLS"],
+                se[0]["BILLIONS"]
+            )
+            s += "{:d},{:d},{:d},".format(
+                se[1]["SEED"],
+                se[1]["CALLS"],
+                se[1]["BILLIONS"]
+            )
+            s += "{:d},{:d},{:d},".format(
+                se[2]["SEED"],
+                se[2]["CALLS"],
+                se[2]["BILLIONS"]
+            )
+            s += "{:d},{:d},{:d}\n".format(
+                se[3]["SEED"],
+                se[3]["CALLS"],
+                se[3]["BILLIONS"]
+            )
+            f.write(s)
+
+
+def read_seeds(path):
+    seeds = {}
+    i4 = np.int32
+    with open(path, "rt") as f:
+        for line in str.splitlines(f.read()):
+            event_id, s1S, s1C, s1B, s2S, s2C, s2B, s3S, s3C, s3B, s4S, s4C, s4B = str.split(line, ",")
+            seeds[int(event_id)] = [
+                {"SEED": i4(s1S), "CALLS": i4(s1C), "BILLIONS": i4(s1B)},
+                {"SEED": i4(s2S), "CALLS": i4(s2C), "BILLIONS": i4(s2B)},
+                {"SEED": i4(s3S), "CALLS": i4(s3C), "BILLIONS": i4(s3B)},
+                {"SEED": i4(s4S), "CALLS": i4(s4C), "BILLIONS": i4(s4B)},
+            ]
+    return seeds
 
 
 def hash_cherenkov_pools(
@@ -76,7 +127,10 @@ def hash_cherenkov_pools(
 
     path = os.path.join(tmp_dir, tmp_key)
     hashes_path = path + ".hashes.csv"
+    seeds_path = path + ".seeds.csv"
 
+    hashes = {}
+    seeds = {}
     if not os.path.exists(hashes_path):
         run = cpw.CorsikaPrimary(
             corsika_path=corsika_primary_path,
@@ -86,24 +140,20 @@ def hash_cherenkov_pools(
             tmp_dir_prefix="corsika_primary_",
         )
 
-        hashes_csv = ""
         for event in run:
             evth, bunches = event
             event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-            h = hashlib.md5(bunches.tobytes()).hexdigest()
-            _csv_line = "{:06d},{:s}".format(event_id, h)
-            hashes_csv += _csv_line + "\n"
+            hashes[event_id] = hashlib.md5(bunches.tobytes()).hexdigest()
+            seeds[event_id] = cpw.random.seed.parse_seed_from_evth(evth)
 
-        with open(hashes_path, "wt") as f:
-            f.write(hashes_csv)
+        write_hashes(path=hashes_path, hashes=hashes)
+        write_seeds(path=seeds_path, seeds=seeds)
 
-    with open(hashes_path, "rt") as f:
-        hashes = {}
-        for line in str.splitlines(f.read()):
-            event_id_str, h_str = str.split(line, ",")
-            hashes[int(event_id_str)] = h_str
 
-    return hashes
+    hashes = read_hashes(path=hashes_path)
+    seeds = read_seeds(path=seeds_path)
+
+    return hashes, seeds
 
 
 def make_run_and_cherry_pick_event_ids_to_reproduce(
@@ -111,7 +161,7 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
 ):
     os.makedirs(tmp_dir, exist_ok=True)
 
-    complete_hashes = hash_cherenkov_pools(
+    complete_hashes, complete_seeds = hash_cherenkov_pools(
         corsika_primary_path=corsika_primary_path,
         steering_dict=steering_dict,
         tmp_key="complete",
@@ -124,12 +174,13 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
 
         part_steering_dict = {}
         part_steering_dict["run"] = copy.deepcopy(steering_dict["run"])
+        part_steering_dict["run"]["random_seed"] = complete_seeds[event_id]
         part_steering_dict["primaries"] = []
         part_steering_dict["primaries"].append(
             copy.deepcopy(steering_dict["primaries"][event_idx])
         )
 
-        part_hash = hash_cherenkov_pools(
+        part_hash, part_seed = hash_cherenkov_pools(
             corsika_primary_path=corsika_primary_path,
             steering_dict=part_steering_dict,
             tmp_key="part_{:06d}".format(event_id),
@@ -169,7 +220,7 @@ EVENT_IDS_EXPECTED_TO_FAIL = {
     "gamma": set([]),
     "electron": set([]),
     "proton": set([]),
-    "helium": set([4, 5, 6, 8]),
+    "helium": set([6, 10, 12, 14]),
 }
 
 
@@ -250,7 +301,7 @@ def test_reproduce_full_run(corsika_primary_path, debug_dir):
 
         M = []
         for i in range(num_iterations):
-            hashes = hash_cherenkov_pools(
+            hashes, seeds = hash_cherenkov_pools(
                 corsika_primary_path=corsika_primary_path,
                 steering_dict=steering_dict,
                 tmp_key="{:06d}".format(i),
