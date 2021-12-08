@@ -1,4 +1,5 @@
 import numpy as np
+import io
 from .. import I
 
 """
@@ -82,4 +83,70 @@ def parse_seed_from_evth(evth, dtype_constructor=np.int32):
             "BILLIONS": dtype_constructor(calls_billions),
         }
         seeds.append(seq)
+    return seeds
+
+
+def csv_header():
+    f = io.StringIO()
+    f.write("#")
+    f.write("{:>8s},".format("event_id"))
+    for seq in range(NUM_RANDOM_SEQUENCES):
+        for key in ["SEED", "CALLS", "BILLIONS"]:
+            skey = "{:s}{:d}".format(key, seq + 1)
+            f.write("{:>9s}".format(skey))
+            if seq < NUM_RANDOM_SEQUENCES:
+                f.write(",")
+    f.write("\n")
+    f.seek(0)
+    return f.read()
+
+
+def dumps(seeds):
+    """
+    Returns csv-string.
+
+    parameters
+    ----------
+    seeds : dict of seeds
+        The random-number-generator-state parsed from EVTH. Keys are event_ids.
+    """
+    f = io.StringIO()
+    f.write(csv_header())
+    for event_id in seeds:
+        seed = seeds[event_id]
+        f.write("{:9d},".format(event_id))
+        for seq in range(NUM_RANDOM_SEQUENCES):
+            for key in ["SEED", "CALLS", "BILLIONS"]:
+                f.write("{:9d}".format(seed[seq][key]))
+                if seq < NUM_RANDOM_SEQUENCES:
+                    f.write(",")
+        f.write("\n")
+    f.seek(0)
+    return f.read()
+
+
+def loads(s):
+    """
+    Returns dict of seeds.
+
+    parameters
+    ----------
+    s : str
+        Csv-string storing the random-number-generator-state for each line in
+        each line.
+    """
+    seeds = {}
+    for line in str.splitlines(s):
+        if "#" in line:
+            continue
+        split = str.split(line, ",")
+        event_id = np.int32(split[0])
+        seeds[event_id] = []
+        i = 1
+        for seq in range(NUM_RANDOM_SEQUENCES):
+            kk = {}
+            for key in ["SEED", "CALLS", "BILLIONS"]:
+                kk[key] = np.int32(split[i])
+                i += 1
+            seeds[event_id].append(kk)
     return seeds

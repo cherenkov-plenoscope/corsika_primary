@@ -201,48 +201,9 @@ def read_hashes(path):
 
 def write_seeds(path, seeds):
     with open(path, "wt") as f:
-        for event_id in seeds:
-            se = seeds[event_id]
-            s = "{:d},".format(event_id)
-            s += "{:d},{:d},{:d},".format(
-                se[0]["SEED"], se[0]["CALLS"], se[0]["BILLIONS"]
-            )
-            s += "{:d},{:d},{:d},".format(
-                se[1]["SEED"], se[1]["CALLS"], se[1]["BILLIONS"]
-            )
-            s += "{:d},{:d},{:d},".format(
-                se[2]["SEED"], se[2]["CALLS"], se[2]["BILLIONS"]
-            )
-            s += "{:d},{:d},{:d}\n".format(
-                se[3]["SEED"], se[3]["CALLS"], se[3]["BILLIONS"]
-            )
-            f.write(s)
+        f.write(random.seed.dumps(seeds=seeds))
 
 
 def read_seeds(path):
-    seeds = {}
-    i4 = np.int32
     with open(path, "rt") as f:
-        for line in str.splitlines(f.read()):
-            (
-                event_id,
-                s1S,
-                s1C,
-                s1B,
-                s2S,
-                s2C,
-                s2B,
-                s3S,
-                s3C,
-                s3B,
-                s4S,
-                s4C,
-                s4B,
-            ) = str.split(line, ",")
-            seeds[int(event_id)] = [
-                {"SEED": i4(s1S), "CALLS": i4(s1C), "BILLIONS": i4(s1B)},
-                {"SEED": i4(s2S), "CALLS": i4(s2C), "BILLIONS": i4(s2B)},
-                {"SEED": i4(s3S), "CALLS": i4(s3C), "BILLIONS": i4(s3B)},
-                {"SEED": i4(s4S), "CALLS": i4(s4C), "BILLIONS": i4(s4B)},
-            ]
-    return seeds
+        return random.seed.loads(s=f.read())
