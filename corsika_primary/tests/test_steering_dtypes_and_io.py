@@ -29,13 +29,13 @@ def make_dummy_run_steering(run_id, prng):
         },
     }
     run["random_seed"] = []
-    for j in range(4):
-        seeds = {
+    for j in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
+        state = {
             "SEED": i4(prng.uniform(100)),
             "CALLS": i4(prng.uniform(100)),
             "BILLIONS": i4(prng.uniform(100)),
         }
-        run["random_seed"].append(seeds)
+        run["random_seed"].append(state)
     return run
 
 
@@ -51,6 +51,20 @@ def make_dummy_primaries(num, prng):
         cpw.steering.assert_dtypes_primary_dict(prm)
         primaries.append(prm)
     return primaries
+
+
+def make_dummy_event_seeds(num, prng):
+    event_seeds = {}
+    for event_id in np.arange(1, num + 1):
+        event_seeds[event_id] = []
+        for seq in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
+            state = {
+                "SEED": i4(prng.uniform(1e6)),
+                "CALLS": i4(prng.uniform(1e6)),
+                "BILLIONS": i4(prng.uniform(1e6)),
+            }
+            event_seeds[event_id].append(state)
+    return event_seeds
 
 
 def primary_is_equal(a, b):
@@ -118,14 +132,16 @@ def test_steering_dict_io(debug_dir):
         orig[run_id] = {
             "run": make_dummy_run_steering(run_id=run_id, prng=prng),
             "primaries": make_dummy_primaries(num=NUM_EVENTS, prng=prng),
+            "event_seeds": make_dummy_event_seeds(num=NUM_EVENTS, prng=prng),
         }
 
     path = os.path.join(tmp.name, "steering.tar")
-    cpw.steering.write_steerings(runs=orig, path=path)
-    back = cpw.steering.read_steerings(path=path)
+    cpw.steering.write_steerings_and_seeds(path=path, runs=orig)
+    back = cpw.steering.read_steerings_and_seeds(path=path)
 
     for run_id in orig:
         assert orig[run_id]["run"] == back[run_id]["run"]
         assert orig[run_id]["primaries"] == back[run_id]["primaries"]
+        assert orig[run_id]["event_seeds"] == back[run_id]["event_seeds"]
 
     tmp.cleanup_when_no_debug()

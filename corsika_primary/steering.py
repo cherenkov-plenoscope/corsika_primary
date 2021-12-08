@@ -293,7 +293,7 @@ def primary_bytes_by_idx(primary_bytes, idx):
     return primary_bytes[bstart:bstop]
 
 
-def write_steerings(runs, path):
+def write_steerings_and_seeds(path, runs):
     with tarfile.open(path + ".tmp", "w") as tarfout:
         for run_id in runs:
             run = runs[run_id]
@@ -309,10 +309,16 @@ def write_steerings(runs, path):
                     path="{:09d}.steering.bin".format(run_id),
                     payload=buff.read(),
                 )
+            csv = random.seed.dumps(run["event_seeds"]).encode("ascii")
+            _tar_write(
+                tarfout=tarfout,
+                path="{:09d}.event_seeds.csv".format(run_id),
+                payload=csv,
+            )
     shutil.move(path + ".tmp", path)
 
 
-def read_steerings(path):
+def read_steerings_and_seeds(path):
     runs = {}
     with tarfile.open(path, "r") as tarfin:
         while True:
@@ -322,37 +328,46 @@ def read_steerings(path):
 
             run_id_str, ss, bb = str.split(tarinfo.name, ".")
             run_id = int(run_id_str)
-            assert ss == "steering"
-            assert bb == "bin"
-            num_bytes_primaries = (
-                tarinfo.size - NUM_BYTES_HEADER - NUM_BYTES_RUN_STEERING
-            )
-            assert num_bytes_primaries >= 0
-            assert num_bytes_primaries % NUM_BYTES_PRIMARY_STEERING == 0
-            num_primaries = num_bytes_primaries // NUM_BYTES_PRIMARY_STEERING
 
-            with tarfin.extractfile(tarinfo) as f:
-                header = f.read(NUM_BYTES_HEADER).decode()
-                version_line = str.split(header, "\n")[2]
-                version_str = str.split(version_line, " ")[1]
-                if version_str != version.__version__:
-                    print("WARNING, version mismatch.")
-                run_bytes = f.read(NUM_BYTES_RUN_STEERING)
-                primary_bytes = f.read(num_bytes_primaries)
+            if ss == "steering" and bb == "bin":
+                num_bytes_primaries = (
+                    tarinfo.size - NUM_BYTES_HEADER - NUM_BYTES_RUN_STEERING
+                )
+                assert num_bytes_primaries >= 0
+                assert num_bytes_primaries % NUM_BYTES_PRIMARY_STEERING == 0
+                num_primaries = (
+                    num_bytes_primaries // NUM_BYTES_PRIMARY_STEERING
+                )
 
-                run = {}
-                run["run"] = run_bytes_to_dict(run_bytes)
-                run["primaries"] = []
-                for idx in range(num_primaries):
-                    run["primaries"].append(
-                        primary_bytes_to_dict(
-                            primary_bytes_by_idx(
-                                primary_bytes=primary_bytes, idx=idx
+                with tarfin.extractfile(tarinfo) as f:
+                    header = f.read(NUM_BYTES_HEADER).decode()
+                    version_line = str.split(header, "\n")[2]
+                    version_str = str.split(version_line, " ")[1]
+                    if version_str != version.__version__:
+                        print("WARNING, version mismatch.")
+                    run_bytes = f.read(NUM_BYTES_RUN_STEERING)
+                    primary_bytes = f.read(num_bytes_primaries)
+
+                    run = {}
+                    run["run"] = run_bytes_to_dict(run_bytes)
+                    run["primaries"] = []
+                    for idx in range(num_primaries):
+                        run["primaries"].append(
+                            primary_bytes_to_dict(
+                                primary_bytes_by_idx(
+                                    primary_bytes=primary_bytes, idx=idx
+                                )
                             )
                         )
-                    )
-                assert run["run"]["run_id"] == run_id
-                runs[run_id] = run
+                    assert run["run"]["run_id"] == run_id
+                    runs[run_id] = run
+            elif ss == "event_seeds" and bb == "csv":
+                assert run_id in runs
+                with tarfin.extractfile(tarinfo) as f:
+                    csv_str = f.read().decode("ascii")
+                runs[run_id]["event_seeds"] = random.seed.loads(csv_str)
+            else:
+                raise ValueError("Unknown file '{:s}'.".format(tarinfo.name))
     return runs
 
 
