@@ -135,7 +135,9 @@ def cherenkov_pool_hashes_are_different(
 ):
     diff = []
     for event_id in reproduced_hashes:
-        event_idx = event_id - original_steering_dict["run"]["event_id_of_first_event"]
+        event_idx = (
+            event_id - original_steering_dict["run"]["event_id_of_first_event"]
+        )
         original = original_hashes[event_id]
         reproduced = reproduced_hashes[event_id]
         if reproduced != original:
