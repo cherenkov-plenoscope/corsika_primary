@@ -56,7 +56,7 @@ def download_corsika_tar(
             output_dir, corsika_tar_filename + ".wget.stdout"
         ),
         stderr_path=os.path.join(
-            output_dir, corsika_tar_filename + ".wget.stderror"
+            output_dir, corsika_tar_filename + ".wget.stderr"
         ),
     )
 
