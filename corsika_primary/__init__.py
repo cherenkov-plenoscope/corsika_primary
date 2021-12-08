@@ -32,18 +32,18 @@ def corsika_primary(
 
     Parameters
     ----------
-        corsika_path : str
-            Path to corsika's executable in its 'run' directory.
-        steering_dict : dict
-            The steering for the run and for each primary particle.
-        output_path : str
-            Path to tape-archive with Cherenkov-photons.
-        stdout_path : str
-            Path to write CORSIKA's std-out to.
-            If None: output_path + 'stdout'
-        stderr_path : str
-            Path to write CORSIKA's std-error to.
-            If None: output_path + 'stderr'
+    corsika_path : str
+        Path to corsika's executable in its 'run' directory.
+    steering_dict : dict
+        The steering for the run and for each primary particle.
+    output_path : str
+        Path to tape-archive with Cherenkov-photons.
+    stdout_path : str
+        Path to write CORSIKA's std-out to.
+        If None: output_path + 'stdout'
+    stderr_path : str
+        Path to write CORSIKA's std-error to.
+        If None: output_path + 'stderr'
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
@@ -119,18 +119,18 @@ def corsika_vanilla(
 
     Parameters
     ----------
-        corsika_path : str
-            Path to corsika's executable in its 'run' directory.
-        steering_card : str
-            The steering-card for vanilla CORSIKA-7.56.
-        output_path : str
-            Path to eventio-file with Cherenkov-photons.
-        stdout_path : str
-            Path to write CORSIKA's std-out to.
-            If None: output_path + 'stdout'
-        stderr_path : str
-            Path to write CORSIKA's std-error to.
-            If None: output_path + 'stderr'
+    corsika_path : str
+        Path to corsika's executable in its 'run' directory.
+    steering_card : str
+        The steering-card for vanilla CORSIKA-7.56.
+    output_path : str
+        Path to eventio-file with Cherenkov-photons.
+    stdout_path : str
+        Path to write CORSIKA's std-out to.
+        If None: output_path + 'stdout'
+    stderr_path : str
+        Path to write CORSIKA's std-error to.
+        If None: output_path + 'stderr'
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
