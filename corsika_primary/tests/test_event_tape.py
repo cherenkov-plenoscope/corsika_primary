@@ -55,50 +55,106 @@ def make_dummy_run(prng, run_number, avg_num_events, avg_num_bunches):
         }
     return run
 
+RUN_NUMBERS = [1, 13, 67, 3877]
+AVG_NUM_EVENTS = 25
+AVG_NUM_BUNCHES = 10000
+SEED = 8443
 
-def test_event_tape(debug_dir):
+def test_event_tape_with_contextmanager(debug_dir):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
         suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
 
-    prng = np.random.Generator(np.random.PCG64(8443))
+    prng = np.random.Generator(np.random.PCG64(SEED))
 
-    for run_number in [1, 13, 67, 3877]:
+    for run_number in RUN_NUMBERS:
 
-        run_orig = make_dummy_run(
+        orig = make_dummy_run(
             prng=prng,
             run_number=run_number,
-            avg_num_events=25,
-            avg_num_bunches=10000,
+            avg_num_events=AVG_NUM_EVENTS,
+            avg_num_bunches=AVG_NUM_BUNCHES,
         )
         path = os.path.join(tmp.name, "run{:06d}.evt.tar".format(run_number))
 
         with evtar.EventTapeWriter(path=path, buffer_capacity=1000) as ww:
-            ww.write_runh(run_orig["RUNH"])
-            for event_number in run_orig["events"]:
-                ww.write_evth(run_orig["events"][event_number]["EVTH"])
-                ww.write_bunches(run_orig["events"][event_number]["bunches"])
+            ww.write_runh(orig["RUNH"])
+            for event_number in orig["events"]:
+                ww.write_evth(orig["events"][event_number]["EVTH"])
+                ww.write_bunches(orig["events"][event_number]["bunches"])
 
-        run_back = {}
+        back = {}
         with evtar.EventTapeReader(path=path, read_block_by_block=True) as rr:
-            run_back["RUNH"] = rr.runh
-            run_back["events"] = {}
+            back["RUNH"] = rr.runh
+            back["events"] = {}
 
             for event in rr:
                 evth, bunch_stream = event
                 event_number = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-                run_back["events"][event_number] = {"EVTH": evth}
+                back["events"][event_number] = {"EVTH": evth}
                 bunches = []
                 for bunch_block in bunch_stream:
                     bunches.append(bunch_block)
                 bunches = np.vstack(bunches)
-                run_back["events"][event_number]["bunches"] = bunches
+                back["events"][event_number]["bunches"] = bunches
 
-        np.testing.assert_array_equal(run_orig["RUNH"], run_back["RUNH"])
-        for event_number in run_orig["events"]:
-            evto = run_orig["events"][event_number]
-            evtb = run_back["events"][event_number]
+        np.testing.assert_array_equal(orig["RUNH"], back["RUNH"])
+        for event_number in orig["events"]:
+            evto = orig["events"][event_number]
+            evtb = back["events"][event_number]
+            np.testing.assert_array_equal(evto["EVTH"], evtb["EVTH"])
+            np.testing.assert_array_equal(evto["bunches"], evtb["bunches"])
+
+    tmp.cleanup_when_no_debug()
+
+
+def test_event_tape_without_contextmanager(debug_dir):
+    tmp = cpw.testing.TmpDebugDir(
+        debug_dir=debug_dir,
+        suffix=inspect.getframeinfo(inspect.currentframe()).function,
+    )
+
+    prng = np.random.Generator(np.random.PCG64(SEED))
+
+    for run_number in RUN_NUMBERS:
+
+        orig = make_dummy_run(
+            prng=prng,
+            run_number=run_number,
+            avg_num_events=AVG_NUM_EVENTS,
+            avg_num_bunches=AVG_NUM_BUNCHES,
+        )
+        path = os.path.join(tmp.name, "run{:06d}.evt.tar".format(run_number))
+
+        ww = evtar.EventTapeWriter(path=path, buffer_capacity=1000)
+        ww.write_runh(orig["RUNH"])
+        for event_number in orig["events"]:
+            ww.write_evth(orig["events"][event_number]["EVTH"])
+            ww.write_bunches(orig["events"][event_number]["bunches"])
+        ww.close()
+        assert ww.tar.closed
+
+        back = {}
+        rr = evtar.EventTapeReader(path=path, read_block_by_block=True)
+        back["RUNH"] = rr.runh
+        back["events"] = {}
+        for event in rr:
+            evth, bunch_stream = event
+            event_number = int(evth[cpw.I.EVTH.EVENT_NUMBER])
+            back["events"][event_number] = {"EVTH": evth}
+            bunches = []
+            for bunch_block in bunch_stream:
+                bunches.append(bunch_block)
+            bunches = np.vstack(bunches)
+            back["events"][event_number]["bunches"] = bunches
+        rr.close()
+        assert rr.tar.closed
+
+        np.testing.assert_array_equal(orig["RUNH"], back["RUNH"])
+        for event_number in orig["events"]:
+            evto = orig["events"][event_number]
+            evtb = back["events"][event_number]
             np.testing.assert_array_equal(evto["EVTH"], evtb["EVTH"])
             np.testing.assert_array_equal(evto["bunches"], evtb["bunches"])
 

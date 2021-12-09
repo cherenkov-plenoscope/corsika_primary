@@ -212,6 +212,7 @@ class CorsikaPrimary:
         self.stdout_path = op.abspath(stdout_path)
         self.stderr_path = op.abspath(stderr_path)
         self.tmp_dir_prefix = str(tmp_dir_prefix)
+        self.exit_ok = None
 
         steering.assert_values(steering_dict=self.steering_dict)
 
@@ -267,24 +268,31 @@ class CorsikaPrimary:
         )
         self.runh = self.event_tape_reader.runh
 
-    def _close(self):
-        self.event_tape_reader.__exit__()
+    def close(self):
+        self.event_tape_reader.close()
         self.stdout.close()
         self.stderr.close()
-        with open(self.stdout_path, "rt") as f:
-            stdout_txt = f.read()
-        self.exit_ok = testing.stdout_ends_with_end_of_run_marker(stdout_txt)
+        if self.exit_ok is None:
+            with open(self.stdout_path, "rt") as f:
+                stdout = f.read()
+            self.exit_ok = testing.stdout_ends_with_end_of_run_marker(stdout)
         self.tmp_dir_handle.cleanup()
 
     def __next__(self):
         try:
             return self.event_tape_reader.__next__()
         except StopIteration:
-            self._close()
+            self.close()
             raise
 
     def __iter__(self):
         return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
 
     def __repr__(self):
         out = "{:s}(path='{:s}', tmp_dir='{:s}')".format(
