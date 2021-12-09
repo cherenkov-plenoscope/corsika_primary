@@ -55,10 +55,12 @@ def make_dummy_run(prng, run_number, avg_num_events, avg_num_bunches):
         }
     return run
 
+
 RUN_NUMBERS = [1, 13, 67, 3877]
 AVG_NUM_EVENTS = 25
 AVG_NUM_BUNCHES = 10000
 SEED = 8443
+
 
 def test_event_tape_with_contextmanager(debug_dir):
     tmp = cpw.testing.TmpDebugDir(
