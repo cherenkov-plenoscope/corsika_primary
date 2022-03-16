@@ -11,6 +11,7 @@ from . import I
 from . import event_tape
 from . import testing
 from . import collect_version_information
+from . import calibration_light_source
 
 
 MAX_ZENITH_DEG = 70.0
