@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Copyright 2017-2021 Sebastian A. Mueller
 import os
+import shutil
 import argparse
 import corsika_primary as cpw
 
@@ -9,49 +10,54 @@ def main():
     parser = argparse.ArgumentParser(
         prog="corsika_primary_install.py",
         description=(
-            "Install the CORSIKA-primary-modification."
-            + "Caches the CORSIKA-download. "
-            + "Username and password are only needed once for download."
+            "Build the CORSIKA-primary-modification and a vanilla CORSIKA. "
+            "Either provide the CORSIKA-tar yourself or provide "
+            "username and password to download the CORSIKA-tar from KIT. "
         ),
     )
     parser.add_argument(
         "--install_path",
         metavar="PATH",
         type=str,
-        help="The directory to install the CORSIKA-primary-mod to.",
-        nargs=1,
+        help="directory to build the CORSIKA-primary-mod in.",
     )
     parser.add_argument(
         "--resource_path",
         metavar="PATH",
         type=str,
-        help="The directory to the CORSIKA-primary-mod's resources.",
-        nargs=1,
+        help="directory with the CORSIKA-primary-mod's resources.",
     )
     parser.add_argument(
         "--username",
         metavar="STRING",
         type=str,
-        help="KIT CORSIKA's username for downloads.",
-        default=None,
-        nargs=1,
+        help="to download CORSIKA from KIT.",
     )
     parser.add_argument(
         "--password",
         metavar="STRING",
         type=str,
-        help="KIT CORSIKA's password for downloads.",
-        default=None,
-        nargs=1,
+        help="to download CORSIKA from KIT.",
     )
+    parser.add_argument(
+        "--corsika_tar",
+        metavar="PATH",
+        type=str,
+        help="file with the CORSIKA-tar you would download from KIT.",
+    )
+
     args = parser.parse_args()
 
-    install_path = os.path.abspath(args.install_path[0])
-    resource_path = os.path.abspath(args.resource_path[0])
+    install_path = os.path.abspath(args.install_path)
+    resource_path = os.path.abspath(args.resource_path)
     os.makedirs(install_path, exist_ok=True)
     corsika_tar_path = os.path.join(
         install_path, cpw.install.CORSIKA_TAR_FILENAME
     )
+
+    if args.corsika_tar:
+        copy_path = shutil.copy(src=args.corsika_tar, dst=install_path)
+        print("Your corsika-tar: ", args.corsika_tar, " -> ", copy_path)
 
     if not os.path.exists(corsika_tar_path):
         if args.username is None or args.password is None:
@@ -62,8 +68,8 @@ def main():
         print("Downloading from KIT...")
         cpw.install.download_corsika_tar(
             output_dir=install_path,
-            username=args.username[0],
-            password=args.password[0],
+            username=args.username,
+            password=args.password,
             web_path=cpw.install.WEB_PATH,
             corsika_tar_filename=cpw.install.CORSIKA_TAR_FILENAME,
         )
