@@ -4,13 +4,7 @@ from . import I
 
 
 def draw_parallel_and_isochor_bunches(
-    cx,
-    cy,
-    aperture_radius,
-    wavelength,
-    size,
-    prng,
-    speed_of_light=299792458,
+    cx, cy, aperture_radius, wavelength, size, prng, speed_of_light=299792458,
 ):
     """
     Returns photon-bunches emitted by a star-like source of light.
@@ -45,10 +39,9 @@ def draw_parallel_and_isochor_bunches(
     for i in range(size):
         (
             bun[i, I.BUNCH.X],
-            bun[i, I.BUNCH.Y]
+            bun[i, I.BUNCH.Y],
         ) = random.distributions.draw_x_y_in_disc(
-            prng=prng,
-            radius=aperture_radius
+            prng=prng, radius=aperture_radius
         )
 
     bun[:, I.BUNCH.CX] = cx
@@ -72,5 +65,5 @@ def draw_parallel_and_isochor_bunches(
     bun[:, I.BUNCH.TIME] *= 1e9  # s -> ns
     bun[:, I.BUNCH.ZEM] *= 1e2  # m -> cm
 
-    bun[:, I.BUNCH.WVL] *= 1e9 # m -> nm
+    bun[:, I.BUNCH.WVL] *= 1e9  # m -> nm
     return bun
