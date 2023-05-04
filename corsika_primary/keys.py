@@ -18,7 +18,7 @@ def gather_atmprof_headers(run_dir):
     for path in glob.glob(os.path.join(run_dir, "atmprof*.dat")):
         basename = os.path.basename(path)
         fname = os.path.splitext(basename)[0]
-        atmprof_id_str = fname[len("atmprof"):]
+        atmprof_id_str = fname[len("atmprof") :]
         atmprof_id = int(atmprof_id_str)
         atmprofs[atmprof_id] = read_atmprof_header(path)
     return atmprofs
