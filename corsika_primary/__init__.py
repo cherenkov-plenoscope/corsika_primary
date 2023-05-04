@@ -26,6 +26,7 @@ def corsika_primary(
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
+    particle_output=False,
 ):
     """
     Call CORSIKA-primary and write Cherenkov-photons to output_path.
@@ -47,6 +48,8 @@ def corsika_primary(
     stderr_path : str
         Path to write CORSIKA's std-error to.
         If None: output_path + 'stderr'
+    particle_output : bool
+        Output the particles which reach the observation-level.
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
@@ -60,7 +63,9 @@ def corsika_primary(
     steering.assert_values(steering_dict=steering_dict)
 
     steering_card = steering.make_steering_card_str(
-        steering_dict=steering_dict, output_path=output_path,
+        steering_dict=steering_dict,
+        output_path=output_path,
+        particle_output=particle_output,
     )
     primary_bytes = steering.primary_dicts_to_bytes(
         primary_dicts=steering_dict["primaries"]

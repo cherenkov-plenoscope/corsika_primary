@@ -98,7 +98,7 @@ def assert_dtypes_primary_dict(primary_dict):
     assert_dtypes_in_obj(obj=primary_dict, dtype=EXAMPLE["primaries"][0])
 
 
-def make_steering_card_str(steering_dict, output_path):
+def make_steering_card_str(steering_dict, output_path, particle_output=False):
     """
     Make steering card-st for CORSIKA. The card contains all steering for
     the run which is the same for each event.
@@ -132,7 +132,7 @@ def make_steering_card_str(steering_dict, output_path):
             "SEED {:d} {:d} {:d}".format(rnd[2][_S], rnd[2][_C], rnd[2][_B]),
             "SEED {:d} {:d} {:d}".format(rnd[3][_S], rnd[3][_C], rnd[3][_B]),
             "MAXPRT 1",
-            "PAROUT F F",
+            "PAROUT {:s} F".format("T" if particle_output else "F"),
             "ATMOSPHERE {:d} T".format(run["atmosphere_id"]),
             "CWAVLG 250 700",
             "CERQEF F T F",
