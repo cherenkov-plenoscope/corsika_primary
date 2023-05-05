@@ -12,7 +12,7 @@ from . import event_tape
 from . import testing
 from . import collect_version_information
 from . import calibration_light_source
-
+from . import particles
 
 MAX_ZENITH_DEG = 70.0
 CM2M = 1e-2
@@ -26,7 +26,7 @@ def corsika_primary(
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
-    particle_output=False,
+    particle_output_path=None,
 ):
     """
     Call CORSIKA-primary and write Cherenkov-photons to output_path.
@@ -65,7 +65,7 @@ def corsika_primary(
     steering_card = steering.make_steering_card_str(
         steering_dict=steering_dict,
         output_path=output_path,
-        particle_output=particle_output,
+        particle_output=True if particle_output_path else False,
     )
     primary_bytes = steering.primary_dicts_to_bytes(
         primary_dicts=steering_dict["primaries"]
@@ -103,6 +103,11 @@ def corsika_primary(
 
         if op.isfile(output_path):
             os.chmod(output_path, 0o664)
+
+        datfilename = "DAT{:06d}".format(steering_dict["run"]["run_id"])
+        shutil.copy(
+            os.path.join(tmp_dir, "run", datfilename), particle_output_path
+        )
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()

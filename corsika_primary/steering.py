@@ -113,38 +113,44 @@ def make_steering_card_str(steering_dict, output_path, particle_output=False):
     _S = "SEED"
     _C = "CALLS"
     _B = "BILLIONS"
-    card = "\n".join(
-        [
-            "RUNNR {:d}".format(run["run_id"]),
-            "EVTNR {:d}".format(run["event_id_of_first_event"]),
-            "PRMPAR 1",
-            "ERANGE {e_min:.6E} {e_max:.6E}".format(
-                e_min=run["energy_range"]["start_GeV"],
-                e_max=run["energy_range"]["stop_GeV"],
-            ),
-            "OBSLEV {:.6E}".format(M_TO_CM * run["observation_level_asl_m"]),
-            "MAGNET {x:.6E} {z:.6E}".format(
-                x=run["earth_magnetic_field_x_muT"],
-                z=run["earth_magnetic_field_z_muT"],
-            ),
-            "SEED {:d} {:d} {:d}".format(rnd[0][_S], rnd[0][_C], rnd[0][_B]),
-            "SEED {:d} {:d} {:d}".format(rnd[1][_S], rnd[1][_C], rnd[1][_B]),
-            "SEED {:d} {:d} {:d}".format(rnd[2][_S], rnd[2][_C], rnd[2][_B]),
-            "SEED {:d} {:d} {:d}".format(rnd[3][_S], rnd[3][_C], rnd[3][_B]),
-            "MAXPRT 1",
-            "PAROUT {:s} F".format("T" if particle_output else "F"),
-            "ATMOSPHERE {:d} T".format(run["atmosphere_id"]),
-            "CWAVLG 250 700",
-            "CERQEF F T F",
-            "CERSIZ 1.",
-            "CERFIL F",
-            "TSTART T",
-            "NSHOW {:d}".format(len(primaries)),
-            "TELFIL {:s}".format(output_path),
-            "EXIT",
-        ]
-    )
-    card += "\n"  # newline so that CORSIKA knows when stdin is over.
+
+    card = []
+    card += ["RUNNR {:d}".format(run["run_id"])]
+    card += ["EVTNR {:d}".format(run["event_id_of_first_event"])]
+    card += ["PRMPAR 1"]
+    card += [
+        "ERANGE {e_min:.6E} {e_max:.6E}".format(
+            e_min=run["energy_range"]["start_GeV"],
+            e_max=run["energy_range"]["stop_GeV"],
+        )
+    ]
+    card += ["OBSLEV {:.6E}".format(M_TO_CM * run["observation_level_asl_m"])]
+    card += [
+        "MAGNET {x:.6E} {z:.6E}".format(
+            x=run["earth_magnetic_field_x_muT"],
+            z=run["earth_magnetic_field_z_muT"],
+        )
+    ]
+    card += ["SEED {:d} {:d} {:d}".format(rnd[0][_S], rnd[0][_C], rnd[0][_B])]
+    card += ["SEED {:d} {:d} {:d}".format(rnd[1][_S], rnd[1][_C], rnd[1][_B])]
+    card += ["SEED {:d} {:d} {:d}".format(rnd[2][_S], rnd[2][_C], rnd[2][_B])]
+    card += ["SEED {:d} {:d} {:d}".format(rnd[3][_S], rnd[3][_C], rnd[3][_B])]
+    card += ["MAXPRT 1"]
+    card += ["PAROUT {:s} F".format("T" if particle_output else "F")]
+    if particle_output:
+        card += ["DIRECT ./"]
+    card += ["ATMOSPHERE {:d} T".format(run["atmosphere_id"])]
+    card += ["CWAVLG 250 700"]
+    card += ["CERQEF F T F"]
+    card += ["CERSIZ 1."]
+    card += ["CERFIL F"]
+    card += ["TSTART T"]
+    card += ["NSHOW {:d}".format(len(primaries))]
+    card += ["TELFIL {:s}".format(output_path)]
+    card += ["EXIT"]
+    card += ["\n"]  # newline so that CORSIKA knows when stdin is over.]
+    card = "\n".join(card)
+
     return card
 
 
