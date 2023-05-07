@@ -62,18 +62,18 @@ def corsika_primary(
 
     steering.assert_values(steering_dict=steering_dict)
 
-    steering_card = steering.make_steering_card_str(
-        steering_dict=steering_dict,
-        output_path=output_path,
-        particle_output=True if particle_output_path else False,
-    )
-    primary_bytes = steering.primary_dicts_to_bytes(
-        primary_dicts=steering_dict["primaries"]
-    )
-
     corsika_run_dir = op.dirname(corsika_path)
 
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
+        steering_card = steering.make_steering_card_str(
+            steering_dict=steering_dict,
+            output_path=output_path,
+            parout_direct=tmp_dir if particle_output_path else None,
+        )
+        primary_bytes = steering.primary_dicts_to_bytes(
+            primary_dicts=steering_dict["primaries"]
+        )
+
         tmp_corsika_run_dir = op.join(tmp_dir, "run")
         shutil.copytree(corsika_run_dir, tmp_corsika_run_dir, symlinks=False)
         tmp_corsika_path = op.join(
@@ -105,9 +105,7 @@ def corsika_primary(
             os.chmod(output_path, 0o664)
 
         datfilename = "DAT{:06d}".format(steering_dict["run"]["run_id"])
-        shutil.copy(
-            os.path.join(tmp_dir, "run", datfilename), particle_output_path
-        )
+        shutil.copy(os.path.join(tmp_dir, datfilename), particle_output_path)
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()

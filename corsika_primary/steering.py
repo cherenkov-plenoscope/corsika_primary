@@ -98,11 +98,21 @@ def assert_dtypes_primary_dict(primary_dict):
     assert_dtypes_in_obj(obj=primary_dict, dtype=EXAMPLE["primaries"][0])
 
 
-def make_steering_card_str(steering_dict, output_path, particle_output=False):
+def make_sure_direct_ends_with_os_sep(direct):
+    if str.endswith(direct, os.path.sep):
+        return direct
+    else:
+        return direct + os.path.sep
+
+
+def make_steering_card_str(steering_dict, output_path, parout_direct=None):
     """
     Make steering card-st for CORSIKA. The card contains all steering for
     the run which is the same for each event.
     """
+    if parout_direct:
+        parout_direct = make_sure_direct_ends_with_os_sep(direct=parout_direct)
+
     run = steering_dict["run"]
     primaries = steering_dict["primaries"]
     assert_dtypes_run_dict(run)
@@ -136,9 +146,9 @@ def make_steering_card_str(steering_dict, output_path, particle_output=False):
     card += ["SEED {:d} {:d} {:d}".format(rnd[2][_S], rnd[2][_C], rnd[2][_B])]
     card += ["SEED {:d} {:d} {:d}".format(rnd[3][_S], rnd[3][_C], rnd[3][_B])]
     card += ["MAXPRT 1"]
-    card += ["PAROUT {:s} F".format("T" if particle_output else "F")]
-    if particle_output:
-        card += ["DIRECT ./"]
+    card += ["PAROUT {:s} F".format("T" if parout_direct else "F")]
+    if parout_direct:
+        card += ["DIRECT {:s}".format(parout_direct)]
     card += ["ATMOSPHERE {:d} T".format(run["atmosphere_id"])]
     card += ["CWAVLG 250 700"]
     card += ["CERQEF F T F"]

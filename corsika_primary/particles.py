@@ -91,6 +91,7 @@ class BlockReader:
             block_f32 = np.frombuffer(block_bytes, dtype=np.float32)
             return block_f32
         else:
+            print(block_bytes)
             raise StopIteration
 
     def close(self):
@@ -130,6 +131,8 @@ class RunWriter:
         self._has_rune = False
         self.particle_block_size = 0
         self.stuff_before_runh = b"\x94Y\x00\x00"
+        self.stuff_after_zero_blocks = self.stuff_before_runh
+        self.num_trailing_zero_blocks = 10
         self.file.write(self.stuff_before_runh)
 
     def write_runh(self, runh):
@@ -173,6 +176,8 @@ class RunWriter:
         assert not self._has_rune
         self._has_rune = True
         self.file.write(rune.tobytes())
+        self.write_trailing_zero_blocks()
+        self.file.write(self.stuff_after_zero_blocks)
 
     def write_particle(self, particle):
         assert particle.shape == (7,)
@@ -187,6 +192,11 @@ class RunWriter:
         assert head[0].tobytes() == marker
         assert head.shape == (273,)
         assert head.dtype == np.float32
+
+    def write_trailing_zero_blocks(self):
+        zero_block = np.zeros(273, dtype=np.float32)
+        for i in range(self.num_trailing_zero_blocks):
+            self.file.write(zero_block.tobytes())
 
     def close(self):
         self.file.close()
@@ -227,7 +237,7 @@ def read_rundict(path):
 
 
 def write_rundict(path, rrr):
-    with RunWriter(path=path + ".back") as out:
+    with RunWriter(path=path) as out:
         out.write_runh(rrr["RUNH"])
         for eee in rrr["events"]:
             out.write_evth(eee["EVTH"])
