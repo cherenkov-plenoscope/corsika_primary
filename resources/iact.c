@@ -408,7 +408,6 @@ void pppout_(cors_real_t datab[273]);
 FILE *ppp_file = NULL;
 
 void ppprnh_(cors_real_t runh[273]) {
-    fprintf(stderr, "%s, %d, %s\n", __FILE__, __LINE__, __func__);
     chk_msg(output_path[0] != '\0', "Expected output_path to be set.");
     const uint64_t sz = sizeof(output_path);
     char ppp_output_path[sizeof(output_path) + 128] = "";
@@ -432,7 +431,6 @@ error:
 }
 
 void pppevt_(cors_real_t evth[273]) {
-    fprintf(stderr, "%s, %d, %s\n", __FILE__, __LINE__, __func__);
     chk_fwrite(evth, sizeof(float), 273, ppp_file);
     fflush(ppp_file);
     return;
@@ -441,7 +439,6 @@ error:
 }
 
 void pppout_(cors_real_t datab[273]) {
-    fprintf(stderr, "%s, %d, %s\n", __FILE__, __LINE__, __func__);
     chk_fwrite(datab, sizeof(float), 273, ppp_file);
     return;
 error:
@@ -449,7 +446,6 @@ error:
 }
 
 void pppend_(cors_real_t evte[273]) {
-    fprintf(stderr, "%s, %d, %s\n", __FILE__, __LINE__, __func__);
     chk_fwrite(evte, sizeof(float), 273, ppp_file);
     fflush(ppp_file);
     return;
@@ -458,7 +454,6 @@ error:
 }
 
 void ppprne_(cors_real_t rune[273]) {
-    fprintf(stderr, "%s, %d, %s\n", __FILE__, __LINE__, __func__);
     chk_fwrite(rune, sizeof(float), 273, ppp_file);
     fflush(ppp_file);
     return;
