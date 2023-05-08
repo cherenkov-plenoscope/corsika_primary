@@ -280,7 +280,9 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.cherenkov_reader = event_tape.EventTapeReader(path=self.cer_fifo_path)
+        self.cherenkov_reader = event_tape.EventTapeReader(
+            path=self.cer_fifo_path
+        )
         self.runh = self.cherenkov_reader.runh
         self.par_stream = open(self.par_fifo_path, "rb", buffering=0)
         self.particle_reader = particles.RunReader(
