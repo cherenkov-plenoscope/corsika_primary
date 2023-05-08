@@ -6,40 +6,79 @@
 <           CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP )
 ---
 >           CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP, THICK0)
-106230c106230,106231
+6710a6711
+>           CALL PPPEVT( EVTH )
+7799a7801
+>         CALL PPPEND( EVTE )
+7878a7881
+>       CALL PPPRNE( RUNE )
+45210,45227d45212
+< 
+< 
+<         INQUIRE(FILE=DSN,EXIST=FEXIST)
+< 
+<         IF ( FEXIST ) THEN
+<           IBL = INDEX(DSN,' ')
+<           IF ( IBL .LE. 1 ) IBL = LEN(DSN)+1
+< 
+< 
+< 
+<           WRITE(MONIOU,5791) DSN(1:IBL-1)
+< 
+<           STOP 'FATAL PROBLEM'
+<         ENDIF
+< 
+< 
+< 
+< 
+49992a49978
+>       CALL PPPRNH( RUNH )
+65622a65609
+>         CALL PPPOUT( DATAB )
+66902a66890
+>             CALL PPPOUT( DATAB )
+67043a67032
+>           CALL PPPOUT( DATAB )
+106230c106219,106220
 <         GOTO 420
 ---
 >         IF ( FNPRIM ) GOTO 420
 >         GOTO 498
-106308c106309,106310
+106308c106298,106299
 <             GOTO 420
 ---
 >             IF ( FNPRIM ) GOTO 420
 >             GOTO 498
-106414c106416,106417
+106414c106405,106406
 <           GOTO 420
 ---
 >           IF (FNPRIM) GOTO 420
 >           GOTO 498
-106444c106447,106448
+106444c106436,106437
 <           GOTO 420
 ---
 >           IF (FNPRIM) GOTO 420
 >           GOTO 498
-106518c106522,106523
+106518c106511,106512
 <         GOTO 420
 ---
 >         IF ( FNPRIM ) GOTO 420
 >         GOTO 498
-106736c106741,106742
+106736c106730,106731
 <         GOTO 420
 ---
 >         IF ( FNPRIM ) GOTO 420
 >         GOTO 498
-106869c106875,106878
+106831a106827
+>         CALL PPPEVT( EVTH )
+106869c106865,106868
 <         IF ( PEIE .LE. ECUT(IRL) ) GOTO 390
 ---
 >         IF ( PEIE .LE. ECUT(IRL) ) THEN
 >             IF ( FNPRIM ) GOTO 390
 >             GOTO 498
 >         ENDIF
+117236a117236
+>         CALL PPPEVT( EVTH )
+168406a168407
+>             CALL PPPOUT( DATAB )
