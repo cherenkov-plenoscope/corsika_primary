@@ -72,22 +72,15 @@ def hash_cherenkov_pools(
     hashes = {}
     seeds = {}
 
-    print("3.1.4.1")
     if not os.path.exists(hashes_path):
-
-        print("3.1.4.2")
-        print(steering_dict)
-        print(path)
         run = cpw.CorsikaPrimary(
             corsika_path=corsika_primary_path,
             steering_dict=steering_dict,
             stdout_path=path + ".o",
             stderr_path=path + ".e",
         )
-        print("3.1.4.3")
 
         for event in run:
-            print("3.1.4.4")
             evth, cer_reader, par_reader = event
 
             cer_blocks = []
@@ -116,7 +109,6 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
 ):
     os.makedirs(tmp_dir, exist_ok=True)
 
-    print("3.1.1")
     complete_hashes, complete_seeds = hash_cherenkov_pools(
         corsika_primary_path=corsika_primary_path,
         steering_dict=steering_dict,
@@ -124,12 +116,10 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
         tmp_dir=tmp_dir,
     )
 
-    print("3.1.2")
     part_hashes = {}
     for event_id in event_ids_to_reproduce:
         event_idx = event_id - steering_dict["run"]["event_id_of_first_event"]
 
-        print("3.1.3", event_id)
         part_steering_dict = {}
         part_steering_dict["run"] = copy.deepcopy(steering_dict["run"])
         part_steering_dict["run"]["random_seed"] = complete_seeds[event_id]
@@ -138,7 +128,6 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
             copy.deepcopy(steering_dict["primaries"][event_idx])
         )
 
-        print("3.1.4", event_id)
         part_hash, part_seed = hash_cherenkov_pools(
             corsika_primary_path=corsika_primary_path,
             steering_dict=part_steering_dict,
@@ -146,7 +135,6 @@ def make_run_and_cherry_pick_event_ids_to_reproduce(
             tmp_dir=tmp_dir,
         )
         part_hashes[event_id] = part_hash[1]
-        print("3.1.5", event_id)
 
     return complete_hashes, part_hashes
 
@@ -202,17 +190,14 @@ def test_few_events_different_particles_reproduce_one(
         debug_dir=debug_dir,
         suffix=inspect.getframeinfo(inspect.currentframe()).function,
     )
-    print("1")
 
     prng = np.random.Generator(np.random.PCG64(42))
 
     num_primaries = 15
     event_ids_to_reproduce = np.arange(1, num_primaries + 1)
-    print("2")
+
     failing_event_ids = {}
     for pkey in PARTICLES:
-
-        print("3", pkey)
         steering_dict = make_random_steering_dict(
             particle_id=PARTICLES[pkey]["particle_id"],
             run_id=6085,
@@ -221,7 +206,6 @@ def test_few_events_different_particles_reproduce_one(
             prng=prng,
         )
 
-        print("3.1", pkey)
         (
             original_hashes,
             reproduced_hashes,
@@ -232,17 +216,14 @@ def test_few_events_different_particles_reproduce_one(
             tmp_dir=os.path.join(tmp.name, pkey),
         )
 
-        print("3.2", pkey)
         failing_event_ids[pkey] = cherenkov_pool_hashes_are_different(
             original_hashes=original_hashes,
             reproduced_hashes=reproduced_hashes,
             original_steering_dict=steering_dict,
         )
 
-    print("4")
     failing_is_as_expected = True
     for pkey in PARTICLES:
-        print("5", pkey)
         if failing_event_ids[pkey] != PARTICLES[pkey]["expected_to_fail"]:
             failing_is_as_expected = False
     assert failing_is_as_expected
