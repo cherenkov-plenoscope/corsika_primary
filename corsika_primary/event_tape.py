@@ -108,19 +108,12 @@ class EventTapeReader:
         path : str
             Path to the event-tape written by the CORSIKA-primary-mod.
         """
-        print("E.A")
-        print(path)
         self.path = str(path)
         self.tar = tarfile.open(name=path, mode="r|")
-
-        print("E.B")
         self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
         self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
-
-        print("E.C")
         self.next_info = self.tar.next()
-        print("E.D")
 
     def __next__(self):
         if self.next_info is None:
