@@ -12,25 +12,6 @@
 >         CALL PPPEND( EVTE )
 7878a7881
 >       CALL PPPRNE( RUNE )
-45210,45227d45212
-< 
-< 
-<         INQUIRE(FILE=DSN,EXIST=FEXIST)
-< 
-<         IF ( FEXIST ) THEN
-<           IBL = INDEX(DSN,' ')
-<           IF ( IBL .LE. 1 ) IBL = LEN(DSN)+1
-< 
-< 
-< 
-<           WRITE(MONIOU,5791) DSN(1:IBL-1)
-< 
-<           STOP 'FATAL PROBLEM'
-<         ENDIF
-< 
-< 
-< 
-< 
 49992a49978
 >       CALL PPPRNH( RUNH )
 65622a65609
