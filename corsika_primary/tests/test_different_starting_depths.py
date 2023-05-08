@@ -75,7 +75,11 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
         _std_r = []
         for rep in range(NUM_EVENTS_PER_DEPTH):
             event = next(run)
-            evth, bunches = event
+            evth, cer_reader = event
+
+            bunches = [cer_block for cer_block in cer_reader]
+            bunches = np.vstack(bunches)
+
             if bunches.shape[0] > 0:
                 _num_bunches.append(bunches.shape[0])
                 _num_photons.append(np.sum(bunches[:, cpw.I.BUNCH.BSIZE]))

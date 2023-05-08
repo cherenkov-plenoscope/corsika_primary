@@ -273,8 +273,11 @@ def test_vanilla_vs_moddified(
         ori_run = cpw.testing.SimpleIoRun(ori_run_path)
 
         for evt_idx in range(num_shower):
-            mod_evth, mod_bunches = next(mod_run)
+            mod_evth, mod_cer_reader = next(mod_run)
             ori_evth, ori_bunches = next(ori_run)
+
+            mod_bunches = np.vstack([b for b in mod_cer_reader])
+
             mod_bunches = cpw.bunches_to_si_units(mod_bunches)
             ori_bunches = cpw.bunches_to_si_units(ori_bunches)
 

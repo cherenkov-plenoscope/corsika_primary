@@ -186,7 +186,8 @@ def test_low_energy_electron(
 
     run = cpw.event_tape.EventTapeReader(mod_run_path)
     for idx, event in enumerate(run):
-        evth, bunches = event
+        evth, cer_reader = event
+        bunches = np.vstack([b for b in cer_reader])
         assert van_num_bunches[idx] == bunches.shape[0]
 
     tmp.cleanup_when_no_debug()

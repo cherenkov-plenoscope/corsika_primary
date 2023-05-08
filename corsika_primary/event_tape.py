@@ -119,19 +119,14 @@ class EventTapeReader:
         if self.next_info is None:
             raise StopIteration
 
-        evth = read_evth(tar=self.tar, tarinfo=self.next_info)
+        try:
+            evth = read_evth(tar=self.tar, tarinfo=self.next_info)
+        except AssertionError as e:
+            raise StopIteration
+
         self.event_number = int(evth[I.EVTH.EVENT_NUMBER])
-
         self.next_info = self.tar.next()
-
         return (evth, BunchTapeReader(run=self))
-        """
-        cherenkov_blocks = []
-        bunch_tape = BunchTapeReader(run=self)
-        for cherenkov_block in bunch_tape:
-            cherenkov_blocks.append(cherenkov_block)
-        return (evth, np.vstack(cherenkov_blocks))
-        """
 
     def close(self):
         self.tar.close()

@@ -55,9 +55,11 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
             steering_dict=steering_dict,
             output_path=run_path,
         )
+
     run = cpw.event_tape.EventTapeReader(run_path)
     event = next(run)
-    evth, bunches = event
+    evth, cer_reader = event
+
     with pytest.raises(StopIteration):
         next(run)
 
@@ -66,6 +68,11 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
     assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
 
     sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
+
+    bunches = []
+    for cer_block in cer_reader:
+        bunches.append(cer_block)
+    bunches = np.vstack(bunches)
 
     assert bunches.shape[0] > sufficient_bunches
 
