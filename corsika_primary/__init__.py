@@ -221,7 +221,6 @@ class CorsikaPrimary:
         """
         op = os.path
 
-        print("A")
         self.corsika_path = op.abspath(corsika_path)
         self.steering_dict = copy.deepcopy(steering_dict)
         self.stdout_path = op.abspath(stdout_path)
@@ -271,7 +270,6 @@ class CorsikaPrimary:
         self.stdout = open(self.stdout_path, "w")
         self.stderr = open(self.stderr_path, "w")
 
-        print("B")
         self.corsika_process = subprocess.Popen(
             self.tmp_corsika_path,
             stdout=self.stdout,
@@ -282,22 +280,12 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        print("C")
         self.cherenkov_reader = event_tape.EventTapeReader(path=self.cer_fifo_path)
-        print("C.A")
         self.runh = self.cherenkov_reader.runh
-        print("C.B")
-
-        print("A.B")
-        print(self.par_fifo_path)
         self.par_stream = open(self.par_fifo_path, "rb", buffering=0)
-        print("A.C")
-
-        print("C.C")
         self.particle_reader = particles.RunReader(
             stream=self.par_stream, num_offset_bytes=0
         )
-        print("D")
 
     def close(self):
         self.cherenkov_reader.close()
