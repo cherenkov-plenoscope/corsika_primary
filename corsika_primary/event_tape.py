@@ -99,7 +99,7 @@ class EventTapeWriter:
 
 
 class EventTapeReader:
-    def __init__(self, path, read_block_by_block=False):
+    def __init__(self, path):
         """
         Read an event-tape written by the CORSIKA-primary-mod.
 
@@ -107,21 +107,20 @@ class EventTapeReader:
         ----------
         path : str
             Path to the event-tape written by the CORSIKA-primary-mod.
-        read_block_by_block : bool (False)
-            If false, all Cherenkov-bunches of an event are read at once and
-            returned by (evth, bunches) = next(self).
-            If true, next(self) returns (evth, class BunchTapeReader).
-            BunchTapeReader can then read Cherenkov-bunches block-by-block.
         """
+        print("E.A")
+        print(path)
         self.path = str(path)
-        self.read_block_by_block = bool(read_block_by_block)
         self.tar = tarfile.open(name=path, mode="r|")
 
+        print("E.B")
         self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
         self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
 
+        print("E.C")
         self.next_info = self.tar.next()
+        print("E.D")
 
     def __next__(self):
         if self.next_info is None:
@@ -132,14 +131,14 @@ class EventTapeReader:
 
         self.next_info = self.tar.next()
 
-        if self.read_block_by_block:
-            return (evth, BunchTapeReader(run=self))
-        else:
-            cherenkov_blocks = []
-            bunch_tape = BunchTapeReader(run=self)
-            for cherenkov_block in bunch_tape:
-                cherenkov_blocks.append(cherenkov_block)
-            return (evth, np.vstack(cherenkov_blocks))
+        return (evth, BunchTapeReader(run=self))
+        """
+        cherenkov_blocks = []
+        bunch_tape = BunchTapeReader(run=self)
+        for cherenkov_block in bunch_tape:
+            cherenkov_blocks.append(cherenkov_block)
+        return (evth, np.vstack(cherenkov_blocks))
+        """
 
     def close(self):
         self.tar.close()

@@ -26,7 +26,7 @@ def corsika_primary(
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
-    particle_output_path=None,
+    vanilla_particle_output=False,
 ):
     """
     Call CORSIKA-primary and write Cherenkov-photons to output_path.
@@ -48,8 +48,7 @@ def corsika_primary(
     stderr_path : str
         Path to write CORSIKA's std-error to.
         If None: output_path + 'stderr'
-    particle_output : bool
-        Output the particles which reach the observation-level.
+    vanilla_particle_output : bool
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
@@ -68,7 +67,7 @@ def corsika_primary(
         steering_card = steering.make_steering_card_str(
             steering_dict=steering_dict,
             output_path=output_path,
-            parout_direct=tmp_dir if particle_output_path else None,
+            parout_direct=tmp_dir if vanilla_particle_output else None,
         )
         primary_bytes = steering.primary_dicts_to_bytes(
             primary_dicts=steering_dict["primaries"]
@@ -104,8 +103,15 @@ def corsika_primary(
         if op.isfile(output_path):
             os.chmod(output_path, 0o664)
 
-        datfilename = "DAT{:06d}".format(steering_dict["run"]["run_id"])
-        shutil.copy(os.path.join(tmp_dir, datfilename), particle_output_path)
+        if vanilla_particle_output:
+            datfilename = particles.DAT_FILE_TEMPLATE.format(
+                runnr=steering_dict["run"]["run_id"]
+            )
+            vanilla_particle_output_path = output_path + ".par.dat"
+            shutil.copy(
+                os.path.join(tmp_dir, datfilename),
+                vanilla_particle_output_path,
+            )
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()
@@ -193,7 +199,6 @@ class CorsikaPrimary:
         steering_dict,
         stdout_path,
         stderr_path,
-        read_block_by_block=False,
         tmp_dir_prefix="corsika_primary_",
     ):
         """
@@ -211,11 +216,12 @@ class CorsikaPrimary:
             The steering for the run and for each primary particle.
         stdout_path : str
             Path to write CORSIKA's std-out to.
-        stderr_path : str,
+        stderr_path : str
             Path to write CORSIKA's std-error to.
         """
         op = os.path
 
+        print("A")
         self.corsika_path = op.abspath(corsika_path)
         self.steering_dict = copy.deepcopy(steering_dict)
         self.stdout_path = op.abspath(stdout_path)
@@ -230,8 +236,8 @@ class CorsikaPrimary:
         )
         self.tmp_dir = self.tmp_dir_handle.name
 
-        self.fifo_path = op.join(self.tmp_dir, "fifo.tar")
-        os.mkfifo(self.fifo_path)
+        self.cer_fifo_path = op.join(self.tmp_dir, "cer_fifo.tar")
+        os.mkfifo(self.cer_fifo_path)
 
         self.tmp_corsika_run_dir = op.join(self.tmp_dir, "run")
         self.corsika_run_dir = op.dirname(self.corsika_path)
@@ -243,8 +249,11 @@ class CorsikaPrimary:
             self.tmp_corsika_run_dir, op.basename(self.corsika_path)
         )
 
+        self.par_fifo_path = self.cer_fifo_path + ".par.dat"
+        os.mkfifo(self.par_fifo_path)
+
         self.steering_card = steering.make_steering_card_str(
-            steering_dict=self.steering_dict, output_path=self.fifo_path,
+            steering_dict=self.steering_dict, output_path=self.cer_fifo_path,
         )
         assert self.steering_card[-1] == "\n", "Need newline to mark ending."
 
@@ -262,6 +271,7 @@ class CorsikaPrimary:
         self.stdout = open(self.stdout_path, "w")
         self.stderr = open(self.stderr_path, "w")
 
+        print("B")
         self.corsika_process = subprocess.Popen(
             self.tmp_corsika_path,
             stdout=self.stdout,
@@ -272,15 +282,30 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.event_tape_reader = event_tape.EventTapeReader(
-            path=self.fifo_path, read_block_by_block=read_block_by_block,
+        print("C")
+        self.cherenkov_reader = event_tape.EventTapeReader(path=self.cer_fifo_path)
+        print("C.A")
+        self.runh = self.cherenkov_reader.runh
+        print("C.B")
+
+        print("A.B")
+        print(self.par_fifo_path)
+        self.par_stream = open(self.par_fifo_path, "rb", buffering=0)
+        print("A.C")
+
+        print("C.C")
+        self.particle_reader = particles.RunReader(
+            stream=self.par_stream, num_offset_bytes=0
         )
-        self.runh = self.event_tape_reader.runh
+        print("D")
 
     def close(self):
-        self.event_tape_reader.close()
+        self.cherenkov_reader.close()
+        self.particle_reader.close()
+
         self.stdout.close()
         self.stderr.close()
+        self.par_stream.close()
         if self.exit_ok is None:
             with open(self.stdout_path, "rt") as f:
                 stdout = f.read()
@@ -289,7 +314,11 @@ class CorsikaPrimary:
 
     def __next__(self):
         try:
-            return self.event_tape_reader.__next__()
+            cer_evth, cer_bunches = self.cherenkov_reader.__next__()
+            par_evth, par_bunches = self.particle_reader.__next__()
+            np.testing.assert_array_equal(cer_evth, par_evth)
+
+            return (cer_evth, cer_bunches, par_bunches)
         except StopIteration:
             self.close()
             raise

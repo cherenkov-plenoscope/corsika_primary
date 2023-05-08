@@ -26,17 +26,19 @@ def test_with_contextmanager(debug_dir, corsika_primary_path):
         steering_dict=cpw.steering.EXAMPLE,
         stdout_path=os.path.join(tmp.name, "corsika.o"),
         stderr_path=os.path.join(tmp.name, "corsika.e"),
-        read_block_by_block=True,
         tmp_dir_prefix="test_with_context",
     ) as run:
         assert run.runh.shape[0] == 273
 
         for event in run:
-            evth, bunch_block_reader = event
+            evth, cer_reader, par_reader = event
             assert evth.shape[0] == 273
 
-            for bunch_block in bunch_block_reader:
-                assert bunch_block.shape[1] == 8
+            for cer_block in cer_reader:
+                assert cer_block.shape[1] == 8
+
+            for par_block in par_reader:
+                assert cer_block.shape[1] == 8
 
     tmp.cleanup_when_no_debug()
 
@@ -52,18 +54,20 @@ def test_without_contextmanager(debug_dir, corsika_primary_path):
         steering_dict=cpw.steering.EXAMPLE,
         stdout_path=os.path.join(tmp.name, "corsika.o"),
         stderr_path=os.path.join(tmp.name, "corsika.e"),
-        read_block_by_block=True,
         tmp_dir_prefix="test_without_context",
     )
 
     assert run.runh.shape[0] == 273
 
     for event in run:
-        evth, bunch_block_reader = event
+        evth, cer_reader, par_reader = event
         assert evth.shape[0] == 273
 
-        for bunch_block in bunch_block_reader:
+        for bunch_block in cer_reader:
             assert bunch_block.shape[1] == 8
+
+        for par_block in par_reader:
+            pass
 
     run.close()
 

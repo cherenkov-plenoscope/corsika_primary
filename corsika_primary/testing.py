@@ -1,9 +1,11 @@
 import numpy as np
 import subprocess
 import os
+import copy
 import glob
 from . import I
 from . import random
+from . import steering
 
 
 class TmpDebugDir:
@@ -207,3 +209,31 @@ def write_seeds(path, seeds):
 def read_seeds(path):
     with open(path, "rt") as f:
         return random.seed.loads(s=f.read())
+
+
+def make_example_steering_for_particle_output():
+    ste = copy.deepcopy(steering.EXAMPLE)
+
+    f8 = np.float64
+
+    ste["run"]["energy_range"] = {
+        "start_GeV": f8(100.0),
+        "stop_GeV": f8(200.0),
+    }
+    ste["primaries"] = [
+        {
+            "particle_id": f8(14),
+            "energy_GeV": f8(100.0),
+            "zenith_rad": f8(0.0),
+            "azimuth_rad": f8(0.0),
+            "depth_g_per_cm2": f8(0.0),
+        },
+        {
+            "particle_id": f8(402),
+            "energy_GeV": f8(180.0),
+            "zenith_rad": f8(0.0),
+            "azimuth_rad": f8(0.0),
+            "depth_g_per_cm2": f8(0.0),
+        },
+    ]
+    return ste

@@ -1,12 +1,15 @@
 import numpy as np
 
 
+DAT_FILE_TEMPLATE = "DAT{runnr:06d}"
+
+
 class RunReader:
-    def __init__(self, path, num_offset_bytes=4):
+    def __init__(self, stream, num_offset_bytes=4):
         """
         """
         self.block_reader = BlockReader(
-            path=path, num_offset_bytes=num_offset_bytes
+            stream=stream, num_offset_bytes=num_offset_bytes
         )
         self.runh = self.block_reader.__next__()
         assert self.runh[0].tobytes() == b"RUNH", "Expected RUNH"
@@ -26,6 +29,9 @@ class RunReader:
             assert evth[0].tobytes() == b"EVTH", "Expected EVTH"
             return evth, ParticleBlockReader(block_reader=self.block_reader)
 
+    def close(self):
+        self.block_reader.close()
+
     def __iter__(self):
         return self
 
@@ -33,12 +39,10 @@ class RunReader:
         return self
 
     def __exit__(self, type, value, traceback):
-        self.block_reader.close()
+        self.close()
 
     def __repr__(self):
-        out = "{:s}(path={:s})".format(
-            self.__class__.__name__, self.block_reader.path
-        )
+        out = "{:s}()".format(self.__class__.__name__)
         return out
 
 
@@ -70,32 +74,31 @@ class ParticleBlockReader:
         pass
 
     def __repr__(self):
-        out = "{:s}(path={:s})".format(
-            self.__class__.__name__, self.block_reader.path
-        )
+        out = "{:s}()".format(self.__class__.__name__)
         return out
 
 
 class BlockReader:
-    def __init__(self, path, num_offset_bytes=4):
+    def __init__(self, stream, num_offset_bytes=4):
         """
         """
-        self.path = path
-        self.file = open(self.path, "rb")
+        self.file = stream
         self.num_bytes_per_block = 273 * 4
-        self.stuff_before_runh = self.file.read(num_offset_bytes)
+
+        if num_offset_bytes:
+            self.stuff_before_runh = self.file.read(num_offset_bytes)
 
     def __next__(self):
         block_bytes = self.file.read(self.num_bytes_per_block)
+
         if len(block_bytes) == self.num_bytes_per_block:
             block_f32 = np.frombuffer(block_bytes, dtype=np.float32)
             return block_f32
         else:
-            print(block_bytes)
             raise StopIteration
 
     def close(self):
-        self.file.close()
+        pass
 
     def __iter__(self):
         return self
@@ -107,7 +110,7 @@ class BlockReader:
         self.close()
 
     def __repr__(self):
-        out = "{:s}(path={:s})".format(self.__class__.__name__, self.path)
+        out = "{:s}()".format(self.__class__.__name__)
         return out
 
 
@@ -122,9 +125,8 @@ def decode_particle_id(f4):
 
 
 class RunWriter:
-    def __init__(self, path, num_offset_bytes=4):
-        self.path = path
-        self.file = open(path, "wb")
+    def __init__(self, stream, num_offset_bytes=4):
+        self.file = stream
         self._has_runh = False
         self._event_has_evth = False
         self._event_has_evte = False
@@ -211,40 +213,44 @@ class RunWriter:
         self.close()
 
     def __repr__(self):
-        out = "{:s}(path={:s})".format(self.__class__.__name__, self.path)
+        out = "{:s}()".format(self.__class__.__name__)
         return out
 
 
-def read_rundict(path):
+def read_rundict(path, num_offset_bytes=4):
     rrr = {}
-    with RunReader(path=path) as run:
-        rrr["RUNH"] = run.runh
-        rrr["events"] = []
-        for event in run:
-            evth, particle_block_reader = event
-            eee = {
-                "EVTH": evth,
-                "particles": [],
-                "EVTE": None,
-            }
-            for particle_block in particle_block_reader:
-                for particle in particle_block:
-                    eee["particles"].append(particle)
-            eee["EVTE"] = particle_block_reader.evte
-            rrr["events"].append(eee)
-        rrr["RUNE"] = run.rune
-    return rrr
+    with open(path, "rb") as istream:
+        with RunReader(
+            stream=istream, num_offset_bytes=num_offset_bytes
+        ) as run:
+            rrr["RUNH"] = run.runh
+            rrr["events"] = []
+            for event in run:
+                evth, particle_block_reader = event
+                eee = {
+                    "EVTH": evth,
+                    "particles": [],
+                    "EVTE": None,
+                }
+                for particle_block in particle_block_reader:
+                    for particle in particle_block:
+                        eee["particles"].append(particle)
+                eee["EVTE"] = particle_block_reader.evte
+                rrr["events"].append(eee)
+            rrr["RUNE"] = run.rune
+        return rrr
 
 
 def write_rundict(path, rrr):
-    with RunWriter(path=path) as out:
-        out.write_runh(rrr["RUNH"])
-        for eee in rrr["events"]:
-            out.write_evth(eee["EVTH"])
-            for ppp in eee["particles"]:
-                out.write_particle(ppp)
-            out.write_evte(eee["EVTE"])
-        out.write_rune(rrr["RUNE"])
+    with open(path, "wb") as ostream:
+        with RunWriter(stream=ostream) as out:
+            out.write_runh(rrr["RUNH"])
+            for eee in rrr["events"]:
+                out.write_evth(eee["EVTH"])
+                for ppp in eee["particles"]:
+                    out.write_particle(ppp)
+                out.write_evte(eee["EVTE"])
+            out.write_rune(rrr["RUNE"])
 
 
 def assert_rundict_equal(rrr, bbb):

@@ -87,7 +87,7 @@ def test_event_tape_with_contextmanager(debug_dir):
                 ww.write_bunches(orig["events"][event_number]["bunches"])
 
         back = {}
-        with evtar.EventTapeReader(path=path, read_block_by_block=True) as rr:
+        with evtar.EventTapeReader(path=path) as rr:
             back["RUNH"] = rr.runh
             back["events"] = {}
 
@@ -138,7 +138,7 @@ def test_event_tape_without_contextmanager(debug_dir):
         assert ww.tar.closed
 
         back = {}
-        rr = evtar.EventTapeReader(path=path, read_block_by_block=True)
+        rr = evtar.EventTapeReader(path=path)
         back["RUNH"] = rr.runh
         back["events"] = {}
         for event in rr:
