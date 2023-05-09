@@ -120,7 +120,9 @@ def test_particle_output(corsika_primary_path, debug_dir):
 
     assert run.block_reader.file.closed == True
 
-    cpw.particles.rundict.write_rundict(dat_path=vvv_par_path + ".back", rrr=rrr)
+    cpw.particles.rundict.write_rundict(
+        dat_path=vvv_par_path + ".back", rrr=rrr
+    )
     bbb = cpw.particles.rundict.read_rundict(dat_path=vvv_par_path + ".back")
 
     # compare rrr and bbb

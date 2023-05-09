@@ -52,4 +52,3 @@ def assert_rundict_equal(rrr, bbb):
             )
         np.testing.assert_array_equal(eeer["EVTE"], eeeb["EVTE"])
     np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])
-

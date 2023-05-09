@@ -16,7 +16,9 @@ def decode_particle_id(f4):
 
 
 def dat_to_tape(dat_path, tape_path):
-    with open(dat_path, "rb") as df, tape.ParticleTapeWriter(tape_path) as evttape:
+    with open(dat_path, "rb") as df, tape.ParticleTapeWriter(
+        tape_path
+    ) as evttape:
         with RunReader(df) as run:
             evttape.write_runh(run.runh)
 
