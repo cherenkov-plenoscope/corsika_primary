@@ -106,8 +106,15 @@ error:
 */
 void telrnh_(cors_real_t runh[273]) {
     taro = mliEventTapeWriter_init();
+    FILE *ostream = fopen(output_path, "w+b");
+    setbuf(ostream, NULL);
+    chk_msg(ostream, "Can't open event_tape_stream.");
     chk_msg(
-        mliEventTapeWriter_open(&taro, output_path, CHERENKOV_BUFFER_SIZE),
+        mliEventTapeWriter_begin(
+            &taro,
+            ostream,
+            CHERENKOV_BUFFER_SIZE
+        ),
         "Can't open EventTapeWriter."
     );
     chk_msg(
@@ -231,6 +238,7 @@ error:
  *  End of event.
 */
 void telend_(cors_real_t evte[273]) {
+    fflush(taro.tar.stream);
     return;
 }
 
@@ -241,7 +249,75 @@ void telend_(cors_real_t evte[273]) {
  *  @param  rune  CORSIKA run end block
 */
 void telrne_(cors_real_t rune[273]) {
-    chk_msg(mliEventTapeWriter_close(&taro), "Can't close EventTapeWriter.");
+    chk_msg(mliEventTapeWriter_finalize(&taro), "Can't close EventTapeWriter.");
+    fclose(taro.tar.stream);
+    return;
+error:
+    exit(1);
+}
+
+
+/* particle output */
+/* --------------- */
+void ppprnh_(cors_real_t runh[273]);
+void ppprne_(cors_real_t rune[273]);
+void pppevt_(cors_real_t evth[273]);
+void pppend_(cors_real_t evte[273]);
+void pppout_(cors_real_t datab[273]);
+
+FILE *ppp_file = NULL;
+
+void ppprnh_(cors_real_t runh[273]) {
+    chk_msg(output_path[0] != '\0', "Expected output_path to be set.");
+    const uint64_t sz = sizeof(output_path);
+    char ppp_output_path[sizeof(output_path) + 128] = "";
+    const uint64_t ppp_sz = sizeof(ppp_output_path);
+
+    const int rc = snprintf(ppp_output_path, ppp_sz, "%s.par.dat", output_path);
+    chk_msg(
+        rc > 0 && rc < ppp_sz,
+        "Can not copy output_path into ppp_output_path."
+    );
+    chk_msg(ppp_file == NULL, "Expected ppp_file to be NULL");
+
+    ppp_file = fopen(ppp_output_path, "w+b");
+    setbuf(ppp_file, NULL);
+    chk_msg(ppp_file, "Can't open ppp_file.");
+
+    chk_fwrite(runh, sizeof(float), 273, ppp_file);
+    fflush(ppp_file);
+
+    return;
+error:
+    exit(1);
+}
+
+void pppevt_(cors_real_t evth[273]) {
+    chk_fwrite(evth, sizeof(float), 273, ppp_file);
+    fflush(ppp_file);
+    return;
+error:
+    exit(1);
+}
+
+void pppout_(cors_real_t datab[273]) {
+    chk_fwrite(datab, sizeof(float), 273, ppp_file);
+    return;
+error:
+    exit(1);
+}
+
+void pppend_(cors_real_t evte[273]) {
+    chk_fwrite(evte, sizeof(float), 273, ppp_file);
+    fflush(ppp_file);
+    return;
+error:
+    exit(1);
+}
+
+void ppprne_(cors_real_t rune[273]) {
+    chk_fwrite(rune, sizeof(float), 273, ppp_file);
+    fflush(ppp_file);
     return;
 error:
     exit(1);
@@ -397,66 +473,3 @@ void tellng_(
     return;
 }
 
-/* particle output */
-/* --------------- */
-void ppprnh_(cors_real_t runh[273]);
-void ppprne_(cors_real_t rune[273]);
-void pppevt_(cors_real_t evth[273]);
-void pppend_(cors_real_t evte[273]);
-void pppout_(cors_real_t datab[273]);
-
-FILE *ppp_file = NULL;
-
-void ppprnh_(cors_real_t runh[273]) {
-    chk_msg(output_path[0] != '\0', "Expected output_path to be set.");
-    const uint64_t sz = sizeof(output_path);
-    char ppp_output_path[sizeof(output_path) + 128] = "";
-    const uint64_t ppp_sz = sizeof(ppp_output_path);
-
-    const int rc = snprintf(ppp_output_path, ppp_sz, "%s.par.dat", output_path);
-    chk_msg(
-        rc > 0 && rc < ppp_sz,
-        "Can not copy output_path into ppp_output_path."
-    );
-    chk_msg(ppp_file == NULL, "Expected ppp_file to be NULL");
-
-    ppp_file = fopen(ppp_output_path, "w+b");
-    chk_msg(ppp_file, "Can't open ppp_file.");
-
-    chk_fwrite(runh, sizeof(float), 273, ppp_file);
-    fflush(ppp_file);
-    return;
-error:
-    exit(1);
-}
-
-void pppevt_(cors_real_t evth[273]) {
-    chk_fwrite(evth, sizeof(float), 273, ppp_file);
-    fflush(ppp_file);
-    return;
-error:
-    exit(1);
-}
-
-void pppout_(cors_real_t datab[273]) {
-    chk_fwrite(datab, sizeof(float), 273, ppp_file);
-    return;
-error:
-    exit(1);
-}
-
-void pppend_(cors_real_t evte[273]) {
-    chk_fwrite(evte, sizeof(float), 273, ppp_file);
-    fflush(ppp_file);
-    return;
-error:
-    exit(1);
-}
-
-void ppprne_(cors_real_t rune[273]) {
-    chk_fwrite(rune, sizeof(float), 273, ppp_file);
-    fflush(ppp_file);
-    return;
-error:
-    exit(1);
-}

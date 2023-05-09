@@ -1,18 +1,19 @@
-#include <stdint.h>
-#include <math.h>
-#include <stddef.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <limits.h>
+#include <inttypes.h>
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 
 
 /* chk_debug.h */
-/* Copyright 2018-2020 Sebastian Achim Mueller */
+/* Copyright 2018-2021 Sebastian Achim Mueller */
 #ifndef CHK_DEBUG_H_
 #define CHK_DEBUG_H_
 
@@ -22,30 +23,50 @@
  *  Learn C the hard way
  */
 
-#define chk_clean_errno() (errno == 0 ? "None" : strerror(errno))
-#define chk(C) chk_msg(C, "Not expected.")
-#define chk_mem(C) chk_msg((C), "Out of memory.")
+int chk_eprintf(const char *format, ...);
 
-#define chk_eprint(MSG)                                                        \
-        fprintf(stderr,                                                        \
-                "[ERROR] (%s:%d: errno: %s) " MSG "\n",                        \
+#define chk_clean_errno() (errno == 0 ? "None" : strerror(errno))
+
+#define chk_eprint_head()                                                      \
+        chk_eprintf(                                                           \
+                "[ERROR] (%s:%d: errno: %s) ",                                 \
                 __FILE__,                                                      \
                 __LINE__,                                                      \
                 chk_clean_errno())
 
+#define chk_eprint_line(MSG)                                                   \
+        {                                                                      \
+                chk_eprint_head();                                             \
+                chk_eprintf("%s", MSG);                                        \
+                chk_eprintf("\n");                                             \
+        }
+
 #define chk_msg(C, MSG)                                                        \
         if (!(C)) {                                                            \
-                chk_eprint(MSG);                                               \
+                chk_eprint_line(MSG);                                          \
+                errno = 0;                                                     \
+                goto error;                                                    \
+        }
+
+#define chk_msgf(C, MSGFMT)                                                    \
+        if (!(C)) {                                                            \
+                chk_eprint_head();                                             \
+                chk_eprintf MSGFMT;                                            \
+                chk_eprintf("\n");                                             \
                 errno = 0;                                                     \
                 goto error;                                                    \
         }
 
 #define chk_bad(MSG)                                                           \
         {                                                                      \
-                chk_eprint(MSG);                                               \
+                chk_eprint_line(MSG);                                          \
                 errno = 0;                                                     \
                 goto error;                                                    \
         }
+
+#define chk(C) chk_msg(C, "Not expected.")
+
+#define chk_mem(C) chk_msg((C), "Out of memory.")
 
 #define chk_malloc(PTR, TYPE, NUM)                                             \
         {                                                                      \
@@ -77,8 +98,8 @@
 
 
 #define MLI_VERSION_MAYOR 1
-#define MLI_VERSION_MINOR 5
-#define MLI_VERSION_PATCH 2
+#define MLI_VERSION_MINOR 7
+#define MLI_VERSION_PATCH 0
 
 void mli_logo_fprint(FILE *f);
 void mli_authors_and_affiliations_fprint(FILE *f);
@@ -191,6 +212,7 @@ double mli_linear_interpolate_2d(
         const double y0,
         const double x1,
         const double y1);
+double mli_relative_ratio(const double a, const double b);
 #endif
 
 
@@ -309,6 +331,10 @@ int mli_cstr_print_uint64(
 #define MLITAR_H_
 
 
+#define MLI_TAR_VERSION_MAYOR 1
+#define MLI_TAR_VERSION_MINOR 0
+#define MLI_TAR_VERSION_PATCH 0
+
 #define MLI_TAR_NORMAL_FILE '0'
 #define MLI_TAR_HARD_LINK '1'
 #define MLI_TAR_SYMBOLIC_LINK '2'
@@ -317,8 +343,38 @@ int mli_cstr_print_uint64(
 #define MLI_TAR_DIRECTORY '5'
 #define MLI_TAR_FIFO '6'
 #define MLI_TAR_NAME_LENGTH 100
+
 #define MLI_TAR_OCTAL 8u
 #define MLI_TAR_MAX_FILESIZE_OCTAL 8589934592lu /* 8^11 */
+
+/* basics */
+/* ====== */
+uint64_t mliTar_round_up(uint64_t n, uint64_t incr);
+int mliTar_field_to_uint(
+        uint64_t *out,
+        const char *field,
+        const uint64_t fieldsize);
+int mliTar_uint_to_field(
+        const uint64_t value,
+        char *field,
+        const uint64_t fieldsize);
+int mliTar_uint64_to_field12_2001star_base256(uint64_t val, char *field);
+int mliTar_field12_to_uint64_2001star_base256(const char *field, uint64_t *val);
+
+/* header and raw header */
+/* ===================== */
+struct mliTarRawHeader {
+        char name[MLI_TAR_NAME_LENGTH];
+        char mode[8];
+        char owner[8];
+        char group[8];
+        char size[12];
+        char mtime[12];
+        char checksum[8];
+        char type;
+        char linkname[MLI_TAR_NAME_LENGTH];
+        char _padding[255];
+};
 
 struct mliTarHeader {
         uint64_t mode;
@@ -330,13 +386,24 @@ struct mliTarHeader {
         char linkname[MLI_TAR_NAME_LENGTH];
 };
 
+uint64_t mliTarRawHeader_checksum(const struct mliTarRawHeader *rh);
+int mliTarRawHeader_is_null(const struct mliTarRawHeader *rh);
+int mliTarRawHeader_from_header(
+        struct mliTarRawHeader *rh,
+        const struct mliTarHeader *h);
+
 struct mliTarHeader mliTarHeader_init(void);
 int mliTarHeader_set_directory(struct mliTarHeader *h, const char *name);
 int mliTarHeader_set_normal_file(
         struct mliTarHeader *h,
         const char *name,
         const uint64_t size);
+int mliTarHeader_from_raw(
+        struct mliTarHeader *h,
+        const struct mliTarRawHeader *rh);
 
+/* tar */
+/* === */
 struct mliTar {
         FILE *stream;
         uint64_t pos;
@@ -344,19 +411,16 @@ struct mliTar {
 };
 
 struct mliTar mliTar_init(void);
-int mliTar_open(struct mliTar *tar, const char *filename, const char *mode);
-int mliTar_finalize(struct mliTar *tar);
-int mliTar_close(struct mliTar *tar);
 
+int mliTar_read_begin(struct mliTar *tar, FILE *file);
 int mliTar_read_header(struct mliTar *tar, struct mliTarHeader *h);
 int mliTar_read_data(struct mliTar *tar, void *ptr, uint64_t size);
+int mliTar_read_finalize(struct mliTar *tar);
 
+int mliTar_write_begin(struct mliTar *tar, FILE *file);
 int mliTar_write_header(struct mliTar *tar, const struct mliTarHeader *h);
 int mliTar_write_data(struct mliTar *tar, const void *data, uint64_t size);
-
-/* internal */
-int mliTar_uint64_to_field12_2001star_base256(uint64_t val, char *field);
-int mliTar_field12_to_uint64_2001star_base256(const char *field, uint64_t *val);
+int mliTar_write_finalize(struct mliTar *tar);
 
 #endif
 
@@ -468,7 +532,7 @@ MLIDYNARRAY_DEFINITON(mli, Float, float)
 
 #define MLI_CORSIKA_VERSION_MAYOR 0
 #define MLI_CORSIKA_VERSION_MINOR 2
-#define MLI_CORSIKA_VERSION_PATCH 0
+#define MLI_CORSIKA_VERSION_PATCH 1
 
 #endif
 
@@ -508,24 +572,26 @@ float mli_chars_to_float(const char *four_char_word);
 #define MLI_CORSIKA_EVENTTAPE_H_
 
 
-
 #define MLI_CORSIKA_EVENTTAPE_VERSION_MAYOR 2
-#define MLI_CORSIKA_EVENTTAPE_VERSION_MINOR 0
-#define MLI_CORSIKA_EVENTTAPE_VERSION_PATCH 0
+#define MLI_CORSIKA_EVENTTAPE_VERSION_MINOR 1
+#define MLI_CORSIKA_EVENTTAPE_VERSION_PATCH 2
 
 struct mliEventTapeWriter {
         struct mliTar tar;
+        int flush_tar_stream_after_each_file;
         int run_number;
         int event_number;
         int cherenkov_bunch_block_number;
         struct mliDynFloat buffer;
 };
 struct mliEventTapeWriter mliEventTapeWriter_init(void);
-int mliEventTapeWriter_open(
+
+int mliEventTapeWriter_begin(
         struct mliEventTapeWriter *tio,
-        const char *path,
+        FILE *stream,
         const uint64_t num_bunches_buffer);
-int mliEventTapeWriter_close(struct mliEventTapeWriter *tio);
+int mliEventTapeWriter_finalize(struct mliEventTapeWriter *tio);
+
 int mliEventTapeWriter_write_runh(
         struct mliEventTapeWriter *tio,
         const float *runh);
@@ -560,8 +626,10 @@ struct mliEventTapeReader {
         struct mliTarHeader tarh;
 };
 struct mliEventTapeReader mliEventTapeReader_init(void);
-int mliEventTapeReader_open(struct mliEventTapeReader *tio, const char *path);
-int mliEventTapeReader_close(struct mliEventTapeReader *tio);
+
+int mliEventTapeReader_begin(struct mliEventTapeReader *tio, FILE *stream);
+int mliEventTapeReader_finalize(struct mliEventTapeReader *tio);
+
 int mliEventTapeReader_read_runh(struct mliEventTapeReader *tio, float *runh);
 int mliEventTapeReader_read_evth(struct mliEventTapeReader *tio, float *evth);
 int mliEventTapeReader_read_cherenkov_bunch(
@@ -574,6 +642,21 @@ int mliEventTapeReader_tarh_might_be_valid_cherenkov_block(
 int mliEventTapeReader_read_readme_until_runh(struct mliEventTapeReader *tio);
 
 #endif
+
+
+
+/* chk_debug.c */
+/* Copyright 2018-2021 Sebastian Achim Mueller */
+
+int chk_eprintf(const char *format, ...)
+{
+        int r;
+        va_list args;
+        va_start(args, format);
+        r = vfprintf(stderr, format, args);
+        va_end(args);
+        return r;
+}
 
 
 
@@ -748,6 +831,11 @@ double mli_linear_interpolate_2d(
         const double m = (y1 - y0) / (x1 - x0);
         const double b = y0 - m * x0;
         return m * xarg + b;
+}
+
+double mli_relative_ratio(const double a, const double b)
+{
+        return fabs(a - b) / (0.5 * (a + b));
 }
 
 
@@ -1205,193 +1293,34 @@ error:
  */
 
 
-struct mliTarRawHeader {
-        char name[MLI_TAR_NAME_LENGTH];
-        char mode[8];
-        char owner[8];
-        char group[8];
-        char size[12];
-        char mtime[12];
-        char checksum[8];
-        char type;
-        char linkname[MLI_TAR_NAME_LENGTH];
-        char _padding[255];
-};
-
-struct mliTar mliTar_init(void)
-{
-        struct mliTar out;
-        out.stream = NULL;
-        out.pos = 0u;
-        out.remaining_data = 0u;
-        return out;
-}
-
-struct mliTarHeader mliTarHeader_init(void)
-{
-        struct mliTarHeader h;
-        h.mode = 0;
-        h.owner = 0;
-        h.size = 0;
-        h.mtime = 0;
-        h.type = 0;
-        memset(h.name, '\0', sizeof(h.name));
-        memset(h.linkname, '\0', sizeof(h.linkname));
-        return h;
-}
-
-int mliTarHeader_set_normal_file(
-        struct mliTarHeader *h,
-        const char *name,
-        const uint64_t size)
-{
-        (*h) = mliTarHeader_init();
-        chk_msg(strlen(name) < sizeof(h->name), "Filename is too long.");
-        memcpy(h->name, name, strlen(name));
-        h->size = size;
-        h->type = MLI_TAR_NORMAL_FILE;
-        h->mode = 0664;
-        return 1;
-error:
-        return 0;
-}
-
-int mliTarHeader_set_directory(struct mliTarHeader *h, const char *name)
-{
-        (*h) = mliTarHeader_init();
-        chk_msg(strlen(name) < sizeof(h->name), "Dirname is too long.");
-        memcpy(h->name, name, strlen(name));
-        h->type = MLI_TAR_DIRECTORY;
-        h->mode = 0775;
-        return 1;
-error:
-        return 0;
-}
-
-/* write */
-
-int mliTar_twrite(struct mliTar *tar, const void *data, const uint64_t size)
-{
-        int64_t res = fwrite(data, 1, size, tar->stream);
-        chk_msg(res >= 0, "Failed writing to tar.");
-        chk_msg((uint64_t)res == size, "Failed writing to tar.");
-        tar->pos += size;
-        return 1;
-error:
-        return 0;
-}
-
-/* read */
-
-int mliTar_tread(struct mliTar *tar, void *data, const uint64_t size)
-{
-        int64_t res = fread(data, 1, size, tar->stream);
-        chk_msg(res >= 0, "Failed reading from tar.");
-        chk_msg((uint64_t)res == size, "Failed reading from tar.");
-        tar->pos += size;
-        return 1;
-error:
-        return 0;
-}
-
-/* close */
-
-int mliTar_close(struct mliTar *tar)
-{
-        fclose(tar->stream);
-        (*tar) = mliTar_init();
-        return 1;
-}
+/*                             basics                                         */
+/* ========================================================================== */
 
 uint64_t mliTar_round_up(uint64_t n, uint64_t incr)
 {
         return n + (incr - n % incr) % incr;
 }
 
-uint64_t mliTar_checksum(const struct mliTarRawHeader *rh)
-{
-        uint64_t i;
-        unsigned char *p = (unsigned char *)rh;
-        uint64_t res = 256;
-        for (i = 0; i < offsetof(struct mliTarRawHeader, checksum); i++) {
-                res += p[i];
-        }
-        for (i = offsetof(struct mliTarRawHeader, type); i < sizeof(*rh); i++) {
-                res += p[i];
-        }
-        return res;
-}
-
-int mliTar_write_null_bytes(struct mliTar *tar, uint64_t n)
-{
-        uint64_t i;
-        char nul = '\0';
-        for (i = 0; i < n; i++) {
-                chk_msg(mliTar_twrite(tar, &nul, 1), "Failed to write nulls");
-        }
-        return 1;
-error:
-        return 0;
-}
-
 int mliTar_field_to_uint(
         uint64_t *out,
         const char *field,
-        const uint64_t field_size)
+        const uint64_t fieldsize)
 {
         char buff[MLI_TAR_NAME_LENGTH] = {'\0'};
-        chk(field_size < MLI_TAR_NAME_LENGTH);
-        memcpy(buff, field, field_size);
+        chk(fieldsize < MLI_TAR_NAME_LENGTH);
+        memcpy(buff, field, fieldsize);
 
         /* Take care of historic 'space' (32 decimal) termination */
         /* Convert all 'space' terminations to '\0' terminations. */
 
-        if (buff[field_size - 1] == 32) {
-                buff[field_size - 1] = 0;
+        if (buff[fieldsize - 1] == 32) {
+                buff[fieldsize - 1] = 0;
         }
-        if (buff[field_size - 2] == 32) {
-                buff[field_size - 2] = 0;
+        if (buff[fieldsize - 2] == 32) {
+                buff[fieldsize - 2] = 0;
         }
 
         chk(mli_cstr_to_uint64(out, buff, MLI_TAR_OCTAL));
-        return 1;
-error:
-        return 0;
-}
-
-int mliTar_raw_to_header(
-        struct mliTarHeader *h,
-        const struct mliTarRawHeader *rh)
-{
-        uint64_t chksum_actual, chksum_expected;
-        chksum_actual = mliTar_checksum(rh);
-
-        /* Build and compare checksum */
-        chk_msg(mliTar_field_to_uint(
-                        &chksum_expected, rh->checksum, sizeof(rh->checksum)),
-                "bad checksum string.");
-        chk_msg(chksum_actual == chksum_expected, "bad checksum.");
-
-        /* Load raw header into header */
-        chk_msg(mliTar_field_to_uint(&h->mode, rh->mode, sizeof(rh->mode)),
-                "bad mode");
-        chk_msg(mliTar_field_to_uint(&h->owner, rh->owner, sizeof(rh->owner)),
-                "bad owner");
-        if (rh->size[0] == -128) {
-                chk_msg(mliTar_field12_to_uint64_2001star_base256(
-                                rh->size, &h->size),
-                        "bad size, mode: base-256");
-        } else {
-                chk_msg(mliTar_field_to_uint(
-                                &h->size, rh->size, sizeof(rh->size)),
-                        "bad size, mode: base-octal");
-        }
-        chk_msg(mliTar_field_to_uint(&h->mtime, rh->mtime, sizeof(rh->mtime)),
-                "bad mtime");
-        h->type = rh->type;
-        memcpy(h->name, rh->name, sizeof(h->name));
-        memcpy(h->linkname, rh->linkname, sizeof(h->linkname));
-
         return 1;
 error:
         return 0;
@@ -1462,7 +1391,36 @@ error:
         return 0;
 }
 
-int mliTar_make_raw_header(
+/*                               raw header                                   */
+/* ========================================================================== */
+
+uint64_t mliTarRawHeader_checksum(const struct mliTarRawHeader *rh)
+{
+        uint64_t i;
+        unsigned char *p = (unsigned char *)rh;
+        uint64_t res = 256;
+        for (i = 0; i < offsetof(struct mliTarRawHeader, checksum); i++) {
+                res += p[i];
+        }
+        for (i = offsetof(struct mliTarRawHeader, type); i < sizeof(*rh); i++) {
+                res += p[i];
+        }
+        return res;
+}
+
+int mliTarRawHeader_is_null(const struct mliTarRawHeader *rh)
+{
+        uint64_t i = 0u;
+        unsigned char *p = (unsigned char *)rh;
+        for (i = 0; i < sizeof(struct mliTarRawHeader); i++) {
+                if (p[i] != '\0') {
+                        return 0;
+                }
+        }
+        return 1;
+}
+
+int mliTarRawHeader_from_header(
         struct mliTarRawHeader *rh,
         const struct mliTarHeader *h)
 {
@@ -1490,7 +1448,7 @@ int mliTar_make_raw_header(
         memcpy(rh->linkname, h->linkname, sizeof(rh->linkname));
 
         /* Calculate and write checksum */
-        chksum = mliTar_checksum(rh);
+        chksum = mliTarRawHeader_checksum(rh);
         chk_msg(mli_cstr_print_uint64(
                         chksum,
                         rh->checksum,
@@ -1511,36 +1469,125 @@ error:
         return 0;
 }
 
-int mliTar_open(struct mliTar *tar, const char *filename, const char *mode)
+/*                                  header                                    */
+/* ========================================================================== */
+
+struct mliTarHeader mliTarHeader_init(void)
 {
-        *tar = mliTar_init();
+        struct mliTarHeader h;
+        h.mode = 0;
+        h.owner = 0;
+        h.size = 0;
+        h.mtime = 0;
+        h.type = 0;
+        memset(h.name, '\0', sizeof(h.name));
+        memset(h.linkname, '\0', sizeof(h.linkname));
+        return h;
+}
 
-        /* Assure mode is always binary */
-        if (strchr(mode, 'r'))
-                mode = "rb";
-        if (strchr(mode, 'w'))
-                mode = "wb";
-        if (strchr(mode, 'a'))
-                mode = "ab";
+int mliTarHeader_set_directory(struct mliTarHeader *h, const char *name)
+{
+        (*h) = mliTarHeader_init();
+        chk_msg(strlen(name) < sizeof(h->name), "Dirname is too long.");
+        memcpy(h->name, name, strlen(name));
+        h->type = MLI_TAR_DIRECTORY;
+        h->mode = 0775;
+        return 1;
+error:
+        return 0;
+}
 
-        tar->stream = fopen(filename, mode);
-        chk_msg(tar->stream, "Failed to open tar-file.");
+int mliTarHeader_set_normal_file(
+        struct mliTarHeader *h,
+        const char *name,
+        const uint64_t size)
+{
+        (*h) = mliTarHeader_init();
+        chk_msg(strlen(name) < sizeof(h->name), "Filename is too long.");
+        memcpy(h->name, name, strlen(name));
+        h->size = size;
+        h->type = MLI_TAR_NORMAL_FILE;
+        h->mode = 0664;
+        return 1;
+error:
+        return 0;
+}
+
+int mliTarHeader_from_raw(
+        struct mliTarHeader *h,
+        const struct mliTarRawHeader *rh)
+{
+        uint64_t chksum_actual, chksum_expected;
+        chksum_actual = mliTarRawHeader_checksum(rh);
+
+        /* Build and compare checksum */
+        chk_msg(mliTar_field_to_uint(
+                        &chksum_expected, rh->checksum, sizeof(rh->checksum)),
+                "bad checksum string.");
+        chk_msg(chksum_actual == chksum_expected, "bad checksum.");
+
+        /* Load raw header into header */
+        chk_msg(mliTar_field_to_uint(&h->mode, rh->mode, sizeof(rh->mode)),
+                "bad mode");
+        chk_msg(mliTar_field_to_uint(&h->owner, rh->owner, sizeof(rh->owner)),
+                "bad owner");
+        if (rh->size[0] == -128) {
+                chk_msg(mliTar_field12_to_uint64_2001star_base256(
+                                rh->size, &h->size),
+                        "bad size, mode: base-256");
+        } else {
+                chk_msg(mliTar_field_to_uint(
+                                &h->size, rh->size, sizeof(rh->size)),
+                        "bad size, mode: base-octal");
+        }
+        chk_msg(mliTar_field_to_uint(&h->mtime, rh->mtime, sizeof(rh->mtime)),
+                "bad mtime");
+        h->type = rh->type;
+        memcpy(h->name, rh->name, sizeof(h->name));
+        memcpy(h->linkname, rh->linkname, sizeof(h->linkname));
 
         return 1;
 error:
         return 0;
 }
 
-int mliTar_raw_header_is_null(const struct mliTarRawHeader *rh)
+/* tar */
+/* === */
+
+struct mliTar mliTar_init(void)
 {
-        uint64_t i = 0u;
-        unsigned char *p = (unsigned char *)rh;
-        for (i = 0; i < sizeof(struct mliTarRawHeader); i++) {
-                if (p[i] != '\0') {
-                        return 0;
-                }
-        }
+        struct mliTar out;
+        out.stream = NULL;
+        out.pos = 0u;
+        out.remaining_data = 0u;
+        return out;
+}
+
+/*                                 read                                       */
+/* ========================================================================== */
+
+int mliTar_read_begin(struct mliTar *tar, FILE *stream)
+{
+        chk_msg(tar->stream == NULL,
+                "Can't begin reading tar. "
+                "tar is either still open or not initialized.");
+        (*tar) = mliTar_init();
+        tar->stream = stream;
+        chk_msg(tar->stream, "Can't begin reading tar. Tar->stream is NULL.");
         return 1;
+error:
+        return 0;
+}
+
+int mliTar_tread(struct mliTar *tar, void *data, const uint64_t size)
+{
+        int64_t res = fread(data, 1, size, tar->stream);
+        chk_msg(res >= 0, "Failed reading from tar.");
+        chk_msg((uint64_t)res == size, "Failed reading from tar.");
+        tar->pos += size;
+        return 1;
+error:
+        return 0;
 }
 
 int mliTar_read_header(struct mliTar *tar, struct mliTarHeader *h)
@@ -1550,11 +1597,12 @@ int mliTar_read_header(struct mliTar *tar, struct mliTarHeader *h)
         chk_msg(mliTar_tread(tar, &rh, sizeof(rh)),
                 "Failed to read raw header");
 
-        if (mliTar_raw_header_is_null(&rh)) {
+        if (mliTarRawHeader_is_null(&rh)) {
+                (*h) = mliTarHeader_init();
                 return 0;
         }
 
-        chk_msg(mliTar_raw_to_header(h, &rh), "Failed to parse raw header.");
+        chk_msg(mliTarHeader_from_raw(h, &rh), "Failed to parse raw header.");
         tar->remaining_data = h->size;
         return 1;
 error:
@@ -1586,12 +1634,69 @@ error:
         return 0;
 }
 
+int mliTar_read_finalize(struct mliTar *tar)
+{
+        struct mliTarHeader h = mliTarHeader_init();
+        chk_msg(mliTar_read_header(tar, &h) == 0,
+                "Failed to read the 2nd final block of zeros.");
+        chk(h.mode == 0);
+        chk(h.owner == 0);
+        chk(h.size == 0);
+        chk(h.mtime == 0);
+        chk(h.type == 0);
+        chk(h.name[0] == '\0');
+        chk(h.linkname[0] == '\0');
+        return 1;
+error:
+        return 0;
+}
+
+/*                                  write                                     */
+/* ========================================================================== */
+
+int mliTar_write_begin(struct mliTar *tar, FILE *stream)
+{
+        chk_msg(tar->stream == NULL,
+                "Can't begin writing tar. "
+                "tar is either still open or not initialized.");
+        (*tar) = mliTar_init();
+        tar->stream = stream;
+        chk_msg(tar->stream, "Can't begin writing tar. Tar->stream is NULL.");
+        return 1;
+error:
+        return 0;
+}
+
+int mliTar_twrite(struct mliTar *tar, const void *data, const uint64_t size)
+{
+        int64_t res = fwrite(data, 1, size, tar->stream);
+        chk_msg(res >= 0, "Failed writing to tar.");
+        chk_msg((uint64_t)res == size, "Failed writing to tar.");
+        tar->pos += size;
+        return 1;
+error:
+        return 0;
+}
+
 int mliTar_write_header(struct mliTar *tar, const struct mliTarHeader *h)
 {
         struct mliTarRawHeader rh;
-        chk_msg(mliTar_make_raw_header(&rh, h), "Failed to make raw-header");
+        chk_msg(mliTarRawHeader_from_header(&rh, h),
+                "Failed to make raw-header");
         tar->remaining_data = h->size;
         chk_msg(mliTar_twrite(tar, &rh, sizeof(rh)), "Failed to write header.");
+        return 1;
+error:
+        return 0;
+}
+
+int mliTar_write_null_bytes(struct mliTar *tar, uint64_t n)
+{
+        uint64_t i;
+        char nul = '\0';
+        for (i = 0; i < n; i++) {
+                chk_msg(mliTar_twrite(tar, &nul, 1), "Failed to write nulls");
+        }
         return 1;
 error:
         return 0;
@@ -1616,7 +1721,7 @@ error:
         return 0;
 }
 
-int mliTar_finalize(struct mliTar *tar)
+int mliTar_write_finalize(struct mliTar *tar)
 {
         chk_msg(mliTar_write_null_bytes(
                         tar, sizeof(struct mliTarRawHeader) * 2),
@@ -1660,6 +1765,7 @@ struct mliEventTapeWriter mliEventTapeWriter_init(void)
 {
         struct mliEventTapeWriter tio;
         tio.tar = mliTar_init();
+        tio.flush_tar_stream_after_each_file = 1;
         tio.run_number = 0;
         tio.event_number = 0;
         tio.cherenkov_bunch_block_number = 1;
@@ -1667,13 +1773,13 @@ struct mliEventTapeWriter mliEventTapeWriter_init(void)
         return tio;
 }
 
-int mliEventTapeWriter_close(struct mliEventTapeWriter *tio)
+int mliEventTapeWriter_finalize(struct mliEventTapeWriter *tio)
 {
         if (tio->tar.stream) {
                 chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(tio),
                         "Can't finalize cherenkov-bunch-block.");
-                chk_msg(mliTar_finalize(&tio->tar), "Can't finalize tar-file.");
-                chk_msg(mliTar_close(&tio->tar), "Can't close tar-file.");
+                chk_msg(mliTar_write_finalize(&tio->tar),
+                        "Can't finalize tar-file.");
         }
         mliDynFloat_free(&tio->buffer);
         (*tio) = mliEventTapeWriter_init();
@@ -1682,14 +1788,14 @@ error:
         return 0;
 }
 
-int mliEventTapeWriter_open(
+int mliEventTapeWriter_begin(
         struct mliEventTapeWriter *tio,
-        const char *path,
+        FILE *stream,
         const uint64_t num_bunches_buffer)
 {
-        chk_msg(mliEventTapeWriter_close(tio),
+        chk_msg(mliEventTapeWriter_finalize(tio),
                 "Can't close and free previous tar-io-writer.");
-        chk_msg(mliTar_open(&tio->tar, path, "w"), "Can't open tar.");
+        chk_msg(mliTar_write_begin(&tio->tar, stream), "Can't begin tar.");
         chk_msg(mliDynFloat_malloc(&tio->buffer, 8 * num_bunches_buffer),
                 "Can't malloc cherenkov-bunch-buffer.");
         return 1;
@@ -1713,6 +1819,9 @@ int mliEventTapeWriter_write_corsika_header(
                         corsika_header,
                         MLI_CORSIKA_HEADER_SIZE_BYTES),
                 "Can't write data of corsika-header to tar.");
+        if (tio->flush_tar_stream_after_each_file) {
+                fflush(tio->tar.stream);
+        }
         return 1;
 error:
         return 0;
@@ -1738,8 +1847,8 @@ int mliEventTapeWriter_write_evth(
         const float *evth)
 {
         char path[MLI_TAR_NAME_LENGTH] = {'\0'};
-        int evth_run_number = (int)(
-                MLI_ROUND(evth[MLI_CORSIKA_EVTH_RUN_NUMBER]));
+        int evth_run_number =
+                (int)(MLI_ROUND(evth[MLI_CORSIKA_EVTH_RUN_NUMBER]));
 
         if (tio->event_number > 0) {
                 chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(tio),
@@ -1749,8 +1858,8 @@ int mliEventTapeWriter_write_evth(
         chk_msg(tio->run_number == evth_run_number,
                 "Expected run_number in EVTH "
                 "to match run_number in last RUNH.");
-        tio->event_number = (int)(
-                MLI_ROUND(evth[MLI_CORSIKA_EVTH_EVENT_NUMBER]));
+        tio->event_number =
+                (int)(MLI_ROUND(evth[MLI_CORSIKA_EVTH_EVENT_NUMBER]));
         chk_msg(tio->event_number > 0, "Expected event_number > 0.");
         tio->cherenkov_bunch_block_number = 1;
         sprintf(path,
@@ -1784,6 +1893,9 @@ int mliEventTapeWriter_flush_cherenkov_bunch_block(
                         tio->buffer.array,
                         tio->buffer.size * sizeof(float)),
                 "Can't write cherenkov-bunch-block to tar-file.");
+        if (tio->flush_tar_stream_after_each_file) {
+                fflush(tio->tar.stream);
+        }
         tio->buffer.size = 0;
         tio->cherenkov_bunch_block_number += 1;
         return 1;
@@ -1800,9 +1912,9 @@ int mliEventTapeWriter_write_cherenkov_bunch(
                 chk_msg(mliEventTapeWriter_flush_cherenkov_bunch_block(tio),
                         "Can't finalize cherenkov-bunch-block.");
         }
-        for (i = 0; i < 8; i ++) {
-            tio->buffer.array[tio->buffer.size] = bunch[i];
-            tio->buffer.size += 1;
+        for (i = 0; i < 8; i++) {
+                tio->buffer.array[tio->buffer.size] = bunch[i];
+                tio->buffer.size += 1;
         }
         return 1;
 error:
@@ -1826,10 +1938,11 @@ struct mliEventTapeReader mliEventTapeReader_init(void)
         return tio;
 }
 
-int mliEventTapeReader_close(struct mliEventTapeReader *tio)
+int mliEventTapeReader_finalize(struct mliEventTapeReader *tio)
 {
         if (tio->tar.stream) {
-                chk_msg(mliTar_close(&tio->tar), "Can't close tar-file.");
+                chk_msg(mliTar_read_finalize(&tio->tar),
+                        "Can't finalize reading tar.");
         }
         (*tio) = mliEventTapeReader_init();
         return 1;
@@ -1837,11 +1950,11 @@ error:
         return 0;
 }
 
-int mliEventTapeReader_open(struct mliEventTapeReader *tio, const char *path)
+int mliEventTapeReader_begin(struct mliEventTapeReader *tio, FILE *stream)
 {
-        chk_msg(mliEventTapeReader_close(tio),
+        chk_msg(mliEventTapeReader_finalize(tio),
                 "Can't close and free previous tar-io-reader.");
-        chk_msg(mliTar_open(&tio->tar, path, "r"), "Can't open tar.");
+        chk_msg(mliTar_read_begin(&tio->tar, stream), "Can't begin tar.");
         tio->has_tarh = mliTar_read_header(&tio->tar, &tio->tarh);
         return 1;
 error:
@@ -1855,9 +1968,7 @@ int mliEventTapeReader_read_runh(struct mliEventTapeReader *tio, float *runh)
         uint64_t runh_run_number = 0;
         chk_msg(tio->has_tarh, "Expected next tar-header.");
         chk_msg(mli_cstr_match_templeate(
-                        tio->tarh.name,
-                        "ddddddddd/RUNH.float32",
-                        'd'),
+                        tio->tarh.name, "ddddddddd/RUNH.float32", 'd'),
                 "Expected file to be 'ddddddddd/RUNH.float32.'");
         chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
                 "Expected RUNH to have size 273*sizeof(float)");
@@ -1866,13 +1977,10 @@ int mliEventTapeReader_read_runh(struct mliEventTapeReader *tio, float *runh)
         chk_msg(runh[0] == mli_chars_to_float("RUNH"),
                 "Expected RUNH[0] == 'RUNH'");
         chk_msg(mli_cstr_nto_uint64(
-                        &tio->run_number,
-                        &tio->tarh.name[0],
-                        BASE,
-                        NUM_DIGITS),
+                        &tio->run_number, &tio->tarh.name[0], BASE, NUM_DIGITS),
                 "Can't read run_number from RUNH's path.");
-        runh_run_number = (uint64_t)(
-            MLI_ROUND(runh[MLI_CORSIKA_RUNH_RUN_NUMBER]));
+        runh_run_number =
+                (uint64_t)(MLI_ROUND(runh[MLI_CORSIKA_RUNH_RUN_NUMBER]));
         chk_msg(tio->run_number == runh_run_number,
                 "Expected run_number in RUNH's path "
                 "to match run_number in RUNH.");
@@ -1905,10 +2013,7 @@ int mliEventTapeReader_read_evth(struct mliEventTapeReader *tio, float *evth)
                         NUM_DIGITS),
                 "Can't parse event-number from path.");
         chk_msg(mli_cstr_nto_uint64(
-                        &path_run_number,
-                        &tio->tarh.name[0],
-                        BASE,
-                        NUM_DIGITS),
+                        &path_run_number, &tio->tarh.name[0], BASE, NUM_DIGITS),
                 "Can't parse run-number from path.");
         chk_msg(tio->tarh.size == MLI_CORSIKA_HEADER_SIZE_BYTES,
                 "Expected EVTH to have size 273*sizeof(float)");
@@ -1969,10 +2074,7 @@ int mliEventTapeReader_tarh_is_valid_cherenkov_block(
                 "Expected cherenkov-bunch-block-name to be valid.");
 
         chk_msg(mli_cstr_nto_uint64(
-                        &path_run_number,
-                        &tio->tarh.name[0],
-                        BASE,
-                        NUM_DIGITS),
+                        &path_run_number, &tio->tarh.name[0], BASE, NUM_DIGITS),
                 "Can't parse run-number from path.");
         chk_msg(path_run_number == tio->run_number,
                 "Expected consistent run-number in cherenkov-block-path.");
