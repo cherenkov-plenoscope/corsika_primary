@@ -7,25 +7,35 @@ from . import I
 NUM_CHERENKOV_BUNCHES_IN_BUFFER = 1048576
 
 
-class EventTapeWriter:
-    def __init__(self, path, buffer_capacity=NUM_CHERENKOV_BUNCHES_IN_BUFFER):
+class TapeWriter:
+    def __init__(
+        self, path, payload_shape_1, block_filename_template, buffer_capacity,
+    ):
         """
-        Write an EventTape. Add RUNH, EVTH, and cherenkov-bunches.
+        Write a Tape. Add RUNH, EVTH, and payload.
 
         path : str
             Path to event-tape file.
         buffer_capacity : int
-            Buffer-size in cherenkov-bunches.
+            Buffer-size.
         """
         self.path = str(path)
-        self.tar = tarfile.open(name=self.path, mode="w|")
+        self.mode = "w|gz" if str.endswith(self.path, ".gz") else "w|"
+        self.tar = tarfile.open(name=self.path, mode=self.mode)
 
         self.run_number = None
         self.event_number = None
-        self.cherenkov_block_number = None
+        self.block_number = None
 
-        self.buffer = np.zeros(shape=(buffer_capacity, 8), dtype=np.float32)
+        self.payload_shape_1 = int(payload_shape_1)
+        assert self.payload_shape_1 > 0
+
+        self.buffer = np.zeros(
+            shape=(buffer_capacity, self.payload_shape_1), dtype=np.float32
+        )
         self.buffer_size = 0
+
+        self.block_filename_template = str(block_filename_template)
 
     def write_runh(self, runh):
         self.run_number = int(runh[I.RUNH.RUN_NUMBER])
@@ -35,56 +45,56 @@ class EventTapeWriter:
     def write_evth(self, evth):
         assert self.run_number is not None, "Expected RUNH before EVTH."
         if self.event_number is not None:
-            self._flush_cherenkov_bunch_buffer()
+            self._flush_buffer()
         self.event_number = int(evth[I.EVTH.EVENT_NUMBER])
-        self.cherenkov_block_number = 1
+        self.block_number = 1
         write_evth(self.tar, evth, self.run_number, self.event_number)
 
-    def write_bunches(self, bunches):
-        assert self.event_number is not None, "Expected EVTH before bunches."
-        assert bunches.dtype == np.float32
-        assert bunches.shape[1] == 8
-        bunches_remaining = bunches.shape[0]
+    def write_payload(self, payload):
+        assert self.event_number is not None, "Expected EVTH before payload."
+        assert payload.dtype == np.float32
+        assert payload.shape[1] == self.payload_shape_1
+        remaining = payload.shape[0]
 
         bunches_at = 0
-        while bunches_remaining != 0:
+        while remaining != 0:
             buffer_remaining = self.buffer.shape[0] - self.buffer_size
-            num_to_buffer = min([buffer_remaining, bunches_remaining])
+            num_to_buffer = min([buffer_remaining, remaining])
 
             start_buffer = self.buffer_size
             stop_buffer = start_buffer + num_to_buffer
-            start_bunches = bunches_at
-            stop_bunches = start_bunches + num_to_buffer
+            start_payload = bunches_at
+            stop_payload = start_payload + num_to_buffer
 
-            self.buffer[start_buffer:stop_buffer, :] = bunches[
-                start_bunches:stop_bunches, :
+            self.buffer[start_buffer:stop_buffer, :] = payload[
+                start_payload:stop_payload, :
             ]
 
-            bunches_remaining -= num_to_buffer
-            bunches_at = stop_bunches
+            remaining -= num_to_buffer
+            bunches_at = stop_payload
             self.buffer_size = stop_buffer
 
             if self.buffer_size == self.buffer.shape[0]:
-                self._flush_cherenkov_bunch_buffer()
+                self._flush_buffer()
 
-    def _flush_cherenkov_bunch_buffer(self):
-        if self.cherenkov_block_number is None:
+    def _flush_buffer(self):
+        if self.block_number is None:
             return
         part = self.buffer[0 : self.buffer_size].copy()
         tar_write(
             tar=self.tar,
-            filename=CHERENKOV_BLOCK_FILENAME.format(
+            filename=self.block_filename_template.format(
                 run_number=self.run_number,
                 event_number=self.event_number,
-                cherenkov_block_number=self.cherenkov_block_number,
+                block_number=self.block_number,
             ),
             filebytes=part.tobytes(),
         )
-        self.cherenkov_block_number += 1
+        self.block_number += 1
         self.buffer_size = 0
 
     def close(self):
-        self._flush_cherenkov_bunch_buffer()
+        self._flush_buffer()
         self.tar.close()
 
     def __enter__(self):
@@ -96,6 +106,23 @@ class EventTapeWriter:
     def __repr__(self):
         out = "{:s}(path='{:s}')".format(self.__class__.__name__, self.path)
         return out
+
+
+def EventTapeWriter(path, buffer_capacity=NUM_CHERENKOV_BUNCHES_IN_BUFFER):
+    """
+    Write an EventTape. Add RUNH, EVTH, and cherenkov-bunches.
+
+    path : str
+        Path to event-tape file.
+    buffer_capacity : int
+        Buffer-size in cherenkov-bunches.
+    """
+    return TapeWriter(
+        path=path,
+        payload_shape_1=8,
+        block_filename_template=CHERENKOV_BLOCK_FILENAME,
+        buffer_capacity=buffer_capacity,
+    )
 
 
 class EventTapeReader:
@@ -212,7 +239,9 @@ def is_match(template, path):
 
 RUNH_FILENAME = "{run_number:09d}/RUNH.float32"
 EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/EVTH.float32"
-CHERENKOV_BLOCK_FILENAME = "{run_number:09d}/{event_number:09d}/{cherenkov_block_number:09d}.cer.x8.float32"
+CHERENKOV_BLOCK_FILENAME = (
+    "{run_number:09d}/{event_number:09d}/{block_number:09d}.cer.x8.float32"
+)
 
 
 def is_cherenkov_block_path(path):

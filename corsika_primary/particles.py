@@ -1,5 +1,5 @@
 import numpy as np
-
+from . import event_tape
 
 DAT_FILE_TEMPLATE = "DAT{runnr:06d}"
 
@@ -307,3 +307,36 @@ def assert_valid(particle_path):
     write_rundict(particle_path + ".back", iii)
     bbb = read_rundict(particle_path + ".back")
     assert_rundict_equal(iii, bbb)
+
+
+def ParticleTapeWriter(path, buffer_capacity=1000 * 1000):
+    """
+    Write an EventTape. Add RUNH, EVTH, and cherenkov-bunches.
+
+    path : str
+        Path to event-tape file.
+    buffer_capacity : int
+        Buffer-size in cherenkov-bunches.
+    """
+    PATRICLE_BLOCK_FILENAME = (
+        "{run_number:09d}/{event_number:09d}/{block_number:09d}.par.x7.float32"
+    )
+    return event_tape.TapeWriter(
+        path=path,
+        payload_shape_1=7,
+        block_filename_template=PATRICLE_BLOCK_FILENAME,
+        buffer_capacity=buffer_capacity * 7,
+    )
+
+
+def dat_to_tape(dat_path, tape_path):
+    with open(dat_path, "rb") as df, ParticleTapeWriter(tape_path) as evttape:
+        with RunReader(df) as run:
+            evttape.write_runh(run.runh)
+
+            for event in run:
+                evth, particle_reader = event
+                evttape.write_evth(evth)
+
+                for block in particle_reader:
+                    evttape.write_payload(block)
