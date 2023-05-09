@@ -55,8 +55,12 @@ def corsika_primary(
     corsika_path = op.abspath(corsika_path)
     steering_dict = copy.deepcopy(steering_dict)
     cherenkov_output_path = op.abspath(cherenkov_output_path)
-    stdout_path = stdout_path if stdout_path else cherenkov_output_path + ".stdout"
-    stderr_path = stderr_path if stderr_path else cherenkov_output_path + ".stderr"
+    stdout_path = (
+        stdout_path if stdout_path else cherenkov_output_path + ".stdout"
+    )
+    stderr_path = (
+        stderr_path if stderr_path else cherenkov_output_path + ".stderr"
+    )
     stdout_path = op.abspath(stdout_path)
     stderr_path = op.abspath(stderr_path)
     particle_output_path = op.abspath(particle_output_path)
@@ -152,8 +156,12 @@ def corsika_vanilla(
     steering_card = steering.overwrite_telfil_in_steering_card_str(
         card_str=steering_card, telfil=cherenkov_output_path
     )
-    stdout_path = stdout_path if stdout_path else cherenkov_output_path + ".stdout"
-    stderr_path = stderr_path if stderr_path else cherenkov_output_path + ".stderr"
+    stdout_path = (
+        stdout_path if stdout_path else cherenkov_output_path + ".stdout"
+    )
+    stderr_path = (
+        stderr_path if stderr_path else cherenkov_output_path + ".stderr"
+    )
     stdout_path = op.abspath(stdout_path)
     stderr_path = op.abspath(stderr_path)
 

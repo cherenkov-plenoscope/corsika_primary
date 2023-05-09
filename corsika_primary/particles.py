@@ -231,7 +231,9 @@ def assert_rundict_equal(rrr, bbb):
     np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])
 
 
-def find_markers(stream, marker=[b"RUNH", b"EVTH", b"EVTE", b"RUNE", b"\x94Y\x00\x00"],):
+def find_markers(
+    stream, marker=[b"RUNH", b"EVTH", b"EVTE", b"RUNE", b"\x94Y\x00\x00"],
+):
     out = []
     i = 0
     while True:
@@ -253,6 +255,7 @@ class BlockReader:
     I have no idea why.
     This reader tries to work around this.
     """
+
     def __init__(self, stream):
         self.file = stream
         self.b1_marker = b"\x94Y\x00\x00"

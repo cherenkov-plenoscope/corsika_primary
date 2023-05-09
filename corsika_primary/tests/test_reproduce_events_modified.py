@@ -91,7 +91,9 @@ def hash_cherenkov_pools(
                 cer_blocks = np.vstack(cer_blocks)
 
                 event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-                hashes[event_id] = hashlib.md5(cer_blocks.tobytes()).hexdigest()
+                hashes[event_id] = hashlib.md5(
+                    cer_blocks.tobytes()
+                ).hexdigest()
                 seeds[event_id] = cpw.random.seed.parse_seed_from_evth(evth)
 
             cpw.testing.write_hashes(path=hashes_path, hashes=hashes)
