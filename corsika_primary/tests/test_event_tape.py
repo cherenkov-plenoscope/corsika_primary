@@ -1,5 +1,4 @@
 import pytest
-from corsika_primary import event_tape as evtar
 import corsika_primary as cpw
 import inspect
 import numpy as np
@@ -80,14 +79,16 @@ def test_event_tape_with_contextmanager(debug_dir):
         )
         path = os.path.join(tmp.name, "run{:06d}.evt.tar".format(run_number))
 
-        with evtar.EventTapeWriter(path=path, buffer_capacity=1000) as ww:
+        with cpw.cherenkov.CherenkovEventTapeWriter(
+            path=path, buffer_capacity=1000
+        ) as ww:
             ww.write_runh(orig["RUNH"])
             for event_number in orig["events"]:
                 ww.write_evth(orig["events"][event_number]["EVTH"])
                 ww.write_payload(orig["events"][event_number]["bunches"])
 
         back = {}
-        with evtar.EventTapeReader(path=path) as rr:
+        with cpw.cherenkov.CherenkovEventTapeReader(path=path) as rr:
             back["RUNH"] = rr.runh
             back["events"] = {}
 
@@ -129,7 +130,9 @@ def test_event_tape_without_contextmanager(debug_dir):
         )
         path = os.path.join(tmp.name, "run{:06d}.evt.tar".format(run_number))
 
-        ww = evtar.EventTapeWriter(path=path, buffer_capacity=1000)
+        ww = cpw.cherenkov.CherenkovEventTapeWriter(
+            path=path, buffer_capacity=1000
+        )
         ww.write_runh(orig["RUNH"])
         for event_number in orig["events"]:
             ww.write_evth(orig["events"][event_number]["EVTH"])
@@ -138,7 +141,7 @@ def test_event_tape_without_contextmanager(debug_dir):
         assert ww.tar.closed
 
         back = {}
-        rr = evtar.EventTapeReader(path=path)
+        rr = cpw.cherenkov.CherenkovEventTapeReader(path=path)
         back["RUNH"] = rr.runh
         back["events"] = {}
         for event in rr:

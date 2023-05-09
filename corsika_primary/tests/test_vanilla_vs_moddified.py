@@ -271,7 +271,7 @@ def test_vanilla_vs_moddified(
 
         # READ ORIGINAL AND MODIFIED RUNS
         # -------------------------------
-        mod_run = cpw.event_tape.EventTapeReader(mod_cer_path)
+        mod_run = cpw.cherenkov.CherenkovEventTapeReader(mod_cer_path)
         ori_run = cpw.testing.SimpleIoRun(ori_run_path)
 
         for evt_idx in range(num_shower):

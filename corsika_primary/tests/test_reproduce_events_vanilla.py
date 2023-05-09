@@ -43,7 +43,7 @@ def hash_cherenkov_pools(
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
             steering_card=steering_card,
-            output_path=eventio_path,
+            cherenkov_output_path=eventio_path,
             stdout_path=eventio_path + ".stdout",
             stderr_path=eventio_path + ".stderr",
         )

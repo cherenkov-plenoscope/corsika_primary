@@ -5,6 +5,38 @@ from . import rundict
 from .. import event_tape
 
 
+def ParticleEventTapeWriter(path, buffer_capacity=1000 * 1000):
+    """
+    Write a ParticleEventTape. Add RUNH, EVTH, and particles.
+
+    path : str
+        Path to event-tape file.
+    buffer_capacity : int
+        Buffer-size in num. particles.
+    """
+    return event_tape.TapeWriter(
+        path=path,
+        payload_shape_1=7,
+        payload_block_suffix=PARTICLE_SUFFIX,
+        buffer_capacity=buffer_capacity,
+    )
+
+
+def ParticleEventTapeReader(path):
+    return event_tape.EventTapeReader(
+        path=path,
+        payload_block_suffix=PARTICLE_SUFFIX,
+        func_read_payload_block=read_particle_block,
+    )
+
+
+PARTICLE_SUFFIX = ".par.x7.float32"
+
+
+def read_particle_block(tar, tarinfo):
+    return event_tape.read_payload_block(tar=tar, tarinfo=tarinfo, shape_1=7)
+
+
 def decode_particle_id(f4):
     """
     particle description encoded as:

@@ -4,12 +4,10 @@ import io
 import re as regex
 from . import I
 
-NUM_CHERENKOV_BUNCHES_IN_BUFFER = 1048576
 
-
-class TapeWriter:
+class EventTapeWriter:
     def __init__(
-        self, path, payload_shape_1, block_filename_template, buffer_capacity,
+        self, path, payload_shape_1, payload_block_suffix, buffer_capacity,
     ):
         """
         Write a Tape. Add RUNH, EVTH, and payload.
@@ -35,7 +33,7 @@ class TapeWriter:
         )
         self.buffer_size = 0
 
-        self.block_filename_template = str(block_filename_template)
+        self.payload_block_suffix = str(payload_block_suffix)
 
     def write_runh(self, runh):
         self.run_number = int(runh[I.RUNH.RUN_NUMBER])
@@ -81,9 +79,14 @@ class TapeWriter:
         if self.block_number is None:
             return
         part = self.buffer[0 : self.buffer_size].copy()
+
+        block_filename_template = payload_block_path_template(
+            suffix=self.payload_block_suffix
+        )
+
         tar_write(
             tar=self.tar,
-            filename=self.block_filename_template.format(
+            filename=block_filename_template.format(
                 run_number=self.run_number,
                 event_number=self.event_number,
                 block_number=self.block_number,
@@ -108,25 +111,10 @@ class TapeWriter:
         return out
 
 
-def EventTapeWriter(path, buffer_capacity=NUM_CHERENKOV_BUNCHES_IN_BUFFER):
-    """
-    Write an EventTape. Add RUNH, EVTH, and cherenkov-bunches.
-
-    path : str
-        Path to event-tape file.
-    buffer_capacity : int
-        Buffer-size in cherenkov-bunches.
-    """
-    return TapeWriter(
-        path=path,
-        payload_shape_1=8,
-        block_filename_template=CHERENKOV_BLOCK_FILENAME,
-        buffer_capacity=buffer_capacity,
-    )
-
-
 class EventTapeReader:
-    def __init__(self, path):
+    def __init__(
+        self, path, payload_block_suffix, func_read_payload_block,
+    ):
         """
         Read an event-tape written by the CORSIKA-primary-mod.
 
@@ -136,11 +124,15 @@ class EventTapeReader:
             Path to the event-tape written by the CORSIKA-primary-mod.
         """
         self.path = str(path)
+        self.mode = "r|gz" if str.endswith(self.path, ".gz") else "r|"
         self.tar = tarfile.open(name=path, mode="r|")
         self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
         self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
         self.next_info = self.tar.next()
+
+        self.func_read_payload_block = func_read_payload_block
+        self.payload_block_suffix = str(payload_block_suffix)
 
     def __next__(self):
         if self.next_info is None:
@@ -153,7 +145,14 @@ class EventTapeReader:
 
         self.event_number = int(evth[I.EVTH.EVENT_NUMBER])
         self.next_info = self.tar.next()
-        return (evth, BunchTapeReader(run=self))
+        return (
+            evth,
+            PayloadReader(
+                run=self,
+                payload_block_suffix=self.payload_block_suffix,
+                func_read_payload_block=self.func_read_payload_block,
+            ),
+        )
 
     def close(self):
         self.tar.close()
@@ -172,29 +171,35 @@ class EventTapeReader:
         return out
 
 
-class BunchTapeReader:
-    def __init__(self, run):
+class PayloadReader:
+    def __init__(
+        self, run, payload_block_suffix, func_read_payload_block,
+    ):
         self.run = run
-        self.cherenkov_block_number = 1
+        self.block_number = 1
+        self.payload_block_suffix = payload_block_suffix
+        self.func_read_payload_block = func_read_payload_block
 
     def __next__(self):
         if self.run.next_info is None:
             raise StopIteration
-        if not is_cherenkov_block_path(self.run.next_info.name):
+        if not is_payload_block_path(
+            path=self.run.next_info.name, suffix=self.payload_block_suffix
+        ):
             raise StopIteration
 
         assert self.run.event_number == parse_event_number(
             path=self.run.next_info.name
         )
-        assert self.cherenkov_block_number == parse_cherenkov_block_number(
+        assert self.block_number == parse_block_number(
             path=self.run.next_info.name
         )
-        bunch_block = read_cherenkov_bunch_block(
+        payload_block = self.func_read_payload_block(
             tar=self.run.tar, tarinfo=self.run.next_info,
         )
-        self.cherenkov_block_number += 1
+        self.block_number += 1
         self.run.next_info = self.run.tar.next()
-        return bunch_block
+        return payload_block
 
     def __iter__(self):
         return self
@@ -237,15 +242,15 @@ def is_match(template, path):
     return True
 
 
-RUNH_FILENAME = "{run_number:09d}/RUNH.float32"
-EVTH_FILENAME = "{run_number:09d}/{event_number:09d}/EVTH.float32"
-CHERENKOV_BLOCK_FILENAME = (
-    "{run_number:09d}/{event_number:09d}/{block_number:09d}.cer.x8.float32"
-)
+RUNDIR = "{run_number:09d}/"
+EVENTDIR = RUNDIR + "{event_number:09d}/"
+RUNH_FILENAME = RUNDIR + "RUNH.float32"
+EVTH_FILENAME = EVENTDIR + "EVTH.float32"
+BLOCKBASE = EVENTDIR + "{block_number:09d}"
 
 
-def is_cherenkov_block_path(path):
-    return is_match(CHERENKOV_BLOCK_FILENAME, path)
+def payload_block_path_template(suffix):
+    return BLOCKBASE + suffix
 
 
 def is_evth_path(path):
@@ -256,6 +261,10 @@ def is_runh_path(path):
     return is_match(RUNH_FILENAME, path)
 
 
+def is_payload_block_path(path, suffix):
+    return is_match(payload_block_path_template(suffix), path)
+
+
 def parse_run_number(path):
     return int(path[0 : 0 + 9])
 
@@ -264,7 +273,7 @@ def parse_event_number(path):
     return int(path[10 : 10 + 9])
 
 
-def parse_cherenkov_block_number(path):
+def parse_block_number(path):
     return int(path[20 : 20 + 9])
 
 
@@ -318,12 +327,12 @@ def write_evth(tar, evth, run_number, event_number):
     )
 
 
-def read_cherenkov_bunch_block(tar, tarinfo):
-    assert is_cherenkov_block_path(tarinfo.name)
+def read_payload_block(tar, tarinfo, shape_1):
+    assert shape_1 > 0
     bunches_bin = tar.extractfile(tarinfo).read()
     bunches = np.frombuffer(bunches_bin, dtype=np.float32)
-    num_bunches = bunches.shape[0] // (8)
-    return np.reshape(bunches, newshape=(num_bunches, 8))
+    num_bunches = bunches.shape[0] // (shape_1)
+    return np.reshape(bunches, newshape=(num_bunches, shape_1))
 
 
 def tar_write(tar, filename, filebytes):

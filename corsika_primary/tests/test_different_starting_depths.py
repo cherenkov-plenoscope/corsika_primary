@@ -70,7 +70,7 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
             cherenkov_output_path=cer_path,
             particle_output_path=par_path,
         )
-    run = cpw.event_tape.EventTapeReader(cer_path)
+    run = cpw.cherenkov.CherenkovEventTapeReader(cer_path)
 
     for depth in depths:
         _num_bunches = []

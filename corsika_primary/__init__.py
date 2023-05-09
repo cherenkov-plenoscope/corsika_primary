@@ -13,6 +13,7 @@ from . import testing
 from . import collect_version_information
 from . import calibration_light_source
 from . import particles
+from . import cherenkov
 
 MAX_ZENITH_DEG = 70.0
 CM2M = 1e-2
@@ -109,7 +110,7 @@ def corsika_primary(
         if op.isfile(cherenkov_output_path):
             os.chmod(cherenkov_output_path, 0o664)
 
-        datfilename = particles.DAT_FILE_TEMPLATE.format(
+        datfilename = particles.dat.DAT_FILE_TEMPLATE.format(
             runnr=steering_dict["run"]["run_id"]
         )
         shutil.copy(os.path.join(tmp_dir, datfilename), particle_output_path)
@@ -293,7 +294,7 @@ class CorsikaPrimary:
         self.corsika_process.stdin.write(str.encode(self.steering_card))
         self.corsika_process.stdin.flush()
 
-        self.cherenkov_reader = event_tape.EventTapeReader(
+        self.cherenkov_reader = cherenkov.CherenkovEventTapeReader(
             path=self.cer_fifo_path
         )
         self.runh = self.cherenkov_reader.runh

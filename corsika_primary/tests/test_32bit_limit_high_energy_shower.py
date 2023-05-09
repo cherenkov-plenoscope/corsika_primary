@@ -61,7 +61,7 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
             particle_output_path=par_path,
         )
 
-    with cpw.event_tape.EventTapeReader(cer_path) as run:
+    with cpw.cherenkov.CherenkovEventTapeReader(cer_path) as run:
         for event in run:
             evth, cer_reader = event
 

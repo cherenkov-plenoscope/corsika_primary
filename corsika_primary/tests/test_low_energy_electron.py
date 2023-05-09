@@ -188,7 +188,7 @@ def test_low_energy_electron(
         stdout = f.read()
     assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-    with cpw.event_tape.EventTapeReader(mod_cer_path) as run:
+    with cpw.cherenkov.CherenkovEventTapeReader(mod_cer_path) as run:
         for idx, event in enumerate(run):
             evth, cer_reader = event
             bunches = np.vstack([b for b in cer_reader])
