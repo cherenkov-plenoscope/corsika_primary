@@ -75,6 +75,6 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
 
             assert num_bunches > sufficient_bunches
 
-    cpw.particles.assert_valid(particle_path=par_path)
+    cpw.particles.assert_dat_is_valid(dat_path=par_path)
 
     tmp.cleanup_when_no_debug()

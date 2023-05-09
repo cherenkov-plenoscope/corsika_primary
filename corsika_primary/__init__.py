@@ -262,7 +262,7 @@ class CorsikaPrimary:
         )
         assert self.steering_card[-1] == "\n", "Need newline to mark ending."
 
-        self.tmp_particle_filename = particles.DAT_FILE_TEMPLATE.format(
+        self.tmp_particle_filename = particles.dat.DAT_FILE_TEMPLATE.format(
             runnr=self.steering_dict["run"]["run_id"]
         )
         self.tmp_particle_path = op.join(

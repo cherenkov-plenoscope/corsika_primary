@@ -43,7 +43,7 @@ def test_particle_output(corsika_primary_path, debug_dir):
         )
 
     with open(vvv_par_path, "rb") as vvvstream:
-        with cpw.particles.BlockReader(stream=vvvstream) as br:
+        with cpw.particles.dat.BlockReader(stream=vvvstream) as br:
             _ = br.__repr__()
             for block in br:
                 block_marker = block[0]
@@ -66,7 +66,7 @@ def test_particle_output(corsika_primary_path, debug_dir):
 
     rrr = {}
     with open(vvv_par_path, "rb") as vvvstream:
-        with cpw.particles.RunReader(stream=vvvstream) as run:
+        with cpw.particles.dat.RunReader(stream=vvvstream) as run:
             _ = run.__repr__()
 
             assert run.runh[0].tobytes() == b"RUNH"
@@ -120,11 +120,11 @@ def test_particle_output(corsika_primary_path, debug_dir):
 
     assert run.block_reader.file.closed == True
 
-    cpw.particles.write_rundict(path=vvv_par_path + ".back", rrr=rrr)
-    bbb = cpw.particles.read_rundict(path=vvv_par_path + ".back")
+    cpw.particles.rundict.write_rundict(dat_path=vvv_par_path + ".back", rrr=rrr)
+    bbb = cpw.particles.rundict.read_rundict(dat_path=vvv_par_path + ".back")
 
     # compare rrr and bbb
     # ===================
-    cpw.particles.assert_rundict_equal(rrr=rrr, bbb=bbb)
+    cpw.particles.rundict.assert_rundict_equal(rrr=rrr, bbb=bbb)
 
     tmp.cleanup_when_no_debug()

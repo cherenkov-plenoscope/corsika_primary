@@ -44,6 +44,6 @@ def test_particle_output_stream(corsika_primary_path, debug_dir):
             for cer_ii, cer_b in enumerate(cer_reader):
                 print("cer", cer_ii, len(cer_b))
 
-    cpw.particles.assert_valid(particle_path=par_path)
+    cpw.particles.assert_dat_is_valid(dat_path=par_path)
 
     tmp.cleanup_when_no_debug()

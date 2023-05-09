@@ -40,7 +40,7 @@ def test_with_contextmanager(debug_dir, corsika_primary_path):
             for cer_block in cer_reader:
                 assert cer_block.shape[1] == 8
 
-    cpw.particles.assert_valid(particle_path=par_path)
+    cpw.particles.assert_dat_is_valid(dat_path=par_path)
 
     tmp.cleanup_when_no_debug()
 

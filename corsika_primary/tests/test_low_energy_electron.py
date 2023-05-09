@@ -194,6 +194,6 @@ def test_low_energy_electron(
             bunches = np.vstack([b for b in cer_reader])
             assert van_num_bunches[idx] == bunches.shape[0]
 
-    cpw.particles.assert_valid(particle_path=mod_par_path)
+    cpw.particles.assert_dat_is_valid(dat_path=mod_par_path)
 
     tmp.cleanup_when_no_debug()
