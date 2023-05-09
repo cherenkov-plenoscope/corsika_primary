@@ -6,6 +6,7 @@ import glob
 from . import I
 from . import random
 from . import steering
+from . import particles
 
 
 class TmpDebugDir:

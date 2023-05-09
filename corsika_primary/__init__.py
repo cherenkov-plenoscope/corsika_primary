@@ -22,14 +22,14 @@ M2CM = 1e2
 def corsika_primary(
     corsika_path,
     steering_dict,
-    output_path,
+    cherenkov_output_path,
+    particle_output_path,
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
-    vanilla_particle_output=False,
 ):
     """
-    Call CORSIKA-primary and write Cherenkov-photons to output_path.
+    Call CORSIKA-primary and write Cherenkov-photons to cherenkov_output_path.
 
     This call is threadsafe, all execution takes place in a temproary copy
     of CORSIKA's run-directory.
@@ -40,24 +40,26 @@ def corsika_primary(
         Path to corsika's executable in its 'run' directory.
     steering_dict : dict
         The steering for the run and for each primary particle.
-    output_path : str
+    cherenkov_output_path : str
         Path to tape-archive with Cherenkov-photons.
+    particle_output_path : str
+        Path to particles.dat
     stdout_path : str
         Path to write CORSIKA's std-out to.
-        If None: output_path + 'stdout'
+        If None: cherenkov_output_path + 'stdout'
     stderr_path : str
         Path to write CORSIKA's std-error to.
-        If None: output_path + 'stderr'
-    vanilla_particle_output : bool
+        If None: cherenkov_output_path + 'stderr'
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
     steering_dict = copy.deepcopy(steering_dict)
-    output_path = op.abspath(output_path)
-    stdout_path = stdout_path if stdout_path else output_path + ".stdout"
-    stderr_path = stderr_path if stderr_path else output_path + ".stderr"
+    cherenkov_output_path = op.abspath(cherenkov_output_path)
+    stdout_path = stdout_path if stdout_path else cherenkov_output_path + ".stdout"
+    stderr_path = stderr_path if stderr_path else cherenkov_output_path + ".stderr"
     stdout_path = op.abspath(stdout_path)
     stderr_path = op.abspath(stderr_path)
+    particle_output_path = op.abspath(particle_output_path)
 
     steering.assert_values(steering_dict=steering_dict)
 
@@ -66,8 +68,8 @@ def corsika_primary(
     with tempfile.TemporaryDirectory(prefix=tmp_dir_prefix) as tmp_dir:
         steering_card = steering.make_steering_card_str(
             steering_dict=steering_dict,
-            output_path=output_path,
-            parout_direct=tmp_dir if vanilla_particle_output else None,
+            output_path=cherenkov_output_path,
+            parout_direct=tmp_dir,
         )
         primary_bytes = steering.primary_dicts_to_bytes(
             primary_dicts=steering_dict["primaries"]
@@ -100,18 +102,13 @@ def corsika_primary(
                 cwd=tmp_corsika_run_dir,
             )
 
-        if op.isfile(output_path):
-            os.chmod(output_path, 0o664)
+        if op.isfile(cherenkov_output_path):
+            os.chmod(cherenkov_output_path, 0o664)
 
-        if vanilla_particle_output:
-            datfilename = particles.DAT_FILE_TEMPLATE.format(
-                runnr=steering_dict["run"]["run_id"]
-            )
-            vanilla_particle_output_path = output_path + ".par.dat"
-            shutil.copy(
-                os.path.join(tmp_dir, datfilename),
-                vanilla_particle_output_path,
-            )
+        datfilename = particles.DAT_FILE_TEMPLATE.format(
+            runnr=steering_dict["run"]["run_id"]
+        )
+        shutil.copy(os.path.join(tmp_dir, datfilename), particle_output_path)
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()
@@ -123,13 +120,13 @@ def corsika_primary(
 def corsika_vanilla(
     corsika_path,
     steering_card,
-    output_path,
+    cherenkov_output_path,
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
 ):
     """
-    Call vanilla CORSIKA-7.56 and write Cherenkov-photons to output_path.
+    Call vanilla CORSIKA-7.56 and write Cherenkov-photons to cherenkov_output_path.
 
     This call is threadsafe, all execution takes place in a temproary copy
     of CORSIKA's run-directory.
@@ -140,23 +137,23 @@ def corsika_vanilla(
         Path to corsika's executable in its 'run' directory.
     steering_card : str
         The steering-card for vanilla CORSIKA-7.56.
-    output_path : str
+    cherenkov_output_path : str
         Path to eventio-file with Cherenkov-photons.
     stdout_path : str
         Path to write CORSIKA's std-out to.
-        If None: output_path + 'stdout'
+        If None: cherenkov_output_path + 'stdout'
     stderr_path : str
         Path to write CORSIKA's std-error to.
-        If None: output_path + 'stderr'
+        If None: cherenkov_output_path + 'stderr'
     """
     op = os.path
     corsika_path = op.abspath(corsika_path)
-    output_path = op.abspath(output_path)
+    cherenkov_output_path = op.abspath(cherenkov_output_path)
     steering_card = steering.overwrite_telfil_in_steering_card_str(
-        card_str=steering_card, telfil=output_path
+        card_str=steering_card, telfil=cherenkov_output_path
     )
-    stdout_path = stdout_path if stdout_path else output_path + ".stdout"
-    stderr_path = stderr_path if stderr_path else output_path + ".stderr"
+    stdout_path = stdout_path if stdout_path else cherenkov_output_path + ".stdout"
+    stderr_path = stderr_path if stderr_path else cherenkov_output_path + ".stderr"
     stdout_path = op.abspath(stdout_path)
     stderr_path = op.abspath(stderr_path)
 
@@ -182,8 +179,8 @@ def corsika_vanilla(
                 cwd=tmp_corsika_run_dir,
             )
 
-        if op.isfile(output_path):
-            os.chmod(output_path, 0o664)
+        if op.isfile(cherenkov_output_path):
+            os.chmod(cherenkov_output_path, 0o664)
 
     with open(stdout_path, "rt") as f:
         stdout_txt = f.read()
@@ -199,6 +196,7 @@ class CorsikaPrimary:
         steering_dict,
         stdout_path,
         stderr_path,
+        particle_output_path,
         tmp_dir_prefix="corsika_primary_",
     ):
         """
@@ -226,6 +224,7 @@ class CorsikaPrimary:
         self.stdout_path = op.abspath(stdout_path)
         self.stderr_path = op.abspath(stderr_path)
         self.tmp_dir_prefix = str(tmp_dir_prefix)
+        self.particle_output_path = str(particle_output_path)
         self.exit_ok = None
 
         steering.assert_values(steering_dict=self.steering_dict)
@@ -248,13 +247,19 @@ class CorsikaPrimary:
             self.tmp_corsika_run_dir, op.basename(self.corsika_path)
         )
 
-        self.par_fifo_path = self.cer_fifo_path + ".par.dat"
-        os.mkfifo(self.par_fifo_path)
-
         self.steering_card = steering.make_steering_card_str(
-            steering_dict=self.steering_dict, output_path=self.cer_fifo_path,
+            steering_dict=self.steering_dict,
+            output_path=self.cer_fifo_path,
+            parout_direct=self.tmp_dir,
         )
         assert self.steering_card[-1] == "\n", "Need newline to mark ending."
+
+        self.tmp_particle_filename = particles.DAT_FILE_TEMPLATE.format(
+            runnr=self.steering_dict["run"]["run_id"]
+        )
+        self.tmp_particle_path = op.join(
+            self.tmp_dir, self.tmp_particle_filename
+        )
 
         self.primary_bytes = steering.primary_dicts_to_bytes(
             primary_dicts=self.steering_dict["primaries"],
@@ -284,34 +289,23 @@ class CorsikaPrimary:
             path=self.cer_fifo_path
         )
         self.runh = self.cherenkov_reader.runh
-        self.par_stream = open(self.par_fifo_path, "rb", buffering=0)
-        self.particle_reader = particles.RunReader(
-            stream=self.par_stream, num_offset_bytes=0
-        )
 
     def close(self):
         self.cherenkov_reader.close()
-        self.particle_reader.close()
-
         self.stdout.close()
         self.stderr.close()
-        self.par_stream.close()
+        shutil.copy(self.tmp_particle_path, self.particle_output_path)
+
         if self.exit_ok is None:
             with open(self.stdout_path, "rt") as f:
                 stdout = f.read()
             self.exit_ok = testing.stdout_ends_with_end_of_run_marker(stdout)
+
         self.tmp_dir_handle.cleanup()
 
     def __next__(self):
-        try:
-            cer_evth, cer_bunches = self.cherenkov_reader.__next__()
-            par_evth, par_bunches = self.particle_reader.__next__()
-            np.testing.assert_array_equal(cer_evth, par_evth)
-
-            return (cer_evth, cer_bunches, par_bunches)
-        except StopIteration:
-            self.close()
-            raise
+        cer_evth, cer_bunches = self.cherenkov_reader.__next__()
+        return (cer_evth, cer_bunches)
 
     def __iter__(self):
         return self

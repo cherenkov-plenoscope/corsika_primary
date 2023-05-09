@@ -8,9 +8,7 @@ class RunReader:
     def __init__(self, stream, num_offset_bytes=4):
         """
         """
-        self.block_reader = BlockReader(
-            stream=stream, num_offset_bytes=num_offset_bytes
-        )
+        self.block_reader = BlockReader(stream=stream)
         self.runh = self.block_reader.__next__()
         assert self.runh[0].tobytes() == b"RUNH", "Expected RUNH"
 
@@ -78,42 +76,6 @@ class ParticleBlockReader:
         return out
 
 
-class BlockReader:
-    def __init__(self, stream, num_offset_bytes=4):
-        """
-        """
-        self.file = stream
-        self.num_bytes_per_block = 273 * 4
-
-        if num_offset_bytes:
-            self.stuff_before_runh = self.file.read(num_offset_bytes)
-
-    def __next__(self):
-        block_bytes = self.file.read(self.num_bytes_per_block)
-
-        if len(block_bytes) == self.num_bytes_per_block:
-            block_f32 = np.frombuffer(block_bytes, dtype=np.float32)
-            return block_f32
-        else:
-            raise StopIteration
-
-    def close(self):
-        pass
-
-    def __iter__(self):
-        return self
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.close()
-
-    def __repr__(self):
-        out = "{:s}()".format(self.__class__.__name__)
-        return out
-
-
 def decode_particle_id(f4):
     """
     particle description encoded as:
@@ -162,7 +124,7 @@ class RunWriter:
         self._event_has_evth = False
 
         if 0 == self.particle_block_size:
-            num_padding_all_zero_particles == 0
+            num_padding_all_zero_particles = 0
         else:
             num_padding_all_zero_particles = 39 - self.particle_block_size
 
@@ -253,7 +215,7 @@ def write_rundict(path, rrr):
             out.write_rune(rrr["RUNE"])
 
 
-def assert_rundict_equal(rrr, bbb, ignore_rune=False):
+def assert_rundict_equal(rrr, bbb):
     np.testing.assert_array_equal(rrr["RUNH"], bbb["RUNH"])
     assert len(rrr["events"]) == len(bbb["events"])
     for i in range(len(rrr["events"])):
@@ -266,5 +228,79 @@ def assert_rundict_equal(rrr, bbb, ignore_rune=False):
                 eeer["particles"][j], eeeb["particles"][j]
             )
         np.testing.assert_array_equal(eeer["EVTE"], eeeb["EVTE"])
-    if not ignore_rune:
-        np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])
+    np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])
+
+
+def find_markers(stream, marker=[b"RUNH", b"EVTH", b"EVTE", b"RUNE", b"\x94Y\x00\x00"],):
+    out = []
+    i = 0
+    while True:
+        b4 = stream.read(4)
+        if b4 == b"":
+            break
+        if b4 in marker:
+            find = (b4, i)
+            out.append(find)
+        i += 1
+    return out
+
+
+class BlockReader:
+    """
+    According to the CORSIKA manual 7.56 the particle-output is structured
+    into blocks of 273xfloat32s.
+    But for some reason there is this ***** in the stream: \x94Y\x00\x00
+    I have no idea why.
+    This reader tries to work around this.
+    """
+    def __init__(self, stream):
+        self.file = stream
+        self.b1_marker = b"\x94Y\x00\x00"
+
+    def __next__(self):
+        self.b1 = self.file.read(4)
+
+        N = 300
+        n = 0
+        while self.b1 == self.b1_marker:
+            self.b1 = self.file.read(4 * 1)
+            n += 1
+            assert n <= N, "Can not read this."
+
+        if len(self.b1) < 4:
+            raise StopIteration
+
+        b272 = self.file.read(4 * 272)
+        if len(b272) < 4 * 272:
+            raise StopIteration
+
+        f1 = np.frombuffer(self.b1, dtype=np.float32)
+        f272 = np.frombuffer(b272, dtype=np.float32)
+
+        block273 = np.zeros(273, dtype=np.float32)
+        block273[0] = f1[0]
+        block273[1:] = f272
+        return block273
+
+    def close(self):
+        pass
+
+    def __iter__(self):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __repr__(self):
+        out = "{:s}()".format(self.__class__.__name__)
+        return out
+
+
+def assert_valid(particle_path):
+    iii = read_rundict(particle_path)
+    write_rundict(particle_path + ".back", iii)
+    bbb = read_rundict(particle_path + ".back")
+    assert_rundict_equal(iii, bbb)

@@ -30,7 +30,7 @@ def test_particle_output(corsika_primary_path, debug_dir):
 
     vvv_path = os.path.join(tmp.name, "VVV")
     vvv_cer_path = vvv_path + ".cer.tar"
-    vvv_par_path = vvv_cer_path + ".par.dat"
+    vvv_par_path = vvv_path + ".par.dat"
 
     if not os.path.exists(vvv_par_path):
         cpw.corsika_primary(
@@ -38,22 +38,8 @@ def test_particle_output(corsika_primary_path, debug_dir):
             steering_dict=steering,
             stdout_path=vvv_path + ".o",
             stderr_path=vvv_path + ".e",
-            output_path=vvv_cer_path,
-            vanilla_particle_output=True,
-        )
-
-    mmm_path = os.path.join(tmp.name, "MMM")
-    mmm_cer_path = mmm_path + ".cer.tar"
-    mmm_par_path = mmm_cer_path + ".par.dat"
-
-    if not os.path.exists(mmm_par_path):
-        cpw.corsika_primary(
-            corsika_path=corsika_primary_path,
-            steering_dict=steering,
-            stdout_path=mmm_path + ".o",
-            stderr_path=mmm_path + ".e",
-            output_path=mmm_cer_path,
-            vanilla_particle_output=False,
+            cherenkov_output_path=vvv_cer_path,
+            particle_output_path=vvv_par_path,
         )
 
     with open(vvv_par_path, "rb") as vvvstream:
@@ -140,14 +126,5 @@ def test_particle_output(corsika_primary_path, debug_dir):
     # compare rrr and bbb
     # ===================
     cpw.particles.assert_rundict_equal(rrr=rrr, bbb=bbb)
-
-    # compare vanilla's buffered particle-output to
-    # primary-mod's particle-output
-    # =============================
-
-    vvv = cpw.particles.read_rundict(path=vvv_par_path)
-    mmm = cpw.particles.read_rundict(path=mmm_par_path, num_offset_bytes=0)
-
-    cpw.particles.assert_rundict_equal(vvv, mmm)
 
     tmp.cleanup_when_no_debug()

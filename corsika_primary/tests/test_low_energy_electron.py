@@ -132,7 +132,7 @@ def test_low_energy_electron(
         cpw.corsika_vanilla(
             corsika_path=corsika_vanilla_path,
             steering_card=van_steering_card,
-            output_path=van_run_eventio_path,
+            cherenkov_output_path=van_run_eventio_path,
             stdout_path=van_run_eventio_path + ".stdout",
             stderr_path=van_run_eventio_path + ".stderr",
         )
@@ -173,21 +173,27 @@ def test_low_energy_electron(
         mod_steering_dict["primaries"].append(prm)
 
     mod_run_path = op.join(tmp.name, "modified_run.tar")
-    if not op.exists(mod_run_path):
+    mod_cer_path = mod_run_path + ".cer.tar"
+    mod_par_path = mod_run_path + ".par.dat"
+
+    if not op.exists(mod_cer_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=mod_steering_dict,
-            output_path=mod_run_path,
+            cherenkov_output_path=mod_cer_path,
+            particle_output_path=mod_par_path,
             stdout_path=mod_run_path + ".stdout",
         )
     with open(mod_run_path + ".stdout", "rt") as f:
         stdout = f.read()
     assert cpw.testing.stdout_ends_with_end_of_run_marker(stdout=stdout)
 
-    run = cpw.event_tape.EventTapeReader(mod_run_path)
-    for idx, event in enumerate(run):
-        evth, cer_reader = event
-        bunches = np.vstack([b for b in cer_reader])
-        assert van_num_bunches[idx] == bunches.shape[0]
+    with cpw.event_tape.EventTapeReader(mod_cer_path) as run:
+        for idx, event in enumerate(run):
+            evth, cer_reader = event
+            bunches = np.vstack([b for b in cer_reader])
+            assert van_num_bunches[idx] == bunches.shape[0]
+
+    cpw.particles.assert_valid(particle_path=mod_par_path)
 
     tmp.cleanup_when_no_debug()

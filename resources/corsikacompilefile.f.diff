@@ -6,20 +6,6 @@
 <           CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP )
 ---
 >           CALL EXTPRM( PRMPAR(0), PRMPAR(1), THETAP, PHIP, THICK0)
-6710a6711
->           CALL PPPEVT( EVTH )
-7799a7801
->         CALL PPPEND( EVTE )
-7878a7881
->       CALL PPPRNE( RUNE )
-49992a49978
->       CALL PPPRNH( RUNH )
-65622a65609
->         CALL PPPOUT( DATAB )
-66902a66890
->             CALL PPPOUT( DATAB )
-67043a67032
->           CALL PPPOUT( DATAB )
 106230c106219,106220
 <         GOTO 420
 ---
@@ -50,8 +36,6 @@
 ---
 >         IF ( FNPRIM ) GOTO 420
 >         GOTO 498
-106831a106827
->         CALL PPPEVT( EVTH )
 106869c106865,106868
 <         IF ( PEIE .LE. ECUT(IRL) ) GOTO 390
 ---
@@ -59,7 +43,3 @@
 >             IF ( FNPRIM ) GOTO 390
 >             GOTO 498
 >         ENDIF
-117236a117236
->         CALL PPPEVT( EVTH )
-168406a168407
->             CALL PPPOUT( DATAB )

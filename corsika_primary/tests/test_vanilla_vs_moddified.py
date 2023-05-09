@@ -209,7 +209,7 @@ def test_vanilla_vs_moddified(
             cpw.corsika_vanilla(
                 corsika_path=corsika_vanilla_path,
                 steering_card=ori_steering_card,
-                output_path=ori_run_eventio_path,
+                cherenkov_output_path=ori_run_eventio_path,
                 stdout_path=ori_run_eventio_path + ".stdout",
                 stderr_path=ori_run_eventio_path + ".stderr",
             )
@@ -257,19 +257,21 @@ def test_vanilla_vs_moddified(
             }
             mod_steering_dict["primaries"].append(prm)
 
-        mod_run_path = os.path.join(
-            par_dir, "modified_run_{:d}.tar".format(run)
-        )
-        if not os.path.exists(mod_run_path):
+        mod_run_path = os.path.join(par_dir, "modified_run_{:d}".format(run))
+        mod_cer_path = mod_run_path + ".cer.tar"
+        mod_par_path = mod_run_path + ".par.dat"
+
+        if not os.path.exists(mod_cer_path):
             cpw.corsika_primary(
                 corsika_path=corsika_primary_path,
                 steering_dict=mod_steering_dict,
-                output_path=mod_run_path,
+                cherenkov_output_path=mod_cer_path,
+                particle_output_path=mod_par_path,
             )
 
         # READ ORIGINAL AND MODIFIED RUNS
         # -------------------------------
-        mod_run = cpw.event_tape.EventTapeReader(mod_run_path)
+        mod_run = cpw.event_tape.EventTapeReader(mod_cer_path)
         ori_run = cpw.testing.SimpleIoRun(ori_run_path)
 
         for evt_idx in range(num_shower):

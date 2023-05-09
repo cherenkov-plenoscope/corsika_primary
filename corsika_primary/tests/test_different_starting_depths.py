@@ -60,14 +60,17 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
     num_photons = []
     std_r = []
 
-    run_path = os.path.join(tmp.name, "different_starting_depths.tar")
-    if not os.path.exists(run_path):
+    run_path = os.path.join(tmp.name, "different_starting_depths")
+    cer_path = run_path + ".cer.tar"
+    par_path = run_path + ".par.dat"
+    if not os.path.exists(cer_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=steering_dict,
-            output_path=run_path,
+            cherenkov_output_path=cer_path,
+            particle_output_path=par_path,
         )
-    run = cpw.event_tape.EventTapeReader(run_path)
+    run = cpw.event_tape.EventTapeReader(cer_path)
 
     for depth in depths:
         _num_bunches = []

@@ -48,32 +48,33 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
         ],
     }
 
-    run_path = os.path.join(tmp.name, "high_energy_electron.tar")
-    if not os.path.exists(run_path):
+    sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
+
+    run_path = os.path.join(tmp.name, "high_energy_electron")
+    cer_path = run_path + ".cer.tar"
+    par_path = run_path + ".par.dat"
+    if not os.path.exists(cer_path):
         cpw.corsika_primary(
             corsika_path=corsika_primary_path,
             steering_dict=steering_dict,
-            output_path=run_path,
+            cherenkov_output_path=cer_path,
+            particle_output_path=par_path
         )
 
-    run = cpw.event_tape.EventTapeReader(run_path)
-    event = next(run)
-    evth, cer_reader = event
+    with cpw.event_tape.EventTapeReader(cer_path) as run:
+        for event in run:
+            evth, cer_reader = event
 
-    with pytest.raises(StopIteration):
-        next(run)
+            assert evth[cpw.I.EVTH.EVENT_NUMBER] == 1.0
+            assert evth[cpw.I.EVTH.PARTICLE_ID] == 3.0
+            assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
 
-    assert evth[cpw.I.EVTH.EVENT_NUMBER] == 1.0
-    assert evth[cpw.I.EVTH.PARTICLE_ID] == 3.0
-    assert evth[cpw.I.EVTH.STARTING_DEPTH_G_PER_CM2] == 0.0
+            num_bunches = 0
+            for cer_block in cer_reader:
+                num_bunches += len(cer_block)
 
-    sufficient_bunches = int(5e9 // cpw.I.BUNCH.NUM_BYTES)
+            assert num_bunches > sufficient_bunches
 
-    bunches = []
-    for cer_block in cer_reader:
-        bunches.append(cer_block)
-    bunches = np.vstack(bunches)
-
-    assert bunches.shape[0] > sufficient_bunches
+    cpw.particles.assert_valid(particle_path=par_path)
 
     tmp.cleanup_when_no_debug()

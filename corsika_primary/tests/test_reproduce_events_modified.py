@@ -65,38 +65,37 @@ def hash_cherenkov_pools(
     corsika_primary_path, steering_dict, tmp_key, tmp_dir,
 ):
     os.makedirs(tmp_dir, exist_ok=True)
-    path = os.path.join(tmp_dir, tmp_key)
-    hashes_path = path + ".hashes.csv"
-    seeds_path = path + ".seeds.csv"
+    run_path = os.path.join(tmp_dir, tmp_key)
+    par_path = run_path + ".par.dat"
+    hashes_path = run_path + ".hashes.csv"
+    seeds_path = run_path + ".seeds.csv"
 
     hashes = {}
     seeds = {}
 
     if not os.path.exists(hashes_path):
-        run = cpw.CorsikaPrimary(
+        with cpw.CorsikaPrimary(
             corsika_path=corsika_primary_path,
             steering_dict=steering_dict,
-            stdout_path=path + ".o",
-            stderr_path=path + ".e",
-        )
+            particle_output_path=par_path,
+            stdout_path=run_path + ".o",
+            stderr_path=run_path + ".e",
+        ) as run:
 
-        for event in run:
-            evth, cer_reader, par_reader = event
+            for event in run:
+                evth, cer_reader = event
 
-            cer_blocks = []
-            for cer_block in cer_reader:
-                cer_blocks.append(cer_block)
-            cer_blocks = np.vstack(cer_blocks)
+                cer_blocks = []
+                for cer_block in cer_reader:
+                    cer_blocks.append(cer_block)
+                cer_blocks = np.vstack(cer_blocks)
 
-            event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
-            hashes[event_id] = hashlib.md5(cer_blocks.tobytes()).hexdigest()
-            seeds[event_id] = cpw.random.seed.parse_seed_from_evth(evth)
+                event_id = int(evth[cpw.I.EVTH.EVENT_NUMBER])
+                hashes[event_id] = hashlib.md5(cer_blocks.tobytes()).hexdigest()
+                seeds[event_id] = cpw.random.seed.parse_seed_from_evth(evth)
 
-            for par_block in par_reader:
-                pass
-
-        cpw.testing.write_hashes(path=hashes_path, hashes=hashes)
-        cpw.testing.write_seeds(path=seeds_path, seeds=seeds)
+            cpw.testing.write_hashes(path=hashes_path, hashes=hashes)
+            cpw.testing.write_seeds(path=seeds_path, seeds=seeds)
 
     hashes = cpw.testing.read_hashes(path=hashes_path)
     seeds = cpw.testing.read_seeds(path=seeds_path)
