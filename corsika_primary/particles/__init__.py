@@ -96,4 +96,3 @@ def assert_dat_is_valid(dat_path):
 
     uuu = rundict.read_rundict(dat_path + ".tar.back")
     rundict.assert_rundict_equal(iii, uuu, ignore_rune=True, ignore_evte=True)
-
