@@ -38,7 +38,7 @@ def write_rundict(dat_path, rrr):
             out.write_rune(rrr["RUNE"])
 
 
-def assert_rundict_equal(rrr, bbb):
+def assert_rundict_equal(rrr, bbb, ignore_rune=False, ignore_evte=False):
     np.testing.assert_array_equal(rrr["RUNH"], bbb["RUNH"])
     assert len(rrr["events"]) == len(bbb["events"])
     for i in range(len(rrr["events"])):
@@ -50,5 +50,7 @@ def assert_rundict_equal(rrr, bbb):
             np.testing.assert_array_equal(
                 eeer["particles"][j], eeeb["particles"][j]
             )
-        np.testing.assert_array_equal(eeer["EVTE"], eeeb["EVTE"])
-    np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])
+        if not ignore_evte:
+            np.testing.assert_array_equal(eeer["EVTE"], eeeb["EVTE"])
+    if not ignore_rune:
+        np.testing.assert_array_equal(rrr["RUNE"], bbb["RUNE"])

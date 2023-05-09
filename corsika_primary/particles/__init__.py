@@ -1,6 +1,5 @@
 import numpy as np
 from . import dat
-from . import tape
 from . import rundict
 from .. import event_tape
 
@@ -14,7 +13,7 @@ def ParticleEventTapeWriter(path, buffer_capacity=1000 * 1000):
     buffer_capacity : int
         Buffer-size in num. particles.
     """
-    return event_tape.TapeWriter(
+    return event_tape.EventTapeWriter(
         path=path,
         payload_shape_1=7,
         payload_block_suffix=PARTICLE_SUFFIX,
@@ -48,10 +47,10 @@ def decode_particle_id(f4):
 
 
 def dat_to_tape(dat_path, tape_path):
-    with open(dat_path, "rb") as df, tape.ParticleTapeWriter(
+    with open(dat_path, "rb") as df, ParticleEventTapeWriter(
         tape_path
     ) as evttape:
-        with RunReader(df) as run:
+        with dat.RunReader(df) as run:
             evttape.write_runh(run.runh)
 
             for event in run:
@@ -62,8 +61,39 @@ def dat_to_tape(dat_path, tape_path):
                     evttape.write_payload(block)
 
 
+def tape_to_dat(tape_path, dat_path):
+    with ParticleEventTapeReader(tape_path) as irun:
+        with open(dat_path, "wb") as stream:
+            with dat.RunWriter(stream=stream) as orun:
+
+                orun.write_runh(irun.runh)
+
+                for event in irun:
+                    evth, particle_reader = event
+                    orun.write_evth(evth)
+
+                    for block in particle_reader:
+                        for par in block:
+                            orun.write_particle(par)
+
+                    evte = np.zeros(273, dtype=np.float32)
+                    evte[0] = np.frombuffer(b"EVTE", dtype=np.float32)[0]
+                    orun.write_evte(evte)
+
+                rune = np.zeros(273, dtype=np.float32)
+                rune[0] = np.frombuffer(b"RUNE", dtype=np.float32)[0]
+                orun.write_rune(rune)
+
+
 def assert_dat_is_valid(dat_path):
     iii = rundict.read_rundict(dat_path)
     rundict.write_rundict(dat_path + ".back", iii)
     bbb = rundict.read_rundict(dat_path + ".back")
     rundict.assert_rundict_equal(iii, bbb)
+
+    dat_to_tape(dat_path=dat_path, tape_path=dat_path + ".tar")
+    tape_to_dat(tape_path=dat_path + ".tar", dat_path=dat_path + ".tar.back")
+
+    uuu = rundict.read_rundict(dat_path + ".tar.back")
+    rundict.assert_rundict_equal(iii, uuu, ignore_rune=True, ignore_evte=True)
+
