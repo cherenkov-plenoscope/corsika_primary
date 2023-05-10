@@ -125,7 +125,7 @@ class EventTapeReader:
         """
         self.path = str(path)
         self.mode = "r|gz" if str.endswith(self.path, ".gz") else "r|"
-        self.tar = tarfile.open(name=path, mode="r|")
+        self.tar = tarfile.open(name=path, mode=self.mode)
         self.next_info = self.tar.next()
         self.runh = read_runh(tar=self.tar, tarinfo=self.next_info)
         self.run_number = int(self.runh[I.RUNH.RUN_NUMBER])
