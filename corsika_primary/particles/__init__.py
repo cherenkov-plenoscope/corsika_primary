@@ -1,6 +1,7 @@
 import numpy as np
 from . import dat
 from . import rundict
+from . import identification
 from .. import event_tape
 
 
@@ -36,13 +37,13 @@ def read_particle_block(tar, tarinfo):
     return event_tape.read_payload_block(tar=tar, tarinfo=tarinfo, shape_1=7)
 
 
-def decode_particle_id(f4):
+def decode_particle_id(code):
     """
     particle description encoded as:
     part. id×1000 + hadr. generation [94] × 10 + no. of obs. level
     [for additional muon information: part. id×1000 + hadr. generation 95 ]
     """
-    particle_id = int(f4 // 1000)
+    particle_id = int(code // 1000)
     return particle_id
 
 
