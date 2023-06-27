@@ -38,32 +38,32 @@ def draw_parallel_and_isochor_bunches(
 
     for i in range(size):
         (
-            bun[i, I.BUNCH.X],
-            bun[i, I.BUNCH.Y],
+            bun[i, I.BUNCH.X_CM],
+            bun[i, I.BUNCH.Y_CM],
         ) = random.distributions.draw_x_y_in_disc(
             prng=prng, radius=aperture_radius
         )
 
-    bun[:, I.BUNCH.CX] = cx
-    bun[:, I.BUNCH.CY] = cy
+    bun[:, I.BUNCH.CX_RAD] = cx
+    bun[:, I.BUNCH.CY_RAD] = cy
 
     delta_path_lengths = (
-        bun[:, I.BUNCH.CX] * bun[:, I.BUNCH.X]
-        + bun[:, I.BUNCH.CY] * bun[:, I.BUNCH.Y]
+        bun[:, I.BUNCH.CX_RAD] * bun[:, I.BUNCH.X_CM]
+        + bun[:, I.BUNCH.CY_RAD] * bun[:, I.BUNCH.Y_CM]
     )
-    bun[:, I.BUNCH.TIME] = delta_path_lengths / speed_of_light
+    bun[:, I.BUNCH.TIME_NS] = delta_path_lengths / speed_of_light
 
-    bun[:, I.BUNCH.WVL] = wavelength
-    bun[:, I.BUNCH.BSIZE] = 1.0
-    bun[:, I.BUNCH.ZEM] = 1.0
+    bun[:, I.BUNCH.WAVELENGTH_NM] = wavelength
+    bun[:, I.BUNCH.BUNCH_SIZE_1] = 1.0
+    bun[:, I.BUNCH.EMISSOION_ALTITUDE_ASL_CM] = 1.0
 
     # to cgs units
     # ------------
-    bun[:, I.BUNCH.X] *= 1e2  # m -> cm
-    bun[:, I.BUNCH.Y] *= 1e2  # m -> cm
+    bun[:, I.BUNCH.X_CM] *= 1e2  # m -> cm
+    bun[:, I.BUNCH.Y_CM] *= 1e2  # m -> cm
 
-    bun[:, I.BUNCH.TIME] *= 1e9  # s -> ns
-    bun[:, I.BUNCH.ZEM] *= 1e2  # m -> cm
+    bun[:, I.BUNCH.TIME_NS] *= 1e9  # s -> ns
+    bun[:, I.BUNCH.EMISSOION_ALTITUDE_ASL_CM] *= 1e2  # m -> cm
 
-    bun[:, I.BUNCH.WVL] *= 1e9  # m -> nm
+    bun[:, I.BUNCH.WAVELENGTH_NM] *= 1e9  # m -> nm
     return bun

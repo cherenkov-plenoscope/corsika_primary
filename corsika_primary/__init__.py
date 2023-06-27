@@ -334,12 +334,12 @@ class CorsikaPrimary:
 
 def bunches_to_si_units(bunches):
     b = copy.deepcopy(bunches)
-    b[:, I.BUNCH.X] *= CM2M  # cm -> m
-    b[:, I.BUNCH.Y] *= CM2M  # cm -> m
-    # b[:, I.BUNCH.CX]
-    # b[:, I.BUNCH.CY]
-    b[:, I.BUNCH.TIME] *= 1e-9  # ns -> s
-    b[:, I.BUNCH.ZEM] *= CM2M  # cm -> m
-    # b[:, I.BUNCH.BSIZE] = bunches[:, I.BUNCH.BSIZE]
-    b[:, I.BUNCH.WVL] = np.abs(b[:, I.BUNCH.WVL]) * 1e-9  # nm -> m
+    b[:, I.BUNCH.X_CM] *= CM2M  # cm -> m
+    b[:, I.BUNCH.Y_CM] *= CM2M  # cm -> m
+    # b[:, I.BUNCH.CX_RAD]
+    # b[:, I.BUNCH.CY_RAD]
+    b[:, I.BUNCH.TIME_NS] *= 1e-9  # ns -> s
+    b[:, I.BUNCH.EMISSOION_ALTITUDE_ASL_CM] *= CM2M  # cm -> m
+    # b[:, I.BUNCH.BUNCH_SIZE_1] = bunches[:, I.BUNCH.BUNCH_SIZE_1]
+    b[:, I.BUNCH.WAVELENGTH_NM] = np.abs(b[:, I.BUNCH.WAVELENGTH_NM]) * 1e-9  # nm -> m
     return b
