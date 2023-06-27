@@ -341,5 +341,7 @@ def bunches_to_si_units(bunches):
     b[:, I.BUNCH.TIME_NS] *= 1e-9  # ns -> s
     b[:, I.BUNCH.EMISSOION_ALTITUDE_ASL_CM] *= CM2M  # cm -> m
     # b[:, I.BUNCH.BUNCH_SIZE_1] = bunches[:, I.BUNCH.BUNCH_SIZE_1]
-    b[:, I.BUNCH.WAVELENGTH_NM] = np.abs(b[:, I.BUNCH.WAVELENGTH_NM]) * 1e-9  # nm -> m
+    b[:, I.BUNCH.WAVELENGTH_NM] = (
+        np.abs(b[:, I.BUNCH.WAVELENGTH_NM]) * 1e-9
+    )  # nm -> m
     return b

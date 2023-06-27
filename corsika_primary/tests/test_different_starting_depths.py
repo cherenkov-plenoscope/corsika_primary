@@ -85,7 +85,9 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
 
             if bunches.shape[0] > 0:
                 _num_bunches.append(bunches.shape[0])
-                _num_photons.append(np.sum(bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1]))
+                _num_photons.append(
+                    np.sum(bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1])
+                )
                 _std_r.append(
                     np.hypot(
                         np.std(bunches[:, cpw.I.BUNCH.X_CM]),

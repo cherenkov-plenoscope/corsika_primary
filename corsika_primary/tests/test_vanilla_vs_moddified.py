@@ -324,8 +324,12 @@ def test_vanilla_vs_moddified(
                     )
 
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM],
-                        y=ori_bunches[:, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM],
+                        x=mod_bunches[
+                            :, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM
+                        ],
+                        y=ori_bunches[
+                            :, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM
+                        ],
                         decimal=1,
                     )
                     np.testing.assert_array_almost_equal(
