@@ -36,7 +36,11 @@ def call_and_save_std(target, stdout_path, stderr_path, stdin=None):
 
 
 def download_corsika_tar(
-    output_dir, username, password, web_path, corsika_tar_filename,
+    output_dir,
+    username,
+    password,
+    web_path,
+    corsika_tar_filename,
 ):
     # download CORSIKA from KIT
     # wget uses $http_proxy environment-variables in case of proxy
@@ -100,10 +104,16 @@ def install_corsika(
         # apply modification to CORSIKA itslef.
         patch(
             vanilla_path=os.path.join(
-                vanilla_path, CORSIKA_NAME, "src", "corsikacompilefile.f",
+                vanilla_path,
+                CORSIKA_NAME,
+                "src",
+                "corsikacompilefile.f",
             ),
             diff_path=os.path.join(resource_path, "corsikacompilefile.f.diff"),
-            out_path=os.path.join("src", "corsikacompilefile.f",),
+            out_path=os.path.join(
+                "src",
+                "corsikacompilefile.f",
+            ),
         )
 
         # apply modifications to bernlohrs iact package.

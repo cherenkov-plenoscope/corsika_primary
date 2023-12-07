@@ -11,7 +11,7 @@ def draw_power_law(prng, lower_limit, upper_limit, power_slope, num_samples):
         return (rd * ul + (1.0 - rd) * ll) ** slex
     else:
         ll = upper_limit / lower_limit
-        return lower_limit * ll ** rd
+        return lower_limit * ll**rd
 
 
 def draw_zenith_distance(

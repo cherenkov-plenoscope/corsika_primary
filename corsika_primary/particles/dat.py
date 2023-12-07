@@ -7,8 +7,7 @@ DAT_FILE_TEMPLATE = "DAT{runnr:06d}"
 
 class RunReader:
     def __init__(self, stream, num_offset_bytes=4):
-        """
-        """
+        """ """
         self.block_reader = BlockReader(stream=stream)
         self.runh = self.block_reader.__next__()
         assert self.runh[0].tobytes() == b"RUNH", "Expected RUNH"
@@ -47,8 +46,7 @@ class RunReader:
 
 class ParticleBlockReader:
     def __init__(self, block_reader):
-        """
-        """
+        """ """
         self.block_reader = block_reader
 
     def __next__(self):
@@ -133,7 +131,8 @@ class BlockReader:
 
 
 def find_markers(
-    stream, marker=[b"RUNH", b"EVTH", b"EVTE", b"RUNE", b"\x94Y\x00\x00"],
+    stream,
+    marker=[b"RUNH", b"EVTH", b"EVTE", b"RUNE", b"\x94Y\x00\x00"],
 ):
     out = []
     i = 0

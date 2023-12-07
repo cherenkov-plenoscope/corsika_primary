@@ -70,7 +70,6 @@ def test_event_tape_with_contextmanager(debug_dir):
     prng = np.random.Generator(np.random.PCG64(SEED))
 
     for run_number in RUN_NUMBERS:
-
         orig = make_dummy_run(
             prng=prng,
             run_number=run_number,
@@ -121,7 +120,6 @@ def test_event_tape_without_contextmanager(debug_dir):
     prng = np.random.Generator(np.random.PCG64(SEED))
 
     for run_number in RUN_NUMBERS:
-
         orig = make_dummy_run(
             prng=prng,
             run_number=run_number,

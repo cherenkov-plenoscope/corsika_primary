@@ -44,7 +44,10 @@ def report_str(ii, h1, h2, ok):
     oks = "[ OK ]" if ok else "[ BAD]"
     rep = oks
     rep += "[{: 3d} - 1]  {:3.3f}  {:3.3f}  ({:E})\n".format(
-        ii + 1, h1[ii], h2[ii], h1[ii] - h2[ii],
+        ii + 1,
+        h1[ii],
+        h2[ii],
+        h1[ii] - h2[ii],
     )
     return rep
 
@@ -297,7 +300,6 @@ def test_vanilla_vs_moddified(
             if particle == "proton":
                 assert ori_num_bunches[evt_idx] == mod_bunches.shape[0]
             else:
-
                 print(run, ori_bunches.shape[0], mod_bunches.shape[0])
 
                 if zenith_deg == 0.0 and azimuth_deg == 0.0:
@@ -398,7 +400,7 @@ def test_vanilla_vs_moddified(
                     HEIGHT_AT_ZERO_GRAMMAGE_M = 112.8e3
                     mod_time_sphere_z = (
                         DET_ZO
-                        * np.sqrt(1.0 + mod_sx ** 2 + mod_sy ** 2)
+                        * np.sqrt(1.0 + mod_sx**2 + mod_sy**2)
                         / SPPED_OF_LIGHT_M_PER_S
                     )
 

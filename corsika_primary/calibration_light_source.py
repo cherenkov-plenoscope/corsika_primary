@@ -4,7 +4,13 @@ from . import I
 
 
 def draw_parallel_and_isochor_bunches(
-    cx, cy, aperture_radius, wavelength, size, prng, speed_of_light=299792458,
+    cx,
+    cy,
+    aperture_radius,
+    wavelength,
+    size,
+    prng,
+    speed_of_light=299792458,
 ):
     """
     Returns photon-bunches emitted by a star-like source of light.

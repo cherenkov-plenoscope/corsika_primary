@@ -333,7 +333,7 @@ def cherenkov_threshold_lorentz_factor(refractive_index):
     # 1 = (1 - b^2) g^2
     # 1 / (1 - b^2) = g^2
     # g = sq(1 / (1 - b^2))
-    return np.sqrt(1 / (1 - beta ** 2))
+    return np.sqrt(1 / (1 - beta**2))
 
 
 class Zoo:
@@ -389,10 +389,10 @@ class Zoo:
 
         p2 = momentum_GeV[0] ** 2 + momentum_GeV[1] ** 2 + momentum_GeV[2] ** 2
         m = self.mass_GeV(corsika_id)
-        m2 = m ** 2
+        m2 = m**2
 
         c = 1.0
-        c2 = c ** 2
+        c2 = c**2
 
         lorentz = np.sqrt(m2 * c2 + p2) / (m * c)
 

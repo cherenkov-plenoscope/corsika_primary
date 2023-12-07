@@ -7,7 +7,11 @@ from . import I
 
 class EventTapeWriter:
     def __init__(
-        self, path, payload_shape_1, payload_block_suffix, buffer_capacity,
+        self,
+        path,
+        payload_shape_1,
+        payload_block_suffix,
+        buffer_capacity,
     ):
         """
         Write a Tape. Add RUNH, EVTH, and payload.
@@ -113,7 +117,10 @@ class EventTapeWriter:
 
 class EventTapeReader:
     def __init__(
-        self, path, payload_block_suffix, func_read_payload_block,
+        self,
+        path,
+        payload_block_suffix,
+        func_read_payload_block,
     ):
         """
         Read an event-tape written by the CORSIKA-primary-mod.
@@ -173,7 +180,10 @@ class EventTapeReader:
 
 class PayloadReader:
     def __init__(
-        self, run, payload_block_suffix, func_read_payload_block,
+        self,
+        run,
+        payload_block_suffix,
+        func_read_payload_block,
     ):
         self.run = run
         self.block_number = 1
@@ -195,7 +205,8 @@ class PayloadReader:
             path=self.run.next_info.name
         )
         payload_block = self.func_read_payload_block(
-            tar=self.run.tar, tarinfo=self.run.next_info,
+            tar=self.run.tar,
+            tarinfo=self.run.next_info,
         )
         self.block_number += 1
         self.run.next_info = self.run.tar.next()
@@ -321,7 +332,8 @@ def write_evth(tar, evth, run_number, event_number):
     tar_write(
         tar=tar,
         filename=EVTH_FILENAME.format(
-            run_number=run_number, event_number=event_number,
+            run_number=run_number,
+            event_number=event_number,
         ),
         filebytes=evth.tobytes(),
     )

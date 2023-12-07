@@ -32,7 +32,13 @@ def eventio_to_simpleio(
     merlict_eventio_converter, eventio_path, simpleio_path
 ):
     rc = subprocess.call(
-        [merlict_eventio_converter, "-i", eventio_path, "-o", simpleio_path,]
+        [
+            merlict_eventio_converter,
+            "-i",
+            eventio_path,
+            "-o",
+            simpleio_path,
+        ]
     )
     assert rc == 0
 

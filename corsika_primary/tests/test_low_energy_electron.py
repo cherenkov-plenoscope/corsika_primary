@@ -28,7 +28,9 @@ def debug_dir(pytestconfig):
 
 
 def test_low_energy_electron(
-    corsika_primary_path, corsika_vanilla_path, debug_dir,
+    corsika_primary_path,
+    corsika_vanilla_path,
+    debug_dir,
 ):
     """
     I found televt_ not beeing called for some electron (id=3) or

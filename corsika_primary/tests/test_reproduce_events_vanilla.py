@@ -70,7 +70,9 @@ def hash_cherenkov_pools(
 
 
 def test_reproduce_events_vanilla(
-    corsika_vanilla_path, merlict_eventio_converter, debug_dir,
+    corsika_vanilla_path,
+    merlict_eventio_converter,
+    debug_dir,
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
@@ -105,7 +107,6 @@ def test_reproduce_events_vanilla(
     fails_as_expected = True
     report = ""
     for pkey in PARTICLES:
-
         run_id = 1
         num_shower = 15
         particle_id = PARTICLES[pkey]["particle_id"]

@@ -46,7 +46,7 @@ def test_init():
         c = 1
         E = threshold_total_energy_GeV[pkey]
         m = zoo.mass_GeV(PAR[pkey])
-        p = np.sqrt((E ** 2 / c ** 2) - m ** 2 * c ** 2)
+        p = np.sqrt((E**2 / c**2) - m**2 * c**2)
         momentum_GeV = p
 
         assert zoo.cherenkov_emission(

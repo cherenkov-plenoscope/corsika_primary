@@ -27,7 +27,9 @@ def debug_dir(pytestconfig):
 
 
 def test_runtime_differences(
-    corsika_primary_path, corsika_vanilla_path, debug_dir,
+    corsika_primary_path,
+    corsika_vanilla_path,
+    debug_dir,
 ):
     tmp = cpw.testing.TmpDebugDir(
         debug_dir=debug_dir,
@@ -78,7 +80,8 @@ def test_runtime_differences(
             "OBSLEV {:f}".format(1e2 * obs_level_asl_m),
             "FIXCHI {:f}".format(starting_depth_g_per_cm2),
             "MAGNET {Bx:3.3e} {Bz:3.3e}".format(
-                Bx=earth_magnetic_field_x_muT, Bz=earth_magnetic_field_z_muT,
+                Bx=earth_magnetic_field_x_muT,
+                Bz=earth_magnetic_field_z_muT,
             ),
             "ELMFLG T T",
             "MAXPRT 1",

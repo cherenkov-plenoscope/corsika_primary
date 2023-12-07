@@ -62,7 +62,10 @@ def make_random_steering_dict(
 
 
 def hash_cherenkov_pools(
-    corsika_primary_path, steering_dict, tmp_key, tmp_dir,
+    corsika_primary_path,
+    steering_dict,
+    tmp_key,
+    tmp_dir,
 ):
     os.makedirs(tmp_dir, exist_ok=True)
     run_path = os.path.join(tmp_dir, tmp_key)
@@ -81,7 +84,6 @@ def hash_cherenkov_pools(
             stdout_path=run_path + ".o",
             stderr_path=run_path + ".e",
         ) as run:
-
             for event in run:
                 evth, cer_reader = event
 
@@ -106,7 +108,10 @@ def hash_cherenkov_pools(
 
 
 def make_run_and_cherry_pick_event_ids_to_reproduce(
-    corsika_primary_path, steering_dict, event_ids_to_reproduce, tmp_dir,
+    corsika_primary_path,
+    steering_dict,
+    event_ids_to_reproduce,
+    tmp_dir,
 ):
     os.makedirs(tmp_dir, exist_ok=True)
 

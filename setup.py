@@ -17,7 +17,9 @@ setuptools.setup(
     url="https://github.com/cherenkov-plenoscope/corsika_install.git",
     author="Sebastian Achim Mueller",
     author_email="sebastian-achim.mueller@mpi-hd.mpg.de",
-    packages=["corsika_primary",],
+    packages=[
+        "corsika_primary",
+    ],
     package_data={
         "corsika_primary": ["tests/resources/*", "scripts/install.py"]
     },

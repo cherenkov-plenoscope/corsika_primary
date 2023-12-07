@@ -66,7 +66,6 @@ def tape_to_dat(tape_path, dat_path):
     with ParticleEventTapeReader(tape_path) as irun:
         with open(dat_path, "wb") as stream:
             with dat.RunWriter(stream=stream) as orun:
-
                 orun.write_runh(irun.runh)
 
                 for event in irun:
