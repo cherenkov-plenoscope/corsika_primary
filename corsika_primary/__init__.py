@@ -16,6 +16,7 @@ from . import particles
 from . import cherenkov
 
 MAX_ZENITH_DEG = 70.0
+MAX_ZENITH_RAD = np.deg2rad(MAX_ZENITH_DEG)
 CM2M = 1e-2
 M2CM = 1e2
 
