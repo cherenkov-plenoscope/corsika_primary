@@ -309,7 +309,7 @@ def primary_bytes_by_idx(primary_bytes, idx):
     return primary_bytes[bstart:bstop]
 
 
-def write_steerings_and_seeds(path, runs):
+def write_steerings(path, runs):
     with tarfile.open(path + ".tmp", "w") as tarfout:
         for run_id in runs:
             run = runs[run_id]
@@ -325,16 +325,10 @@ def write_steerings_and_seeds(path, runs):
                     path="{:09d}.steering.bin".format(run_id),
                     payload=buff.read(),
                 )
-            csv = random.seed.dumps(run["event_seeds"]).encode("ascii")
-            _tar_write(
-                tarfout=tarfout,
-                path="{:09d}.event_seeds.csv".format(run_id),
-                payload=csv,
-            )
     shutil.move(path + ".tmp", path)
 
 
-def read_steerings_and_seeds(path):
+def read_steerings(path):
     runs = {}
     with tarfile.open(path, "r") as tarfin:
         while True:
@@ -377,11 +371,6 @@ def read_steerings_and_seeds(path):
                         )
                     assert run["run"]["run_id"] == run_id
                     runs[run_id] = run
-            elif ss == "event_seeds" and bb == "csv":
-                assert run_id in runs
-                with tarfin.extractfile(tarinfo) as f:
-                    csv_str = f.read().decode("ascii")
-                runs[run_id]["event_seeds"] = random.seed.loads(csv_str)
             else:
                 raise ValueError("Unknown file '{:s}'.".format(tarinfo.name))
     return runs

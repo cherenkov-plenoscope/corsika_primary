@@ -132,16 +132,14 @@ def test_steering_dict_io(debug_dir):
         orig[run_id] = {
             "run": make_dummy_run_steering(run_id=run_id, prng=prng),
             "primaries": make_dummy_primaries(num=NUM_EVENTS, prng=prng),
-            "event_seeds": make_dummy_event_seeds(num=NUM_EVENTS, prng=prng),
         }
 
     path = os.path.join(tmp.name, "steering.tar")
-    cpw.steering.write_steerings_and_seeds(path=path, runs=orig)
-    back = cpw.steering.read_steerings_and_seeds(path=path)
+    cpw.steering.write_steerings(path=path, runs=orig)
+    back = cpw.steering.read_steerings(path=path)
 
     for run_id in orig:
         assert orig[run_id]["run"] == back[run_id]["run"]
         assert orig[run_id]["primaries"] == back[run_id]["primaries"]
-        assert orig[run_id]["event_seeds"] == back[run_id]["event_seeds"]
 
     tmp.cleanup_when_no_debug()
