@@ -23,6 +23,7 @@ setuptools.setup(
     package_data={
         "corsika_primary": ["tests/resources/*", "scripts/install.py"]
     },
+    install_requires=["spherical_coordinates"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

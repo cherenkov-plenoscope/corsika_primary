@@ -3,6 +3,7 @@ import subprocess
 import os
 import copy
 import glob
+import spherical_coordinates
 from . import I
 from . import random
 from . import steering
@@ -244,3 +245,84 @@ def make_example_steering_for_particle_output():
         },
     ]
     return ste
+
+
+def draw_cherenkov_bunches_from_point_source(
+    instrument_sphere_x_cm,
+    instrument_sphere_y_cm,
+    instrument_sphere_radius_cm,
+    source_azimuth_rad,
+    source_zenith_rad,
+    source_distance_to_instrument_cm,
+    prng,
+    size=100,
+    bunch_size_low=0.9,
+    bunch_size_high=1.0,
+    wavelength_low_nm=350,
+    wavelength_high_nm=550,
+    speed_of_ligth_cm_per_ns=29.9792458,
+    observation_level_asl_cm=0.0,
+):
+    assert speed_of_ligth_cm_per_ns > 0
+    assert bunch_size_low >= 0
+    assert bunch_size_high >= bunch_size_low
+    assert wavelength_low_nm > 0.0
+    assert wavelength_high_nm >= wavelength_low_nm
+    assert size >= 0
+    assert instrument_sphere_radius_cm >= 0.0
+
+    BUNCH = I.BUNCH
+    b = np.zeros(shape=(size, BUNCH.NUM_FLOAT32), dtype=np.float32)
+
+    source_impact_direction = np.array(
+        spherical_coordinates.az_zd_to_cx_cy_cz(
+            azimuth_rad=source_azimuth_rad,
+            zenith_rad=source_zenith_rad,
+        )
+    )
+
+    instrument_position = np.array(
+        [instrument_sphere_x_cm, instrument_sphere_y_cm, 0.0]
+    )
+
+    source_position = (
+        instrument_position
+        + source_distance_to_instrument_cm * source_impact_direction
+    )
+
+    for i in range(size):
+        px_cm, py_cm = random.distributions.draw_x_y_in_disc(
+            prng=prng, radius=instrument_sphere_radius_cm
+        )
+        impact_position = np.array(
+            [
+                px_cm + instrument_sphere_x_cm,
+                py_cm + instrument_sphere_y_cm,
+                0.0,
+            ]
+        )
+        b[i, BUNCH.X_CM] = impact_position[0]
+        b[i, BUNCH.Y_CM] = impact_position[1]
+
+        photon_incident_path = source_position - impact_position
+        photon_incident_path_length_cm = np.linalg.norm(photon_incident_path)
+        photon_incident = photon_incident_path / photon_incident_path_length_cm
+
+        b[i, BUNCH.CX_RAD] = photon_incident[0]
+        b[i, BUNCH.CY_RAD] = photon_incident[1]
+
+        b[i, BUNCH.TIME_NS] = (
+            photon_incident_path_length_cm / speed_of_ligth_cm_per_ns
+        )
+        b[i, BUNCH.EMISSOION_ALTITUDE_ASL_CM] = (
+            source_position[2] + observation_level_asl_cm
+        )
+
+    b[:, BUNCH.BUNCH_SIZE_1] = prng.uniform(
+        low=bunch_size_low, high=bunch_size_high, size=size
+    )
+    b[:, BUNCH.WAVELENGTH_NM] = prng.uniform(
+        low=wavelength_low_nm, high=wavelength_high_nm, size=size
+    )
+
+    return b
