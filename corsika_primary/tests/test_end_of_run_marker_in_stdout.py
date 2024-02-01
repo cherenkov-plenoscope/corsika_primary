@@ -1,10 +1,10 @@
 import corsika_primary as cpw
 import os
-import pkg_resources
+from importlib import resources as importlib_resources
 
 
-resource_dir = pkg_resources.resource_filename(
-    "corsika_primary", os.path.join("tests", "resources")
+resource_dir = os.path.join(
+    importlib_resources.files("corsika_primary"), "tests", "resources"
 )
 
 
