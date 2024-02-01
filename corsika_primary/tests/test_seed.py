@@ -12,7 +12,7 @@ def test_csv_dumps_loads():
         for seq in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
             kk = {}
             for key in ["SEED", "CALLS", "BILLIONS"]:
-                kk[key] = np.int32(prng.uniform(1e6))
+                kk[key] = np.int32(prng.uniform(low=0.0, high=1e6, size=1)[0])
             seeds[event_id].append(kk)
 
     csv = cpw.random.seed.dumps(seeds=seeds)

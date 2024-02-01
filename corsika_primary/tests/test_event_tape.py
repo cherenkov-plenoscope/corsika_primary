@@ -16,14 +16,14 @@ def debug_dir(pytestconfig):
 
 
 def make_dummy_runh(prng, run_number):
-    runh = prng.uniform(size=273).astype(np.float32)
+    runh = prng.uniform(low=0, high=1, size=273).astype(np.float32)
     runh[cpw.I.RUNH.MARKER] = cpw.I.RUNH.MARKER_FLOAT32
     runh[cpw.I.RUNH.RUN_NUMBER] = np.float32(run_number)
     return runh
 
 
 def make_dummy_evth(prng, run_number, event_number):
-    ehtv = prng.uniform(size=273).astype(np.float32)
+    ehtv = prng.uniform(low=0, high=1, size=273).astype(np.float32)
     ehtv[cpw.I.EVTH.MARKER] = cpw.I.EVTH.MARKER_FLOAT32
     ehtv[cpw.I.EVTH.RUN_NUMBER] = np.float32(run_number)
     ehtv[cpw.I.EVTH.EVENT_NUMBER] = np.float32(event_number)
@@ -31,7 +31,9 @@ def make_dummy_evth(prng, run_number, event_number):
 
 
 def make_dummy_bunches(prng, num_bunches):
-    bunches = prng.uniform(size=8 * num_bunches).astype(np.float32)
+    bunches = prng.uniform(low=0, high=1, size=8 * num_bunches).astype(
+        np.float32
+    )
     bunches = np.reshape(bunches, (num_bunches, 8))
     return bunches
 
@@ -40,12 +42,12 @@ def make_dummy_run(prng, run_number, avg_num_events, avg_num_bunches):
     run = {}
     run["RUNH"] = make_dummy_runh(prng=prng, run_number=run_number)
     run["events"] = {}
-    num_events = int(prng.uniform(avg_num_events))
+    num_events = int(prng.uniform(low=0, high=1, size=avg_num_events)[0])
     num_events = max([num_events, 1])
 
     for event_number in np.arange(1, num_events + 1):
         event_number = int(event_number)
-        num_bunches = int(prng.uniform(avg_num_bunches))
+        num_bunches = int(prng.uniform(low=0, high=1, size=avg_num_bunches)[0])
         run["events"][event_number] = {
             "EVTH": make_dummy_evth(
                 prng=prng, run_number=run_number, event_number=event_number

@@ -15,25 +15,29 @@ def debug_dir(pytestconfig):
     return pytestconfig.getoption("debug_dir")
 
 
+def uniform(prng, low, high):
+    return prng.uniform(low=low, high=high, size=1)[0]
+
+
 def make_dummy_run_steering(run_id, prng):
     run = {
         "run_id": i8(run_id),
-        "event_id_of_first_event": i8(prng.uniform(100)),
-        "observation_level_asl_m": f8(prng.uniform(5000)),
-        "earth_magnetic_field_x_muT": f8(prng.uniform(25)),
-        "earth_magnetic_field_z_muT": f8(prng.uniform(25)),
-        "atmosphere_id": i8(prng.uniform(10)),
+        "event_id_of_first_event": i8(uniform(prng=prng, low=0, high=100)),
+        "observation_level_asl_m": f8(uniform(prng=prng, low=0, high=5000)),
+        "earth_magnetic_field_x_muT": f8(uniform(prng=prng, low=0, high=25)),
+        "earth_magnetic_field_z_muT": f8(uniform(prng=prng, low=0, high=25)),
+        "atmosphere_id": i8(uniform(prng=prng, low=0, high=10)),
         "energy_range": {
-            "start_GeV": f8(prng.uniform(low=1, high=2)),
-            "stop_GeV": f8(prng.uniform(low=10, high=20)),
+            "start_GeV": f8(uniform(prng=prng, low=1, high=2)),
+            "stop_GeV": f8(uniform(prng=prng, low=10, high=20)),
         },
     }
     run["random_seed"] = []
     for j in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
         state = {
-            "SEED": i4(prng.uniform(100)),
-            "CALLS": i4(prng.uniform(100)),
-            "BILLIONS": i4(prng.uniform(100)),
+            "SEED": i4(uniform(prng=prng, low=0, high=100)),
+            "CALLS": i4(uniform(prng=prng, low=0, high=100)),
+            "BILLIONS": i4(uniform(prng=prng, low=0, high=100)),
         }
         run["random_seed"].append(state)
     return run
@@ -43,10 +47,10 @@ def make_dummy_primaries(num, prng):
     primaries = []
     for i in range(num):
         prm = {}
-        prm["particle_id"] = f8(prng.uniform(100))
-        prm["energy_GeV"] = f8(1 + prng.uniform(5))
-        prm["zenith_rad"] = f8(prng.uniform(1))
-        prm["azimuth_rad"] = f8(prng.uniform(2) - 1)
+        prm["particle_id"] = f8(uniform(prng=prng, low=0, high=100))
+        prm["energy_GeV"] = f8(1 + uniform(prng=prng, low=0, high=5))
+        prm["zenith_rad"] = f8(uniform(prng=prng, low=0, high=1))
+        prm["azimuth_rad"] = f8(uniform(prng=prng, low=0, high=2) - 1)
         prm["depth_g_per_cm2"] = f8(0.0)
         cpw.steering.assert_dtypes_primary_dict(prm)
         primaries.append(prm)
@@ -59,9 +63,9 @@ def make_dummy_event_seeds(num, prng):
         event_seeds[event_id] = []
         for seq in range(cpw.random.seed.NUM_RANDOM_SEQUENCES):
             state = {
-                "SEED": i4(prng.uniform(1e6)),
-                "CALLS": i4(prng.uniform(1e6)),
-                "BILLIONS": i4(prng.uniform(1e6)),
+                "SEED": i4(uniform(prng=prng, low=0, high=1e6)),
+                "CALLS": i4(uniform(prng=prng, low=0, high=1e6)),
+                "BILLIONS": i4(uniform(prng=prng, low=0, high=1e6)),
             }
             event_seeds[event_id].append(state)
     return event_seeds
