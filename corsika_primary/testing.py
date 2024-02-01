@@ -4,6 +4,7 @@ import os
 import copy
 import glob
 import spherical_coordinates
+import tempfile
 from . import I
 from . import random
 from . import steering
