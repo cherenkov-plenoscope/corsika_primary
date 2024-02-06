@@ -9,6 +9,7 @@ from . import I
 from . import random
 from . import steering
 from . import particles
+from . import cherenkov
 
 
 class TmpDebugDir:
@@ -327,3 +328,130 @@ def draw_cherenkov_bunches_from_point_source(
     )
 
     return b
+
+
+def printf_histogram(
+    x,
+    bin_edges=None,
+    bin_count_fmt="{: 6.1f}",
+    bin_edge_fmt="{: 6.1f}",
+    counts_max=None,
+    num_rows=6,
+):
+    bin_counts = np.histogram(x, bins=bin_edges)[0]
+
+    if counts_max is None:
+        counts_max = np.max(bin_counts)
+    counts_per_row = counts_max / num_rows
+
+    s = ""
+    for rr in np.arange(num_rows, -1, -1):
+        s += "   "
+        for bb in range(len(bin_counts)):
+            upper_row_counts_threshold = rr * counts_per_row
+            lower_row_counts_threshold = (rr - 1) * counts_per_row
+
+            if (
+                upper_row_counts_threshold
+                >= bin_counts[bb]
+                > lower_row_counts_threshold
+            ):
+                s += (
+                    ("." + bin_count_fmt + ".")
+                    .format(bin_counts[bb])
+                    .replace(" ", "_")
+                )
+            elif upper_row_counts_threshold < bin_counts[bb]:
+                s += "|       |"
+            else:
+                s += "         "
+        s += "\n"
+
+    if bin_edges is not None:
+        for ee in range(len(bin_edges)):
+            s += (bin_edge_fmt + "   ").format(bin_edges[ee])
+    return s
+
+
+def print_cherenkov_run(
+    path,
+    x_bin_edges=np.linspace(-100, 100, 11),
+    cx_bin_edges_deg=np.linspace(-10, 10, 11),
+):
+    run = cherenkov.CherenkovEventTapeReader(path)
+
+    for event in run:
+        evth, cerreader = event
+        cer = np.concatenate([b for b in cerreader])
+
+        run_id = int(evth[I.EVTH.RUN_NUMBER])
+        event_id = int(evth[I.EVTH.EVENT_NUMBER])
+        energy_GeV = evth[I.EVTH.TOTAL_ENERGY_GEV]
+        num_cer = len(cer)
+        size_cer = np.sum(cer[:, I.BUNCH.BUNCH_SIZE_1])
+        x = 1e-2 * np.median(cer[:, I.BUNCH.X_CM])
+        y = 1e-2 * np.median(cer[:, I.BUNCH.Y_CM])
+        r_max = 1e-2 * np.max(
+            np.hypot(cer[:, I.BUNCH.X_CM], cer[:, I.BUNCH.Y_CM])
+        )
+
+        cx = np.rad2deg(np.median(cer[:, I.BUNCH.CX_RAD]))
+        cy = np.rad2deg(np.median(cer[:, I.BUNCH.CY_RAD]))
+
+        cr_max = np.rad2deg(
+            np.max(np.hypot(cer[:, I.BUNCH.CX_RAD], cer[:, I.BUNCH.CY_RAD]))
+        )
+
+        print(
+            "run:{: 6d}, event:{: 6d}, energy:{: 8.1f}GeV, num:{: 6d}, size:{: 6.0f}, x:{: 6.1f}m, y:{: 6.1f}m, r-max:{: 6.1f}m, cx:{: 6.1f}deg, cy:{: 6.1f}deg, cr-max:{: 6.1f}deg".format(
+                run_id,
+                event_id,
+                energy_GeV,
+                num_cer,
+                size_cer,
+                x,
+                y,
+                r_max,
+                cx,
+                cy,
+                cr_max,
+            )
+        )
+        print("x-histogram / m")
+        print("---------------")
+        print(
+            printf_histogram(
+                x=1e-2 * cer[:, I.BUNCH.X_CM],
+                bin_edges=x_bin_edges,
+                bin_count_fmt="{: 7d}",
+            )
+        )
+
+        print("y-histogram / m")
+        print("---------------")
+        print(
+            printf_histogram(
+                x=1e-2 * cer[:, I.BUNCH.Y_CM],
+                bin_edges=x_bin_edges,
+                bin_count_fmt="{: 7d}",
+            )
+        )
+
+        print("cx-histogram / DEG")
+        print("------------------")
+        print(
+            printf_histogram(
+                x=np.rad2deg(cer[:, I.BUNCH.CX_RAD]),
+                bin_edges=cx_bin_edges_deg,
+                bin_count_fmt="{: 7d}",
+            )
+        )
+        print("cy-histogram / DEG")
+        print("------------------")
+        print(
+            printf_histogram(
+                x=np.rad2deg(cer[:, I.BUNCH.CY_RAD]),
+                bin_edges=cx_bin_edges_deg,
+                bin_count_fmt="{: 7d}",
+            )
+        )
