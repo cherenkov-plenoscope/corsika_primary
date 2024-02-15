@@ -14,6 +14,8 @@ from . import collect_version_information
 from . import calibration_light_source
 from . import particles
 from . import cherenkov
+from . import configfile
+
 
 MAX_ZENITH_DEG = 70.0
 MAX_ZENITH_RAD = np.deg2rad(MAX_ZENITH_DEG)
