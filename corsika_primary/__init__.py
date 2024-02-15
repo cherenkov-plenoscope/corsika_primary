@@ -24,13 +24,13 @@ M2CM = 1e2
 
 
 def corsika_primary(
-    corsika_path,
     steering_dict,
     cherenkov_output_path,
     particle_output_path,
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
+    corsika_path=None,
 ):
     """
     Call CORSIKA-primary and write Cherenkov-photons to cherenkov_output_path.
@@ -40,22 +40,28 @@ def corsika_primary(
 
     Parameters
     ----------
-    corsika_path : str
-        Path to corsika's executable in its 'run' directory.
     steering_dict : dict
         The steering for the run and for each primary particle.
     cherenkov_output_path : str
         Path to tape-archive with Cherenkov-photons.
     particle_output_path : str
-        Path to particles.dat
+        Path to write the particle output to.
     stdout_path : str
         Path to write CORSIKA's std-out to.
         If None: cherenkov_output_path + 'stdout'
     stderr_path : str
         Path to write CORSIKA's std-error to.
         If None: cherenkov_output_path + 'stderr'
+    corsika_path : str (default: None)
+        Path to corsika's executable in its 'run' directory.
+        This is the modified corsika-primary executable.
+        If None, the path is looked up in the user's configfile
+        ~/.corsika_primary.json
     """
     op = os.path
+    if corsika_path is None:
+        corsika_path = configfile.read()["corsika_primary"]
+
     corsika_path = op.abspath(corsika_path)
     steering_dict = copy.deepcopy(steering_dict)
     cherenkov_output_path = op.abspath(cherenkov_output_path)
@@ -126,12 +132,12 @@ def corsika_primary(
 
 
 def corsika_vanilla(
-    corsika_path,
     steering_card,
     cherenkov_output_path,
     stdout_path=None,
     stderr_path=None,
     tmp_dir_prefix="corsika_primary_",
+    corsika_path=None,
 ):
     """
     Call vanilla CORSIKA-7.56 and write Cherenkov-photons to cherenkov_output_path.
@@ -141,8 +147,6 @@ def corsika_vanilla(
 
     Parameters
     ----------
-    corsika_path : str
-        Path to corsika's executable in its 'run' directory.
     steering_card : str
         The steering-card for vanilla CORSIKA-7.56.
     cherenkov_output_path : str
@@ -153,8 +157,16 @@ def corsika_vanilla(
     stderr_path : str
         Path to write CORSIKA's std-error to.
         If None: cherenkov_output_path + 'stderr'
+    corsika_path : str (default: None)
+        Path to corsika's executable in its 'run' directory.
+        This is the vanilla corsika executable.
+        If None, the path is looked up in the user's configfile
+        ~/.corsika_primary.json
     """
     op = os.path
+    if corsika_path is None:
+        corsika_path = configfile.read()["corsika_vanilla"]
+
     corsika_path = op.abspath(corsika_path)
     cherenkov_output_path = op.abspath(cherenkov_output_path)
     steering_card = steering.overwrite_telfil_in_steering_card_str(
@@ -204,12 +216,12 @@ def corsika_vanilla(
 class CorsikaPrimary:
     def __init__(
         self,
-        corsika_path,
         steering_dict,
         stdout_path,
         stderr_path,
         particle_output_path,
         tmp_dir_prefix="corsika_primary_",
+        corsika_path=None,
     ):
         """
         Inits a run-handle which can return the next event on demand.
@@ -220,16 +232,23 @@ class CorsikaPrimary:
 
         Parameters
         ----------
-        corsika_path : str
-            Path to corsika's executable in its 'run' directory.
         steering_dict : dict
             The steering for the run and for each primary particle.
         stdout_path : str
             Path to write CORSIKA's std-out to.
         stderr_path : str
             Path to write CORSIKA's std-error to.
+        particle_output_path : str
+            Path to write the particle output to.
+        corsika_path : str (default: None)
+            Path to corsika's executable in its 'run' directory.
+            This is the modified corsika-primary executable.
+            If None, the path is looked up in the user's configfile
+            ~/.corsika_primary.json
         """
         op = os.path
+        if corsika_path is None:
+            corsika_path = configfile.read()["corsika_primary"]
 
         self.corsika_path = op.abspath(corsika_path)
         self.steering_dict = copy.deepcopy(steering_dict)

@@ -2,7 +2,7 @@ import os
 import json_utils
 
 
-def get_configfile_path(programname="corsika_primary"):
+def get_configfile_path(programname="corsika_primary.json"):
     return os.path.join(os.path.expanduser("~"), "." + programname)
 
 
@@ -25,7 +25,6 @@ def default(build_dir):
     out = {
         "corsika_primary": os.path.join(
             os.path.abspath(build_dir),
-            "corsika",
             "modified",
             "corsika-75600",
             "run",
@@ -33,7 +32,6 @@ def default(build_dir):
         ),
         "corsika_vanilla": os.path.join(
             os.path.abspath(build_dir),
-            "corsika",
             "vanilla",
             "corsika-75600",
             "run",
