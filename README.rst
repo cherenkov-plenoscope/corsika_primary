@@ -1,4 +1,6 @@
-# CORSIKA-primary-modification
+############################
+CORSIKA primary modification
+############################
 
 <p align="center">
 <img

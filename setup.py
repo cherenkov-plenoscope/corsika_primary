@@ -1,27 +1,37 @@
 import setuptools
 import os
 
-with open("README.md", "r") as f:
+with open("README.rst", "r", encoding="utf-8") as f:
     long_description = f.read()
 
-version = {}
-with open(os.path.join("corsika_primary/version.py")) as f:
-    exec(f.read(), version)
+
+with open(os.path.join("corsika_primary", "version.py")) as f:
+    txt = f.read()
+    last_line = txt.splitlines()[-1]
+    version_string = last_line.split()[-1]
+    version = version_string.strip("\"'")
+
 
 setuptools.setup(
     name="corsika_primary",
-    version=version["__version__"],
-    description="Call the modified CORSIKA-primary in a thread safe way.",
+    version=version,
+    description="Install and call the CORSIKA-primary mod.",
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/cherenkov-plenoscope/corsika_install.git",
+    long_description_content_type="text/x-rst",
+    url="https://github.com/cherenkov-plenoscope/corsika_primary",
     author="Sebastian Achim Mueller",
     author_email="sebastian-achim.mueller@mpi-hd.mpg.de",
     packages=[
         "corsika_primary",
+        "corsika_primary.I",
+        "corsika_primary.particles",
+        "corsika_primary.random",
     ],
     package_data={
-        "corsika_primary": ["tests/resources/*", "scripts/install.py"]
+        "corsika_primary": [
+            os.path.join("tests", "resources", "*"),
+            os.path.join("scripts", "install.py"),
+        ]
     },
     install_requires=["spherical_coordinates"],
     classifiers=[
