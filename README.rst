@@ -3,39 +3,51 @@ CORSIKA primary modification
 ############################
 |TestStatus| |BlackStyle| |BlackPackStyle| |MITLicenseBadge|
 
-Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays. This is based on CORSIKA-7.56 with minor modifications to gain more control over the primary particle.
+Install the `KIT-CORSIKA`_ simulation for air-showers of cosmic-rays and gamma-rays. This is based on CORSIKA-7.56 with minor modifications to gain more control over the primary particle.
+
+
 
 The mod overcomes two limitations of vanilla CORSIKA-7.56:
+
 - Export all Cherenkov-photons (dedicated format EventTape allows TBytes of output).
+
 - Control every primary particle's direction, energy, type, and starting-depth.
 
 This repository:
+
 - Installs vanilla CORSIKA-7.56
+
 - Installs the CORSIKA-primary-modification
+
 - Provides a `python`-package to call and test the CORSIKA-primary-modification
 
-## CORSIKA-primary-modification
+Install
+=======
 
-### Install
-```bash
-./corsika_primary/scripts/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
-```
-This installs both the vanilla CORSIKA-7.56, and our CORSIKA-primary-modification to the ```install_path```.
+.. code-block:: bash
+
+    ./corsika_primary/scripts/install.py --install_path corsika --username=<CORSIKA-username> --password=<CORSIKA-password> --resource_path ./corsika_install/resources
+
+This installs both the vanilla CORSIKA-7.56, and our CORSIKA-primary-modification to the ``install_path``.
 For CORSIKA's credentials (`username` and `password`), drop the [CORSIKA-team](https://www.ikp.kit.edu/corsika/index.php) an email, and express your interest in cosmic-rays. They will send you the credentials.
 
 This modification allows you to control the:
-```python
-{
-    "particle_id": 1,
-    "energy_GeV": 1.32,
-    "zenith_rad": 0.0,
-    "azimuth_rad": 0.0,
-    "depth_g_per_cm2": 0.0,
-}
-```
+
+.. code-block:: python
+
+    {
+        "particle_id": 1,
+        "energy_GeV": 1.32,
+        "zenith_rad": 0.0,
+        "azimuth_rad": 0.0,
+        "depth_g_per_cm2": 0.0,
+    }
+
+
 of each primary particle. When starting CORSIKA, you provide a steering-card which specifies all properties which can not be changed over a CORSIKA-run, and a second additional file which lists all the properties of the primary particles.
 
-### Steering-dictionary
+Steering dictionary
+-------------------
 A CORSIKA-run is fully described by a steering-dictionary:
 
 ```python
@@ -207,6 +219,8 @@ The ```PRMFIL``` contains ```NSHOW``` of such blocks.
 ```bash
 black -l 79 .
 ```
+
+.. _`KIT-CORSIKA`: https://www.ikp.kit.edu/corsika/
 
 .. |BlackStyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
