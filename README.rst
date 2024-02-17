@@ -37,7 +37,7 @@ Make sure you have a ``Fortran 77`` compiler. If you use the ``gfortran`` from t
         --resource_path ./corsika_primary/resources
 
 This builds both the vanilla CORSIKA-7.56, and our CORSIKA-primary modification to the ``install_path`` named ``/path/to/build/corsika``.
-The script ``./corsika_primary/scripts/install.py`` can either be provided the path ``--corsika_tar`` to the ``corsika-75600.tar.gz``, OR it can be provided with the corsika credentials to download the `corsika-75600.tar.gz`` all by itself. See the parameters ``--username`` and ``--password``. However, this second option is error prone as it depends on the latest known ``URL``.
+The script ``./corsika_primary/scripts/install.py`` can either be provided the path ``--corsika_tar`` to the ``corsika-75600.tar.gz``, OR it can be provided with the CORSIKA credentials to download the `corsika-75600.tar.gz`` all by itself. See the parameters ``--username`` and ``--password``. However, this second option is error prone as it depends on the latest known ``URL``.
 For CORSIKA's credentials (`username` and `password`), drop the `CORSIKA team`_ an email, and express your interest in cosmic-rays. They will send you the credentials.
 
 2) You install the python package ``corsika_primary``.
@@ -48,7 +48,7 @@ For CORSIKA's credentials (`username` and `password`), drop the `CORSIKA team`_ 
 
 The ``-e`` (editable) is only needed for development when you want to modify the local sources.
 
-3) You must tell the python package where it can find the corsika executables which you build in step (1). This is done using a configfile ``~/.corika_primary.json`` which lives in the user's home. This slution is not perfect by any means but here we are now. See the modue ``coriska_primary.configfile``.
+3) You must tell the python package where it can find the CORSIKA executables which you build in step (1). This is done using a configfile ``~/.corika_primary.json`` which lives in the user's home. This slution is not perfect by any means but here we are now. See the modue ``coriska_primary.configfile``.
 
 .. code-block:: bash
 
@@ -60,8 +60,9 @@ The ``-e`` (editable) is only needed for development when you want to modify the
 
 Test
 ====
-The installer installs both the vanilla and the modified CORSIKA to allow testing for equality of both versions.
-The tests need the explicit paths to the corsika executables, and the merlict-eventio-converter.
+The main goal of the tests is to make sure that the CORSIKA primary mod creates the same (bit equall) output as the vanilla CORSIKA when it is called with the corresponing steering card.
+The ``install.py`` always builds both the vanilla and the modified CORSIKA to allow testing for equality of both versions.
+The tests need the explicit paths to the CORSIKA executables, and the ``merlict-eventio-converter``.
 
 .. code-block:: bash
 
@@ -193,7 +194,7 @@ Photon-bunch:
 
 
 
-The std-error is expected to be empty. You can also manually provide a ``corsika_path`` to the corsika executable. Otherwise ``corsika_primary`` will look up the path from its configfile.
+The std-error is expected to be empty. You can also manually provide a ``corsika_path`` to the CORSIKA executable. Otherwise ``corsika_primary`` will look up the path from its configfile.
 
 
 Example steering card
