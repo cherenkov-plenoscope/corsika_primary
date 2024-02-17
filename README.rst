@@ -77,6 +77,18 @@ See all options defined in: ``./corsika_primary/corsika_primary/tests/conftest.p
 Usage
 =====
 
+``corsika_primary`` is a python package to test and call the CORSIKA-primary modification.
+The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
+
+.. code-block:: python
+
+    import corsika_primary
+    
+    corsika_primary.corsika_primary(
+        steering_dict=STEERING_DICT,
+        output_path="/path/to/my/output/run.tar"
+    )
+
 This modification allows you to control the:
 
 .. code-block:: python
@@ -179,29 +191,9 @@ Photon-bunch:
              float 32            float 32            float 32            float 32
 
 
-## corsika-primary
-The ```corsika_primary``` is a `python` package to test and call the CORSIKA-primary-modification.
-The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
-
-### Install
-```bash
-pip install -e ./corsika_primary
-```
-Use pip's ```-e``` option if you want to modify the package in place.
 
 
-### Call
-In python do:
-```python
-import corsika_primary as cpw
-
-cpw.corsika_primary(
-    corsika_path="/path/to/my/modified/corsika-75600/run/corsika75600Linux_QGSII_urqmd",
-    steering_dict=STEERING_DICT,
-    output_path="/path/to/my/output/run.tar")
-```
-The std-error is expected to be empty. The ```corsika_path``` must be the executable within its "run"-directory.
-
+The std-error is expected to be empty. You can also manually provide a ``corsika_path`` to the corsika executable. Otherwise ``corsika_primary`` will look up the path from its configfile.
 
 
 Example steering card
@@ -231,7 +223,7 @@ Example steering card
     TELFIL /some/path/different_starting_depths.tar
     EXIT
 
-Note the abscence of steering for properties which can be changed from event to event. Such as ```PHIP```, ```THETAP```, ```CSCATT```, and ```ESLOPE```. Also the ```SEED```s are missing. Such properties are now explicitly defined for each primary particle seperately in a dedicated file located at the path defined in ```PRMFIL```.
+Note the abscence of steering for properties which can be changed from event to event. Such as ``PHIP``, ``THETAP``, ``CSCATT``, and ``ESLOPE``. Also the ``SEED`` s are missing. Such properties are now explicitly defined for each primary particle seperately in a dedicated file located at the path defined in ``PRMFIL``.
 
 
 Primary-particle-block
@@ -262,6 +254,7 @@ Codestyle
 ---------
 
 .. code-block:: bash
+
     black -l 79
 
 
