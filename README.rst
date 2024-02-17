@@ -1,7 +1,7 @@
 ############################
 CORSIKA primary modification
 ############################
-|TestStatus| |BlackStyle| |BlackPackStyle| |MITLicenseBadge|
+|BlackStyle| |BlackPackStyle| |MITLicenseBadge|
 
 Install the `KIT-CORSIKA`_ simulation for air-showers of cosmic-rays and gamma-rays. This is based on CORSIKA-7.56 with minor modifications to gain more control over the primary particle.
 
@@ -261,9 +261,6 @@ The ``PRMFIL`` contains ``NSHOW`` of such blocks.
 
 .. |BlackStyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
-
-.. |TestStatus| image:: https://github.com/cherenkov-plenoscope/corsika_primary/actions/workflows/test.yml/badge.svg?branch=main
-    :target: https://github.com/cherenkov-plenoscope/corsika_primary/actions/workflows/test.yml
 
 .. |BlackPackStyle| image:: https://img.shields.io/badge/pack%20style-black-000000.svg
     :target: https://github.com/cherenkov-plenoscope/black_pack
