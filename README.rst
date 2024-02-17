@@ -196,6 +196,9 @@ Photon-bunch:
 
 The std-error is expected to be empty. You can also manually provide a ``corsika_path`` to the CORSIKA executable. Otherwise ``corsika_primary`` will look up the path from its configfile.
 
+Calling the CORSIKA executable directly without the ``corsika_primary`` package
+===============================================================================
+You need to provide a steering card to CORSIKA's sdtin and you need to write a primary file (``PRIMFIL``) into CORSIKA's run directory.
 
 Example steering card
 ---------------------
@@ -250,13 +253,6 @@ The ``PRMFIL`` is a binary file. It contains a series of blocks. Each block desc
 
 The ``PRMFIL`` contains ``NSHOW`` of such blocks.
 
-
-Codestyle
----------
-
-.. code-block:: bash
-
-    black -l 79
 
 
 .. _`KIT-CORSIKA`: https://www.ikp.kit.edu/corsika/
