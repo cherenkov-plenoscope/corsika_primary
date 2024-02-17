@@ -1,17 +1,7 @@
 ############################
 CORSIKA primary modification
 ############################
-
-<p align="center">
-<img
-    alt="License: GPL v3"
-    src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"
->
-<img
-    alt="Code style: black"
-    src="https://img.shields.io/badge/code%20style-black-000000.svg"
->
-</p>
+|TestStatus| |BlackStyle| |BlackPackStyle| |MITLicenseBadge|
 
 Install the [KIT-CORSIKA](https://www.ikp.kit.edu/corsika/) simulation for air-showers of cosmic-rays and gamma-rays. This is based on CORSIKA-7.56 with minor modifications to gain more control over the primary particle.
 
@@ -217,4 +207,17 @@ The ```PRMFIL``` contains ```NSHOW``` of such blocks.
 ```bash
 black -l 79 .
 ```
+
+.. |BlackStyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
+.. |TestStatus| image:: https://github.com/cherenkov-plenoscope/corsika_primary/actions/workflows/test.yml/badge.svg?branch=main
+    :target: https://github.com/cherenkov-plenoscope/corsika_primary/actions/workflows/test.yml
+
+.. |BlackPackStyle| image:: https://img.shields.io/badge/pack%20style-black-000000.svg
+    :target: https://github.com/cherenkov-plenoscope/black_pack
+
+.. |MITLicenseBadge| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
+    :target: https://opensource.org/licenses/MIT
+
 
