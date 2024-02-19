@@ -143,14 +143,3 @@ def install_corsika(
         shutil.copy(atmprof, "run")
 
     assert os.path.isfile(os.path.join("run", "corsika75600Linux_QGSII_urqmd"))
-
-
-def typical_corsika_primary_mod_path(build_dir="build"):
-    return os.path.join(
-        build_dir,
-        "corsika",
-        "modified",
-        "corsika-75600",
-        "run",
-        "corsika75600Linux_QGSII_urqmd",
-    )
