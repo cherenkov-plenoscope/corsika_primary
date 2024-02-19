@@ -25,7 +25,15 @@ Install
 =======
 The installation has three steps.
 
-First, you must build the CORSIKA executable itself. There is a script which does this in a reproducible manner for the specific use of the Cherenkov plenoscope.
+First, you must install the python package ``corsika_primary``.
+
+.. code-block:: bash
+
+    pip install -e ./corsika_primary
+
+The ``-e`` (editable) is only needed for development when you want to modify the local sources.
+
+Second, you must build the CORSIKA executable itself. There is a script which does this in a reproducible manner for the specific use of the Cherenkov plenoscope.
 
 Make sure you have a ``Fortran 77`` compiler. If you use the ``gfortran`` from the gnu compiler collection (gcc) it might be necessary to create an alias ``F77`` or ``f77`` for the ``gfortran``.
 
@@ -40,15 +48,7 @@ This builds both the vanilla CORSIKA-7.56, and our CORSIKA-primary modification 
 The script ``./corsika_primary/scripts/install.py`` can either be provided the path ``--corsika_tar`` to the ``corsika-75600.tar.gz``, OR it can be provided with the CORSIKA credentials to download the `corsika-75600.tar.gz`` all by itself. See the parameters ``--username`` and ``--password``. However, this second option is error prone as it depends on the latest known ``URL``.
 For CORSIKA's credentials (`username` and `password`), drop the `CORSIKA team`_ an email, and express your interest in cosmic-rays. They will send you the credentials.
 
-Second, you must install the python package ``corsika_primary``.
-
-.. code-block:: bash
-
-    pip install -e ./corsika_primary
-
-The ``-e`` (editable) is only needed for development when you want to modify the local sources.
-
-Thrird, you must tell the python package where it can find the CORSIKA executables which you build in step (1). This is done using a configfile ``~/.corika_primary.json`` which lives in the user's home. This slution is not perfect by any means but here we are now. See the modue ``coriska_primary.configfile``.
+Thrird, you must tell the python package where it can find the CORSIKA executables. This is done using a configfile ``~/.corika_primary.json`` which lives in the user's home. See the modue ``coriska_primary.configfile``.
 
 .. code-block:: bash
 
