@@ -315,13 +315,13 @@ def test_vanilla_vs_moddified(
 
                 if ori_bunches.shape[0] == mod_bunches.shape[0]:
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.CX_RAD],
-                        y=ori_bunches[:, cpw.I.BUNCH.CX_RAD],
+                        x=mod_bunches[:, cpw.I.BUNCH.UX_1],
+                        y=ori_bunches[:, cpw.I.BUNCH.UX_1],
                         decimal=5,
                     )
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.CY_RAD],
-                        y=ori_bunches[:, cpw.I.BUNCH.CY_RAD],
+                        x=mod_bunches[:, cpw.I.BUNCH.VY_1],
+                        y=ori_bunches[:, cpw.I.BUNCH.VY_1],
                         decimal=5,
                     )
 
@@ -373,15 +373,15 @@ def test_vanilla_vs_moddified(
                     DET_XO = 0.0
                     DET_YO = 0.0
                     DET_ZO = telescope_sphere_radius_m
-                    cx2_cy2 = (
-                        mod_bunches[:, cpw.I.BUNCH.CX_RAD] ** 2
-                        + mod_bunches[:, cpw.I.BUNCH.CY_RAD] ** 2
+                    ux2_vy2 = (
+                        mod_bunches[:, cpw.I.BUNCH.UX_1] ** 2
+                        + mod_bunches[:, cpw.I.BUNCH.VY_1] ** 2
                     )
-                    mod_sx = mod_bunches[:, cpw.I.BUNCH.CX_RAD] / np.sqrt(
-                        1.0 - cx2_cy2
+                    mod_sx = mod_bunches[:, cpw.I.BUNCH.UX_1] / np.sqrt(
+                        1.0 - ux2_vy2
                     )
-                    mod_sy = mod_bunches[:, cpw.I.BUNCH.CY_RAD] / np.sqrt(
-                        1.0 - cx2_cy2
+                    mod_sy = mod_bunches[:, cpw.I.BUNCH.VY_1] / np.sqrt(
+                        1.0 - ux2_vy2
                     )
 
                     mod_x_wrt_detector_sphere = (
