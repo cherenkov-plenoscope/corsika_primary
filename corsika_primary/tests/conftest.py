@@ -26,7 +26,10 @@ def pytest_addoption(parser):
         "--merlict_eventio_converter",
         action="store",
         default=os.path.join(
-            ".", "build", "merlict", "merlict-eventio-converter"
+            ".",
+            "build",
+            "merlict_development_kit",
+            "merlict-eventio-converter",
         ),
     )
     parser.addoption("--debug_dir", action="store", default="")
