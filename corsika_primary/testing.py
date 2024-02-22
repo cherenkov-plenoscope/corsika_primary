@@ -443,11 +443,15 @@ def print_cherenkov_run(
             np.hypot(cer[:, I.BUNCH.X_CM], cer[:, I.BUNCH.Y_CM])
         )
 
-        cx = np.rad2deg(np.median(cer[:, I.BUNCH.CX_RAD]))
-        cy = np.rad2deg(np.median(cer[:, I.BUNCH.CY_RAD]))
+        cer_median_momentum_ux = np.median(cer[:, I.BUNCH.UX_1])
+        cer_median_momentum_vy = np.median(cer[:, I.BUNCH.VY_1])
 
+        MOMENTUM_TO_POINTING = -1.0
+
+        cx = np.rad2deg(MOMENTUM_TO_POINTING * cer_median_momentum_ux)
+        cy = np.rad2deg(MOMENTUM_TO_POINTING * cer_median_momentum_vy)
         cr_max = np.rad2deg(
-            np.max(np.hypot(cer[:, I.BUNCH.CX_RAD], cer[:, I.BUNCH.CY_RAD]))
+            np.max(np.hypot(cer[:, I.BUNCH.UX_1], cer[:, I.BUNCH.VY_1]))
         )
 
         print(
@@ -489,7 +493,7 @@ def print_cherenkov_run(
         print("------------------")
         print(
             printf_histogram(
-                x=np.rad2deg(cer[:, I.BUNCH.CX_RAD]),
+                x=np.rad2deg(MOMENTUM_TO_POINTING * cer[:, I.BUNCH.UX_1]),
                 bin_edges=cx_bin_edges_deg,
                 bin_count_fmt="{: 7d}",
             )
@@ -498,7 +502,7 @@ def print_cherenkov_run(
         print("------------------")
         print(
             printf_histogram(
-                x=np.rad2deg(cer[:, I.BUNCH.CY_RAD]),
+                x=np.rad2deg(MOMENTUM_TO_POINTING * cer[:, I.BUNCH.VY_1]),
                 bin_edges=cx_bin_edges_deg,
                 bin_count_fmt="{: 7d}",
             )
