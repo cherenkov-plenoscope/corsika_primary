@@ -50,12 +50,14 @@ def draw_parallel_and_isochor_bunches(
             prng=prng, radius=aperture_radius
         )
 
-    bun[:, I.BUNCH.CX_RAD] = cx
-    bun[:, I.BUNCH.CY_RAD] = cy
+    MOMENTUM_TO_INCIDENT = -1.0
+
+    bun[:, I.BUNCH.UX_1] = MOMENTUM_TO_INCIDENT * cx
+    bun[:, I.BUNCH.VY_1] = MOMENTUM_TO_INCIDENT * cy
 
     delta_path_lengths = (
-        bun[:, I.BUNCH.CX_RAD] * bun[:, I.BUNCH.X_CM]
-        + bun[:, I.BUNCH.CY_RAD] * bun[:, I.BUNCH.Y_CM]
+        bun[:, I.BUNCH.UX_1] * bun[:, I.BUNCH.X_CM]
+        + bun[:, I.BUNCH.VY_1] * bun[:, I.BUNCH.Y_CM]
     )
     bun[:, I.BUNCH.TIME_NS] = delta_path_lengths / speed_of_light
 
