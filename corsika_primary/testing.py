@@ -265,6 +265,56 @@ def draw_cherenkov_bunches_from_point_source(
     speed_of_ligth_cm_per_ns=29.9792458,
     observation_level_asl_cm=0.0,
 ):
+    """
+    KIT-CORSIKA coordinate-system
+    -----------------------------
+
+    *                   /| z-axis                                              *
+    *                   |                                                      *
+    *                   || p                                                   *
+    *                   | | a                                                  *
+    *                   |  | r                                                 *
+    *                   |   | t                                                *
+    *                   |    | i                                               *
+    *                   |     | c                                              *
+    *                   |      | l                                             *
+    *                   |       | e                                            *
+    *                   |        |                                             *
+    *                   |  theta  | m                                          *
+    *                   |       ___| o                                         *
+    *                   |___----    | m      ___                               *
+    *                   |            | e       /| y-axis (west)                *
+    *                   |             | n    /                                 *
+    *                   |              | t /                                   *
+    *                   |               |/u                                    *
+    *                   |              / | m                                   *
+    *                   |            /    |                                    *
+    *                   |          /       |                                   *
+    *                   |        /__________|                                  *
+    *                   |      /      ___---/                                  *
+    *                   |    /   __---    /                                    *
+    *                   |  /__--- phi | /                                      *
+    *   ________________|/--__________/______| x-axis (north)                  *
+    *                  /|                    /                                 *
+    *                /  |                                                      *
+    *              /    |                                                      *
+    *            /                                                             *
+    *                                                                          *
+    *                                                                          *
+        Extensive Air Shower Simulation with CORSIKA, Figure 1, page 114
+        (Version 7.6400 from December 27, 2017)
+
+        Direction-cosines:
+
+        u = sin(theta) * cos(phi)
+        v = sin(theta) * sin(phi)
+
+        The zenith-angle theta opens relative to the negative z-axis.
+
+        It is the momentum of the Cherenkov-photon, which is pointing
+        down towards the observation-plane.
+
+    """
     assert speed_of_ligth_cm_per_ns > 0
     assert bunch_size_low >= 0
     assert bunch_size_high >= bunch_size_low
@@ -296,26 +346,24 @@ def draw_cherenkov_bunches_from_point_source(
         px_cm, py_cm = random.distributions.draw_x_y_in_disc(
             prng=prng, radius=instrument_sphere_radius_cm
         )
-        impact_position = np.array(
+        impact = np.array(
             [
                 px_cm + instrument_sphere_x_cm,
                 py_cm + instrument_sphere_y_cm,
                 0.0,
             ]
         )
-        b[i, BUNCH.X_CM] = impact_position[0]
-        b[i, BUNCH.Y_CM] = impact_position[1]
+        b[i, BUNCH.X_CM] = impact[0]
+        b[i, BUNCH.Y_CM] = impact[1]
 
-        photon_incident_path = source_position - impact_position
-        photon_incident_path_length_cm = np.linalg.norm(photon_incident_path)
-        photon_incident = photon_incident_path / photon_incident_path_length_cm
+        photon_path = -source_position + impact
+        photon_path_length_cm = np.linalg.norm(photon_path)
+        photon_momentum = photon_path / photon_path_length_cm
 
-        b[i, BUNCH.CX_RAD] = photon_incident[0]
-        b[i, BUNCH.CY_RAD] = photon_incident[1]
+        b[i, BUNCH.UX_1] = photon_momentum[0]
+        b[i, BUNCH.VY_1] = photon_momentum[1]
 
-        b[i, BUNCH.TIME_NS] = (
-            photon_incident_path_length_cm / speed_of_ligth_cm_per_ns
-        )
+        b[i, BUNCH.TIME_NS] = photon_path_length_cm / speed_of_ligth_cm_per_ns
         b[i, BUNCH.EMISSOION_ALTITUDE_ASL_CM] = (
             source_position[2] + observation_level_asl_cm
         )

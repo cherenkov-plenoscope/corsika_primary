@@ -3,6 +3,8 @@ NUM_BYTES = NUM_FLOAT32 * 4
 
 X_CM = 0
 Y_CM = 1
+UX_1 = 2
+VY_1 = 3
 CX_RAD = 2
 CY_RAD = 3
 TIME_NS = 4

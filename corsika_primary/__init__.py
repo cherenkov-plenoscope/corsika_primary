@@ -14,6 +14,7 @@ from . import collect_version_information
 from . import calibration_light_source
 from . import particles
 from . import cherenkov
+from . import cherenkov_bunches
 from . import configfile
 
 

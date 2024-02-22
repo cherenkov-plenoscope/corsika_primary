@@ -39,17 +39,11 @@ def test_drawing_cherenkov_photons():
                 for i in range(len(bunches)):
                     x = bunches[i, cpw.I.BUNCH.X_CM]
                     y = bunches[i, cpw.I.BUNCH.Y_CM]
-                    cx = bunches[i, cpw.I.BUNCH.CX_RAD]
-                    cy = bunches[i, cpw.I.BUNCH.CY_RAD]
+                    ux = bunches[i, cpw.I.BUNCH.UX_1]
+                    vy = bunches[i, cpw.I.BUNCH.VY_1]
 
-                    impact = np.array([x, y, 0])
-                    incident = np.array(
-                        [
-                            cx,
-                            cy,
-                            spherical_coordinates.restore_cz(cx=cx, cy=cy),
-                        ]
-                    )
+                    impact = cpw.cherenkov_bunches.impact(x=x, y=y)
+                    momentum = cpw.cherenkov_bunches.momentum(ux=ux, vy=vy)
 
                     alpha_cm = (
                         bunches[i, cpw.I.BUNCH.TIME_NS]
@@ -57,7 +51,7 @@ def test_drawing_cherenkov_photons():
                     )
 
                     reconstructed_source_position = (
-                        impact + alpha_cm * incident
+                        impact + alpha_cm * (-1) * momentum
                     )
 
                     delta_cm = np.linalg.norm(
@@ -75,12 +69,20 @@ def test_drawing_cherenkov_photons():
                     < 10.0
                 )
 
+                cherenkov_median_momentum = cpw.cherenkov_bunches.momentum(
+                    ux=np.median(bunches[:, cpw.I.BUNCH.UX_1]),
+                    vy=np.median(bunches[:, cpw.I.BUNCH.VY_1]),
+                )
+                cherenkov_median_pointing_direction = (
+                    -1.0
+                ) * cherenkov_median_momentum
+
                 assert np.abs(
-                    np.median(bunches[:, cpw.I.BUNCH.CX_RAD])
+                    cherenkov_median_pointing_direction[0]
                     - expected_source_incident[0]
                 ) < np.deg2rad(5.0)
                 assert np.abs(
-                    np.median(bunches[:, cpw.I.BUNCH.CY_RAD])
+                    cherenkov_median_pointing_direction[1]
                     - expected_source_incident[1]
                 ) < np.deg2rad(5.0)
 
