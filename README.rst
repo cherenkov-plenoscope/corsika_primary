@@ -21,8 +21,9 @@ This repository:
 
 - Provides a `python`-package to call and test the CORSIKA-primary-modification
 
+*******
 Install
-=======
+*******
 The installation has three steps.
 
 First, you must install the python package ``corsika_primary``.
@@ -58,8 +59,9 @@ Thrird, you must tell the python package where it can find the CORSIKA executabl
         "corsika_vanilla": "/path/to/build/corsika/vanilla/corsika-75600/run/corsika75600Linux_QGSII_urqmd"
     }
 
-Test
-====
+*******
+Testing
+*******
 The main goal of the tests is to make sure that the CORSIKA primary mod creates the same (bit equall) output as the vanilla CORSIKA when it is called with the corresponing steering card.
 The ``install.py`` always builds both the vanilla and the modified CORSIKA to allow testing for equality of both versions.
 The tests need the explicit paths to the CORSIKA executables, and the ``merlict-eventio-converter``.
@@ -75,8 +77,40 @@ The tests need the explicit paths to the CORSIKA executables, and the ``merlict-
 
 See all options defined in: ``./corsika_primary/corsika_primary/tests/conftest.py``
 
+*******************
+Coordinates systems
+*******************
+
+|img_frame|
+
+CORSIKA has a mindset of particles running down in the
+atmosphere towards the surface of the earth. This is, the particles have
+(mostly) momentum into negative ``z`` direction and are running towards the
+``xy`` plane.
+Because of this, the spherical coordinates used by CORSIKA point towards the
+negative ``z`` direction by default (for phi=0, theta=0).
+
+On the other hand, astronomy has a mindset of looking up into the sky, into
+positive ``z`` direction away from the ``xy`` plane.
+Because of this, the spherical coordiantes used in astronomy point towards the
+positive ``z`` direction by default (for azimuth=0, zenith distance=0).
+
+CORSIKA's spherical coordinates are ``phi``-``theta``. They are used in e.g. the
+input of CORSIKA and can be defined in the steering card as ``PHIP`` and
+``THETAP``. Note in the figure how ``theta`` starts to open from the negative
+``z`` axis.
+
+On the other hand, astronomy's spherical coordinates are
+``azimuth``-``zenith distance``. (Astronomy has many coordinate systems but to
+discuss the pointing of a telescope on earth, azimuth and zenith are rather
+common).
+Note in the figure how ``zenith`` starts to open from the positive ``z`` axis.
+
+See also our package on `spherical coordinates`_
+
+*****
 Usage
-=====
+*****
 
 ``corsika_primary`` is a python package to test and call the CORSIKA-primary modification.
 The wrapper can call CORSIKA thread safe to run multiple instances in parallel. Also it provies a simplified interface to steer the simulation with a single dictionary.
@@ -259,6 +293,8 @@ The ``PRMFIL`` contains ``NSHOW`` of such blocks.
 
 .. _`CORSIKA team`: https://www.ikp.kit.edu/corsika/index.php
 
+.. _`spherical coordinates`: https://github.com/cherenkov-plenoscope/spherical_coordinates
+
 .. |BlackStyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
@@ -268,4 +304,5 @@ The ``PRMFIL`` contains ``NSHOW`` of such blocks.
 .. |MITLicenseBadge| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
     :target: https://opensource.org/licenses/MIT
 
-
+.. |img_frame| image:: https://github.com/cherenkov-plenoscope/spherical_coordinates/blob/main/readme/frame.png?raw=True
+    :target: https://github.com/cherenkov-plenoscope/spherical_coordinates
