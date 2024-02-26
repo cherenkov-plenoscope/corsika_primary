@@ -1,4 +1,7 @@
 import struct
+import numpy as np
+import spherical_coordinates
+
 
 MARKER_FLOAT32 = struct.unpack("f", "EVTH".encode())[0]
 
@@ -13,7 +16,7 @@ NUMBER_OF_FIRST_TARGET_IF_FIXED = 6 - 1
 Z_FIRST_INTERACTION_CM = 7 - 1
 PX_MOMENTUM_GEV_PER_C = 8 - 1
 PY_MOMENTUM_GEV_PER_C = 9 - 1
-PZ_MOMENTUM_GEV_PER_C = 10 - 1
+PZ_MOMENTUM_IN_NEGATIVE_Z_DIRECTION_GEV_PER_C = 10 - 1
 THETA_RAD = 11 - 1
 PHI_RAD = 12 - 1
 # The manual says theta is the zenith and phi is the azimuth.
@@ -84,3 +87,36 @@ def Y_CORE_CM(reuse):
 
 
 STARTING_HEIGHT_CM = 158 - 1
+
+
+def get_momentum_vector_GeV_per_c(evth):
+    momentum = np.zeros(3, dtype=np.float64)
+    momentum[0] = evth[PX_MOMENTUM_GEV_PER_C]
+    momentum[1] = evth[PY_MOMENTUM_GEV_PER_C]
+    _mom_in_negative_z = evth[PZ_MOMENTUM_IN_NEGATIVE_Z_DIRECTION_GEV_PER_C]
+    momentum[2] = (-1) * _mom_in_negative_z
+    return momentum
+
+
+def get_direction_uxvywz(evth):
+    mom = get_momentum_vector_GeV_per_c(evth=evth)
+    return mom / np.linalg.norm(mom)
+
+
+def get_direction_phi_theta(evth):
+    return evth[PHI_RAD], evth[THETA_RAD]
+
+
+def get_pointing_cxcycz(evth):
+    ux, vy, wz = get_direction_uxvywz(evth=evth)
+    cx = spherical_coordinates.corsika.ux_to_cx(ux=ux)
+    cy = spherical_coordinates.corsika.vy_to_cy(vy=vy)
+    cz = spherical_coordinates.corsika.wz_to_cz(wz=wz)
+    return np.array([cx, cy, cz])
+
+
+def get_pointing_az_zd(evth):
+    return spherical_coordinates.corsika.phi_theta_to_az_zd(
+        phi_rad=evth[PHI_RAD],
+        theta_rad=evth[THETA_RAD],
+    )
