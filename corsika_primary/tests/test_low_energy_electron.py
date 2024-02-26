@@ -5,7 +5,6 @@ import corsika_primary as cpw
 import inspect
 import numpy as np
 from os import path as op
-import subprocess
 
 i4 = np.int32
 i8 = np.int64
