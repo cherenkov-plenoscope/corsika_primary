@@ -131,8 +131,8 @@ This modification allows you to control the:
     {
         "particle_id": 1,
         "energy_GeV": 1.32,
-        "zenith_rad": 0.0,
-        "azimuth_rad": 0.0,
+        "theta_rad": 0.0,
+        "phi_rad": 0.0,
         "depth_g_per_cm2": 0.0,
     }
 
@@ -165,15 +165,15 @@ A CORSIKA run is fully described by a steering dictionary:
             {
                 "particle_id": 1,
                 "energy_GeV": 1.32,
-                "zenith_rad": 0.0,
-                "azimuth_rad": 0.0,
+                "theta_rad": 0.0,
+                "phi_rad": 0.0,
                 "depth_g_per_cm2": 0.0,
             },
             {
                 "particle_id": 3,
                 "energy_GeV": 1.52,
-                "zenith_rad": 0.1,
-                "azimuth_rad": 0.2,
+                "theta_rad": 0.1,
+                "phi_rad": 0.2,
                 "depth_g_per_cm2": 3.6,
             },
         ],
@@ -276,7 +276,7 @@ The ``PRMFIL`` is a binary file. It contains a series of blocks. Each block desc
                        float 64 bit                            float 64 bit
 
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
-    --> |        zenith-distnce in rad          |   azimuth rel. to mag. north in rad   | -->
+    --> |             theta in rad              |     phi rel. to mag. north in rad     | -->
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                        float 64 bit                            float 64 bit
 
