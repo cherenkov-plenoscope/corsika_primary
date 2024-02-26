@@ -84,7 +84,7 @@ The wrapper can call CORSIKA thread safe to run multiple instances in parallel. 
 .. code-block:: python
 
     import corsika_primary
-    
+
     corsika_primary.corsika_primary(
         steering_dict=STEERING_DICT,
         output_path="/path/to/my/output/run.tar"
@@ -185,7 +185,7 @@ Photon-bunch:
         |      x / cm       |      y / cm       |      cx / rad     |      cy / rad     | -->
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
              float 32            float 32            float 32            float 32
-    
+
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
     --> |     time / ns     |  z-emission / cm  |  bunch-size / 1   |  wavelength / nm  |
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
@@ -240,12 +240,12 @@ The ``PRMFIL`` is a binary file. It contains a series of blocks. Each block desc
         |             particle id               |            energy in GeV              | -->
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                        float 64 bit                            float 64 bit
-    
+
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
     --> |        zenith-distnce in rad          |   azimuth rel. to mag. north in rad   | -->
         +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                        float 64 bit                            float 64 bit
-    
+
         +----+----+----+----+----+----+----+----+
     --> |      starting depth in g cm^{-2}      |  -->
         +----+----+----+----+----+----+----+----+
