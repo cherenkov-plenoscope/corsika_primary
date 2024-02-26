@@ -2,6 +2,8 @@ import struct
 
 MARKER_FLOAT32 = struct.unpack("f", "EVTH".encode())[0]
 
+# See Table 9 on pages 118, 119 in the CORSIKA 7.56 manual
+
 MARKER = 1 - 1
 EVENT_NUMBER = 2 - 1
 PARTICLE_ID = 3 - 1
@@ -12,8 +14,16 @@ Z_FIRST_INTERACTION_CM = 7 - 1
 PX_MOMENTUM_GEV_PER_C = 8 - 1
 PY_MOMENTUM_GEV_PER_C = 9 - 1
 PZ_MOMENTUM_GEV_PER_C = 10 - 1
-ZENITH_RAD = 11 - 1
-AZIMUTH_RAD = 12 - 1
+
+ZENITH_RAD = 11 - 1  # <- obsolete
+AZIMUTH_RAD = 12 - 1  # <- obsolete
+
+THETA_RAD = 11 - 1
+PHI_RAD = 12 - 1
+# the manual even says theta is the zenith phi is the azimuth. But this
+# does conflict with the common definition of zenith distance which opens from
+# the positive z-axis. CORSIKA's theta/zenith angle opens from the negative
+# z-axis.
 
 NUM_DIFFERENT_RANDOM_SEQUENCES = 13 - 1
 

@@ -33,7 +33,7 @@ setuptools.setup(
             os.path.join("scripts", "install.py"),
         ]
     },
-    install_requires=["spherical_coordinates"],
+    install_requires=["spherical_coordinates>=1.1.0"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
