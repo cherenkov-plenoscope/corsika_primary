@@ -17,10 +17,7 @@ from . import cherenkov
 from . import cherenkov_bunches
 from . import configfile
 
-MAX_THETA_DEG = 70.0
-MAX_THETA_RAD = np.deg2rad(MAX_THETA_DEG)
-
-MAX_ZENITH_DISTANCE_DEG = MAX_THETA_DEG
+MAX_THETA_RAD = np.deg2rad(70.0)
 MAX_ZENITH_DISTANCE_RAD = MAX_THETA_RAD
 
 CM2M = 1e-2
