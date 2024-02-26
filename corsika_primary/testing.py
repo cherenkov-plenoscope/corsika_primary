@@ -426,6 +426,9 @@ def print_cherenkov_run(
     x_bin_edges=np.linspace(-100, 100, 11),
     cx_bin_edges_deg=np.linspace(-10, 10, 11),
 ):
+    ux_to_cx = spherical_coordinates.corsika.ux_to_cx
+    vy_to_cy = spherical_coordinates.corsika.vy_to_cy
+
     run = cherenkov.CherenkovEventTapeReader(path)
 
     for event in run:
@@ -446,10 +449,8 @@ def print_cherenkov_run(
         cer_median_momentum_ux = np.median(cer[:, I.BUNCH.UX_1])
         cer_median_momentum_vy = np.median(cer[:, I.BUNCH.VY_1])
 
-        MOMENTUM_TO_POINTING = -1.0
-
-        cx = np.rad2deg(MOMENTUM_TO_POINTING * cer_median_momentum_ux)
-        cy = np.rad2deg(MOMENTUM_TO_POINTING * cer_median_momentum_vy)
+        cx = np.rad2deg(ux_to_cx(ux=cer_median_momentum_ux))
+        cy = np.rad2deg(vy_to_cy(vy=cer_median_momentum_vy))
         cr_max = np.rad2deg(
             np.max(np.hypot(cer[:, I.BUNCH.UX_1], cer[:, I.BUNCH.VY_1]))
         )
@@ -493,7 +494,7 @@ def print_cherenkov_run(
         print("------------------")
         print(
             printf_histogram(
-                x=np.rad2deg(MOMENTUM_TO_POINTING * cer[:, I.BUNCH.UX_1]),
+                x=np.rad2deg(ux_to_cx(ux=cer[:, I.BUNCH.UX_1])),
                 bin_edges=cx_bin_edges_deg,
                 bin_count_fmt="{: 7d}",
             )
@@ -502,7 +503,7 @@ def print_cherenkov_run(
         print("------------------")
         print(
             printf_histogram(
-                x=np.rad2deg(MOMENTUM_TO_POINTING * cer[:, I.BUNCH.VY_1]),
+                x=np.rad2deg(vy_to_cy(vy=cer[:, I.BUNCH.VY_1])),
                 bin_edges=cx_bin_edges_deg,
                 bin_count_fmt="{: 7d}",
             )

@@ -1,4 +1,5 @@
 import numpy as np
+import spherical_coordinates
 from . import random
 from . import I
 
@@ -50,10 +51,8 @@ def draw_parallel_and_isochor_bunches(
             prng=prng, radius=aperture_radius
         )
 
-    MOMENTUM_TO_INCIDENT = -1.0
-
-    bun[:, I.BUNCH.UX_1] = MOMENTUM_TO_INCIDENT * cx
-    bun[:, I.BUNCH.VY_1] = MOMENTUM_TO_INCIDENT * cy
+    bun[:, I.BUNCH.UX_1] = spherical_coordinates.corsika.cx_to_ux(cx=cx)
+    bun[:, I.BUNCH.VY_1] = spherical_coordinates.corsika.cy_to_vy(cy=cy)
 
     delta_path_lengths = (
         bun[:, I.BUNCH.UX_1] * bun[:, I.BUNCH.X_CM]
