@@ -37,22 +37,22 @@ EXAMPLE = {
         {
             "particle_id": f8(1),
             "energy_GeV": f8(1.32),
-            "zenith_rad": f8(0.0),
-            "azimuth_rad": f8(0.0),
+            "theta_rad": f8(0.0),
+            "phi_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
         },
         {
             "particle_id": f8(1),
             "energy_GeV": f8(1.52),
-            "zenith_rad": f8(0.1),
-            "azimuth_rad": f8(0.2),
+            "theta_rad": f8(0.1),
+            "phi_rad": f8(0.2),
             "depth_g_per_cm2": f8(3.6),
         },
         {
             "particle_id": f8(1),
             "energy_GeV": f8(11.4),
-            "zenith_rad": f8(0.1),
-            "azimuth_rad": f8(0.25),
+            "theta_rad": f8(0.1),
+            "phi_rad": f8(0.25),
             "depth_g_per_cm2": f8(102.2),
         },
     ],
@@ -196,8 +196,8 @@ def primary_dict_to_bytes(primary_dict):
     with io.BytesIO() as f:
         f.write(prmdic["particle_id"].tobytes())
         f.write(prmdic["energy_GeV"].tobytes())
-        f.write(prmdic["zenith_rad"].tobytes())
-        f.write(prmdic["azimuth_rad"].tobytes())
+        f.write(prmdic["theta_rad"].tobytes())
+        f.write(prmdic["phi_rad"].tobytes())
         f.write(prmdic["depth_g_per_cm2"].tobytes())
         f.seek(0)
         return f.read()
@@ -215,8 +215,8 @@ def primary_bytes_to_dict(primary_bytes):
     with io.BytesIO(primary_bytes) as f:
         prm["particle_id"] = _read(f, PRM["particle_id"].dtype.str)
         prm["energy_GeV"] = _read(f, PRM["energy_GeV"].dtype.str)
-        prm["zenith_rad"] = _read(f, PRM["zenith_rad"].dtype.str)
-        prm["azimuth_rad"] = _read(f, PRM["azimuth_rad"].dtype.str)
+        prm["theta_rad"] = _read(f, PRM["theta_rad"].dtype.str)
+        prm["phi_rad"] = _read(f, PRM["phi_rad"].dtype.str)
         prm["depth_g_per_cm2"] = _read(f, PRM["depth_g_per_cm2"].dtype.str)
     assert_dtypes_primary_dict(prm)
     return prm

@@ -44,8 +44,8 @@ def test_runtime_differences(
     earth_magnetic_field_x_muT = 12.5
     earth_magnetic_field_z_muT = -25.9
     atmosphere_id = 10
-    zenith_deg = 15.0
-    azimuth_deg = 0.0
+    theta_deg = 15.0
+    phi_deg = 0.0
     telescope_sphere_radius = 36.0
     seed = cpw.random.seed.make_simple_seed(seed=3141)
 
@@ -62,8 +62,8 @@ def test_runtime_differences(
             "PRMPAR {:d}".format(particle_id),
             "ESLOPE 0",
             "ERANGE {:f} {:f}".format(energy_GeV, energy_GeV),
-            "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
-            "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
+            "THETAP {:f} {:f}".format(theta_deg, theta_deg),
+            "PHIP {:f} {:f}".format(phi_deg, phi_deg),
             "VIEWCONE 0 0",
             "SEED {:d} {:d} {:d}".format(
                 seed[0][_S], seed[0][_C], seed[0][_B]
@@ -144,8 +144,8 @@ def test_runtime_differences(
         prm = {
             "particle_id": f8(particle_id),
             "energy_GeV": f8(energy_GeV),
-            "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
-            "zenith_rad": f8(np.deg2rad(zenith_deg)),
+            "phi_rad": f8(np.deg2rad(phi_deg)),
+            "theta_rad": f8(np.deg2rad(theta_deg)),
             "depth_g_per_cm2": f8(starting_depth_g_per_cm2),
         }
         mod_steering_dict["primaries"].append(prm)

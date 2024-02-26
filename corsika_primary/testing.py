@@ -234,15 +234,15 @@ def make_example_steering_for_particle_output():
         {
             "particle_id": f8(14),
             "energy_GeV": f8(100.0),
-            "zenith_rad": f8(0.0),
-            "azimuth_rad": f8(0.0),
+            "theta_rad": f8(0.0),
+            "phi_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
         },
         {
             "particle_id": f8(402),
             "energy_GeV": f8(180.0),
-            "zenith_rad": f8(0.0),
-            "azimuth_rad": f8(0.0),
+            "theta_rad": f8(0.0),
+            "phi_rad": f8(0.0),
             "depth_g_per_cm2": f8(0.0),
         },
     ]

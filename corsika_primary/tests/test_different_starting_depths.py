@@ -49,8 +49,8 @@ def test_different_starting_depths(corsika_primary_path, debug_dir):
             prm = {
                 "particle_id": f8(1),
                 "energy_GeV": f8(1),
-                "zenith_rad": f8(0.0),
-                "azimuth_rad": f8(0.0),
+                "theta_rad": f8(0.0),
+                "phi_rad": f8(0.0),
                 "depth_g_per_cm2": f8(depth),
             }
             steering_dict["primaries"].append(prm)

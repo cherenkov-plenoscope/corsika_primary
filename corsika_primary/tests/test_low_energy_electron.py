@@ -74,7 +74,7 @@ def test_low_energy_electron(
     particle_id = 2  # positron
     depth_g_per_cm2 = 0.0
     energy = 0.25
-    zenith_deg = 45.0
+    theta_deg = 45.0
     telescope_sphere_radius = 1e3
     seed = cpw.random.seed.make_simple_seed(seed=37)
 
@@ -89,7 +89,7 @@ def test_low_energy_electron(
             "PRMPAR {:d}".format(particle_id),
             "ESLOPE 0",
             "ERANGE {:f} {:f}".format(energy, energy),
-            "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
+            "THETAP {:f} {:f}".format(theta_deg, theta_deg),
             "PHIP {:f} {:f}".format(0.0, 0.0),
             "VIEWCONE 0 0",
             "SEED {:d} {:d} {:d}".format(
@@ -167,8 +167,8 @@ def test_low_energy_electron(
         prm = {
             "particle_id": f8(particle_id),
             "energy_GeV": f8(energy),
-            "zenith_rad": f8(np.deg2rad(zenith_deg)),
-            "azimuth_rad": f8(0.0),
+            "theta_rad": f8(np.deg2rad(theta_deg)),
+            "phi_rad": f8(0.0),
             "depth_g_per_cm2": f8(depth_g_per_cm2),
         }
         mod_steering_dict["primaries"].append(prm)

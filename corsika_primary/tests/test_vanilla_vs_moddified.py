@@ -131,8 +131,8 @@ def test_vanilla_vs_moddified(
     earth_magnetic_field_x_muT = 12.5
     earth_magnetic_field_z_muT = -25.9
     atmosphere_id = 10
-    zenith_deg = 0.0
-    azimuth_deg = 0.0
+    theta_deg = 0.0
+    phi_deg = 0.0
     telescope_sphere_radius_m = 1e4
     seed = cpw.random.seed.make_simple_seed(seed=273)
     _S = "SEED"
@@ -166,8 +166,8 @@ def test_vanilla_vs_moddified(
                 "ERANGE {:f} {:f}".format(
                     cfg[particle]["energy"], cfg[particle]["energy"]
                 ),
-                "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
-                "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
+                "THETAP {:f} {:f}".format(theta_deg, theta_deg),
+                "PHIP {:f} {:f}".format(phi_deg, phi_deg),
                 "VIEWCONE 0 0",
                 "SEED {:d} {:d} {:d}".format(
                     seed[0][_S], seed[0][_C], seed[0][_B]
@@ -254,8 +254,8 @@ def test_vanilla_vs_moddified(
             prm = {
                 "particle_id": f8(cfg[particle]["id"]),
                 "energy_GeV": f8(cfg[particle]["energy"]),
-                "zenith_rad": f8(np.deg2rad(zenith_deg)),
-                "azimuth_rad": f8(np.deg2rad(azimuth_deg)),
+                "theta_rad": f8(np.deg2rad(theta_deg)),
+                "phi_rad": f8(np.deg2rad(phi_deg)),
                 "depth_g_per_cm2": f8(chi_g_per_cm2),
             }
             mod_steering_dict["primaries"].append(prm)
@@ -302,7 +302,7 @@ def test_vanilla_vs_moddified(
             else:
                 print(run, ori_bunches.shape[0], mod_bunches.shape[0])
 
-                if zenith_deg == 0.0 and azimuth_deg == 0.0:
+                if theta_deg == 0.0 and phi_deg == 0.0:
                     # When angles are different from zero, numeric
                     # precision will cause slightly differrent start
                     # values for primary.
@@ -404,11 +404,11 @@ def test_vanilla_vs_moddified(
                         / SPPED_OF_LIGHT_M_PER_S
                     )
 
-                    mod_zenith_rad = mod_evth[cpw.I.EVTH.ZENITH_RAD]
+                    mod_theta_rad = mod_evth[cpw.I.EVTH.THETA_RAD]
 
                     mod_toffset = (
                         (HEIGHT_AT_ZERO_GRAMMAGE_M + obs_level_m)
-                        / np.cos(mod_zenith_rad)
+                        / np.cos(mod_theta_rad)
                         / SPPED_OF_LIGHT_M_PER_S
                     )
 

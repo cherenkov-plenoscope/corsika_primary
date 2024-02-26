@@ -14,16 +14,13 @@ Z_FIRST_INTERACTION_CM = 7 - 1
 PX_MOMENTUM_GEV_PER_C = 8 - 1
 PY_MOMENTUM_GEV_PER_C = 9 - 1
 PZ_MOMENTUM_GEV_PER_C = 10 - 1
-
-ZENITH_RAD = 11 - 1  # <- obsolete
-AZIMUTH_RAD = 12 - 1  # <- obsolete
-
 THETA_RAD = 11 - 1
 PHI_RAD = 12 - 1
-# the manual even says theta is the zenith phi is the azimuth. But this
-# does conflict with the common definition of zenith distance which opens from
-# the positive z-axis. CORSIKA's theta/zenith angle opens from the negative
-# z-axis.
+# The manual says theta is the zenith and phi is the azimuth.
+# However, it is more say to say that theta is relatesd to the zenith so
+# one does not confuse it with common definition of 'zenith distance'.
+# Zenith distance opens from the positive z-axis.
+# But CORSIKA's theta/zenith angle opens from the negative z-axis.
 
 NUM_DIFFERENT_RANDOM_SEQUENCES = 13 - 1
 

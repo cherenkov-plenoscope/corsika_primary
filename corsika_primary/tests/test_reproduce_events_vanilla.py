@@ -116,8 +116,8 @@ def test_reproduce_events_vanilla(
         earth_magnetic_field_x_muT = 12.5
         earth_magnetic_field_z_muT = -25.9
         atmosphere_id = 10
-        zenith_deg = 0.0
-        azimuth_deg = 0.0
+        theta_deg = 0.0
+        phi_deg = 0.0
         telescope_sphere_radius_m = 1e4
         event_ids_to_reproduce = np.arange(1, num_shower + 1)
 
@@ -129,8 +129,8 @@ def test_reproduce_events_vanilla(
                 "PRMPAR {:d}".format(particle_id),
                 "ESLOPE 0",
                 "ERANGE {:f} {:f}".format(energy_GeV, energy_GeV),
-                "THETAP {:f} {:f}".format(zenith_deg, zenith_deg),
-                "PHIP {:f} {:f}".format(azimuth_deg, azimuth_deg),
+                "THETAP {:f} {:f}".format(theta_deg, theta_deg),
+                "PHIP {:f} {:f}".format(phi_deg, phi_deg),
                 "VIEWCONE 0 0",
                 "SEED {seq1SEED:d} {seq1CALLS:d} {seq1BILLIONS:d}",
                 "SEED {seq2SEED:d} {seq2CALLS:d} {seq2BILLIONS:d}",

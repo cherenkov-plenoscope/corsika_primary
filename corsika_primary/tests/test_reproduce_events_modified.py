@@ -53,8 +53,8 @@ def make_random_steering_dict(
         prm = {
             "particle_id": f8(particle_id),
             "energy_GeV": f8(energy_GeV),
-            "zenith_rad": f8(zd),
-            "azimuth_rad": f8(az),
+            "theta_rad": f8(zd),
+            "phi_rad": f8(az),
             "depth_g_per_cm2": f8(0.0),
         }
         steering_dict["primaries"].append(prm)

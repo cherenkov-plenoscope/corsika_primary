@@ -49,8 +49,8 @@ def make_dummy_primaries(num, prng):
         prm = {}
         prm["particle_id"] = f8(uniform(prng=prng, low=0, high=100))
         prm["energy_GeV"] = f8(1 + uniform(prng=prng, low=0, high=5))
-        prm["zenith_rad"] = f8(uniform(prng=prng, low=0, high=1))
-        prm["azimuth_rad"] = f8(uniform(prng=prng, low=0, high=2) - 1)
+        prm["theta_rad"] = f8(uniform(prng=prng, low=0, high=1))
+        prm["phi_rad"] = f8(uniform(prng=prng, low=0, high=2) - 1)
         prm["depth_g_per_cm2"] = f8(0.0)
         cpw.steering.assert_dtypes_primary_dict(prm)
         primaries.append(prm)
@@ -78,9 +78,9 @@ def primary_is_equal(a, b):
         return False
     if a["energy_GeV"] != b["energy_GeV"]:
         return False
-    if a["zenith_rad"] != b["zenith_rad"]:
+    if a["theta_rad"] != b["theta_rad"]:
         return False
-    if a["azimuth_rad"] != b["azimuth_rad"]:
+    if a["phi_rad"] != b["phi_rad"]:
         return False
     if a["depth_g_per_cm2"] != b["depth_g_per_cm2"]:
         return False

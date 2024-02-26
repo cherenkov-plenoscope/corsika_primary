@@ -41,8 +41,8 @@ def test_32bit_limit_high_energy_shower(corsika_primary_path, debug_dir):
             {
                 "particle_id": f8(3),
                 "energy_GeV": f8(3.3e3),
-                "zenith_rad": f8(0.0),
-                "azimuth_rad": f8(0.0),
+                "theta_rad": f8(0.0),
+                "phi_rad": f8(0.0),
                 "depth_g_per_cm2": f8(0.0),
             }
         ],
