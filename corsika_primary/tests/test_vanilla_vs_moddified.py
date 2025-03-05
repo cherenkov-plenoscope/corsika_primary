@@ -462,10 +462,14 @@ def test_vanilla_vs_moddified(
                         ori_y_wrt_mean = _ori_y - np.mean(_ori_y)
 
                         np.testing.assert_array_almost_equal(
-                            actual=mod_x_wrt_mean, desired=ori_x_wrt_mean, decimal=2
+                            actual=mod_x_wrt_mean,
+                            desired=ori_x_wrt_mean,
+                            decimal=2,
                         )
                         np.testing.assert_array_almost_equal(
-                            actual=mod_y_wrt_mean, desired=ori_y_wrt_mean, decimal=2
+                            actual=mod_y_wrt_mean,
+                            desired=ori_y_wrt_mean,
+                            decimal=2,
                         )
         run += 1
 
