@@ -344,7 +344,7 @@ def read_payload_block(tar, tarinfo, shape_1):
     bunches_bin = tar.extractfile(tarinfo).read()
     bunches = np.frombuffer(bunches_bin, dtype=np.float32)
     num_bunches = bunches.shape[0] // (shape_1)
-    return np.reshape(bunches, newshape=(num_bunches, shape_1))
+    return np.reshape(bunches, shape=(num_bunches, shape_1))
 
 
 def tar_write(tar, filename, filebytes):
