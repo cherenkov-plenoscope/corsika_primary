@@ -315,33 +315,33 @@ def test_vanilla_vs_moddified(
 
                 if ori_bunches.shape[0] == mod_bunches.shape[0]:
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.UX_1],
-                        y=ori_bunches[:, cpw.I.BUNCH.UX_1],
+                        actual=mod_bunches[:, cpw.I.BUNCH.UX_1],
+                        desired=ori_bunches[:, cpw.I.BUNCH.UX_1],
                         decimal=5,
                     )
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.VY_1],
-                        y=ori_bunches[:, cpw.I.BUNCH.VY_1],
+                        actual=mod_bunches[:, cpw.I.BUNCH.VY_1],
+                        desired=ori_bunches[:, cpw.I.BUNCH.VY_1],
                         decimal=5,
                     )
 
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[
+                        actual=mod_bunches[
                             :, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM
                         ],
-                        y=ori_bunches[
+                        desired=ori_bunches[
                             :, cpw.I.BUNCH.EMISSOION_ALTITUDE_ASL_CM
                         ],
                         decimal=1,
                     )
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1],
-                        y=ori_bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1],
+                        actual=mod_bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1],
+                        desired=ori_bunches[:, cpw.I.BUNCH.BUNCH_SIZE_1],
                         decimal=6,
                     )
                     np.testing.assert_array_almost_equal(
-                        x=mod_bunches[:, cpw.I.BUNCH.WAVELENGTH_NM],
-                        y=ori_bunches[:, cpw.I.BUNCH.WAVELENGTH_NM],
+                        actual=mod_bunches[:, cpw.I.BUNCH.WAVELENGTH_NM],
+                        desired=ori_bunches[:, cpw.I.BUNCH.WAVELENGTH_NM],
                         decimal=9,
                     )
 
@@ -418,8 +418,8 @@ def test_vanilla_vs_moddified(
                     mod_ctime_wrt_detector_sphere -= mod_toffset
 
                     np.testing.assert_array_almost_equal(
-                        x=mod_ctime_wrt_detector_sphere,
-                        y=ori_bunches[:, cpw.I.BUNCH.TIME_NS],
+                        actual=mod_ctime_wrt_detector_sphere,
+                        desired=ori_bunches[:, cpw.I.BUNCH.TIME_NS],
                         decimal=6,
                     )
 
@@ -430,13 +430,13 @@ def test_vanilla_vs_moddified(
                         # have corrections implemented in iact.c for
                         # deflections in earth's magnetic field.
                         np.testing.assert_array_almost_equal(
-                            x=mod_x_wrt_detector_sphere,
-                            y=ori_bunches[:, cpw.I.BUNCH.X_CM],
+                            actual=mod_x_wrt_detector_sphere,
+                            desired=ori_bunches[:, cpw.I.BUNCH.X_CM],
                             decimal=2,
                         )
                         np.testing.assert_array_almost_equal(
-                            x=mod_y_wrt_detector_sphere,
-                            y=ori_bunches[:, cpw.I.BUNCH.Y_CM],
+                            actual=mod_y_wrt_detector_sphere,
+                            desired=ori_bunches[:, cpw.I.BUNCH.Y_CM],
                             decimal=2,
                         )
 
@@ -462,10 +462,10 @@ def test_vanilla_vs_moddified(
                         ori_y_wrt_mean = _ori_y - np.mean(_ori_y)
 
                         np.testing.assert_array_almost_equal(
-                            x=mod_x_wrt_mean, y=ori_x_wrt_mean, decimal=2
+                            actual=mod_x_wrt_mean, desired=ori_x_wrt_mean, decimal=2
                         )
                         np.testing.assert_array_almost_equal(
-                            x=mod_y_wrt_mean, y=ori_y_wrt_mean, decimal=2
+                            actual=mod_y_wrt_mean, desired=ori_y_wrt_mean, decimal=2
                         )
         run += 1
 
